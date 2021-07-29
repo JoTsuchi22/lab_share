@@ -1,0 +1,38 @@
+PDFTEX = pdflatex
+BIBTEX = bibtex
+
+PDFTEXFLAGS = -file-line-error -halt-on-error -interaction=nonstopmode
+BIBTEXFLAGS =
+
+SOURCES = hoge.tex moge.tex piyo.bib
+TARGET  = hoge.pdf
+
+JOBNAME = $(basename $(TARGET))
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+$(TARGET): $(SOURCES) $(JOBNAME).bbl
+	for i in 1 2 3; \
+	do \
+		if grep '^LaTeX Warning: There were undefined references.' $(JOBNAME).log > /dev/null || grep '^LaTeX Warning: Label(s) may have changed.' $(JOBNAME).log > /dev/null || grep '^Package natbib Warning: There were undefined citations.' $(JOBNAME).log > /dev/null || grep '^Package natbib Warning: Citation(s) may have changed.' $(JOBNAME).log > /dev/null; \
+		then \
+			$(PDFTEX) $(PDFTEXFLAGS) -jobname=$(JOBNAME) $<; \
+		fi; \
+	done
+
+$(JOBNAME).bbl: $(SOURCES)
+	$(PDFTEX) $(PDFTEXFLAGS) -jobname=$(JOBNAME) $<
+	if grep '^\\bibdata' $(JOBNAME).aux > /dev/null && grep '^\\citation' $(JOBNAME).aux > /dev/null; \
+	then \
+		$(BIBTEX) $(BIBTEXFLAGS) $(JOBNAME); \
+	else \
+		touch $@; \
+	fi
+
+clean:
+	rm -f $(TARGET)
+	rm -f $(JOBNAME).log $(JOBNAME).aux
+	rm -f $(JOBNAME).bbl $(JOBNAME).blg
+	rm -f $(addsuffix .aux,$(basename $(SOURCES)))

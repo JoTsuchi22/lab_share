@@ -1,0 +1,95 @@
+輪講メモ
+
+NOTATINAL CONVENTIONS
+表記法(の規約)
+
+As far as possible, we have adopted fairly standard notations.
+可能な限り，かなり標準的な表記法を採用している．
+
+Vectors and matrices are denoted by boldface italic characters.
+ベクトルと行列は，太字のイタリック体で表している．
+
+Scalars and components of vectors, tensors, and matrices are denoted by lightface italic characters.
+スカラー値と，ベクトル，テンソル，行列の成分は，細字のイタリック体で表している．
+
+Cartesian tensor notation is used in the presentation of heat conduction, elasticity, plates, etc.
+熱伝導，弾性，板などの表現には，デカルトテンソル表記を用いる．
+(テンソルの成分の行と列がデカルト座標系に対応している．σ_11がx軸方向の垂直応力に対応しているみたいな．)
+
+The symbol ■(black square) is used to denote the end of a proof.
+この黒い正方形の記号は，証明の終わりを示すのに使用される．
+
+Unavoidably, in a book of this size and scope there are some minor conflicts of notation.
+このようなサイズと範囲の本では、やむを得ず細かい表記の違いが出てくる．
+
+ln instances when this occurs, it is hoped that surrounding explanation and context will make the intended meaning clear.
+このような場合には，周囲の説明や文脈によって意図された意味を明確にすることが望まれる．
+
+All notations are defined when they are introduced.
+すべての表記法は，導入時に定義される．
+
+Principal notations are summarized in a brief glossary following the Preface.
+主な表記法は，序文(Preface)の後の簡単な用語集にまとめられている．
+
+notational: 表記法の
+convention: 慣習
+notation:   表記法
+fairly: かなり
+matrices:   行列(複数形)
+denote: 表示する
+component:  成分
+lightface:  肉細活字
+cartesian:  デカルト
+presentation:   表現
+unavoidably:    やむを得ず
+conflict:   不一致，対立
+instance:   場合
+context:    文脈
+Principal:  主な
+glossary:   用語集
+
+NUMBERING CONVENTIONS
+番号の付け方(の規約)
+
+The book is divided into two parts.
+この本は2つのパートに分かれている．
+
+Chapters 1-6 deal with static analysis, and Chapters 7-11 deal with dynamic analysis. 
+第1章から第6章までは静的解析を，第7章から第11章までは動的解析を扱っている．
+
+The chapters are subdivided into sections and several of the chapters include appendices.
+各章はセクションに分かれており，いくつかの章には付録が付いている．
+
+Some of the sections are further subdivided into subsections.
+いくつかのセクションでは，さらにサブセクションに分かれている．
+
+Equations, tables, and figures are numbered consecutively within each section, with each number consisting of chapter, section, and item number.
+式，表，図は，各セクション内で連続して番号付けされており，各番号は、章、セクション、項目番号の3要素で構成されている．
+
+Exercises are numbered consecutively beginning with 1 in each section.
+演習問題には、各章の1から順に連続して番号が振られている．
+
+References are numbered consecutively at the end of each chapter.
+参考文献は、各章の終わりに連続して番号が付けられている．
+
+Equation numbers are enclosed in parentheses, and reference numbers appearing in the text are enclosed in square brackets.
+式番号は丸括弧で囲み，本文中に出てくる参照番号は角括弧で囲む．
+
+If, for example, we wish to refer to Eq. 8 of Section 3, Chapter 4, then we would write this as (4.3.8).
+例えば，第4章第3節(セクション)の式8を参照したい場合は，(4.3.8)のように書く．
+
+If we wish to draw the reader's attention to a subsection, then the section number is followed by a decimal point and the subsection number.
+もし読者にサブセクションに注目してもらいたい場合は，セクション番号の後にドットを付け、サブセクション番号を書く．
+
+For example, subsection 2 of Section 3, Chapter 5, is written as Sec. 5.3.2.
+例えば、第5章第3節(セクション)のサブセクション2は、Sec.5.3.2と書く．
+
+
+deide:  分ける
+static: 静的
+appendices: 付録
+consecutively:  連続して
+consist:    構成する
+enclose:    囲う
+parentheses:    丸括弧
+draw A to B:    AをBに引き付ける

@@ -1,0 +1,14 @@
+# Fdb version 3
+["dvipdf"] 0 "chapter1.dvi" "chapter1.pdf" "chapter1" 0
+  "chapter1.dvi" 0 -1 0 "latex"
+  (generated)
+  "chapter1.pdf"
+["latex"] 1621745172 "chapter1.tex" "chapter1.dvi" "chapter1" 1621745172
+  "chapter1.aux" 1621744898 995 598f15c3322b782c5e7bfd897c4ec3c2 ""
+  "chapter1.tex" 1621666285 392 4b751ae377f50460eb1b2a9f9e6b1ca8 ""
+  "g:/texlive/2020/texmf-dist/web2c/texmf.cnf" 1590101355 39451 60d7debd9ef8ece44cbe965493576c2d ""
+  "g:/texlive/2020/texmf-var/web2c/eptex/platex.fmt" 1590112121 2465829 d0e346f5979d23da3ba3b03bf2ac4302 ""
+  "g:/texlive/2020/texmf.cnf" 1590111811 673 4ae7b2f49cee444c5343a45b5d0f169c ""
+  (generated)
+  "chapter1.dvi"
+  "chapter1.log"

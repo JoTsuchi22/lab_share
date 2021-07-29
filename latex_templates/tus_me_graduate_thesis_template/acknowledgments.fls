@@ -1,0 +1,6 @@
+PWD G:/Users/Documents/東京理科大学/LETUS 関係/四年前期/卒業研究/latex_templates/tus_me_graduate_thesis_template
+INPUT g:/texlive/2020/texmf.cnf
+INPUT g:/texlive/2020/texmf-dist/web2c/texmf.cnf
+INPUT g:/texlive/2020/texmf-var/web2c/eptex/platex.fmt
+INPUT acknowledgments.tex
+OUTPUT acknowledgments.log

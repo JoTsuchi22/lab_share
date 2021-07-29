@@ -1,0 +1,14 @@
+# Fdb version 3
+["dvipdf"] 0 "references.dvi" "references.pdf" "references" 0
+  "references.dvi" 0 -1 0 "latex"
+  (generated)
+  "references.pdf"
+["latex"] 1621745173 "references.tex" "references.dvi" "references" 1621745173
+  "g:/texlive/2020/texmf-dist/web2c/texmf.cnf" 1590101355 39451 60d7debd9ef8ece44cbe965493576c2d ""
+  "g:/texlive/2020/texmf-var/web2c/eptex/platex.fmt" 1590112121 2465829 d0e346f5979d23da3ba3b03bf2ac4302 ""
+  "g:/texlive/2020/texmf.cnf" 1590111811 673 4ae7b2f49cee444c5343a45b5d0f169c ""
+  "references.aux" 1621744899 839 6b8f35043e7b39232fd4f7ba30098b60 ""
+  "references.tex" 1621666285 636 caaccfbcd9b9a917c31d1c4c70497889 ""
+  (generated)
+  "references.dvi"
+  "references.log"

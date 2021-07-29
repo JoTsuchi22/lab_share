@@ -1,0 +1,12 @@
+install python (set PATH)
+
+at vsc extensions
+install Python extension for Visual Studio Code
+
+at vsc terminal
+py -m pip install -U pip
+py -m pip install numpy
+py -m pip install matplotlib
+py -m pip install pandas
+
+https://gammasoft.jp/blog/install-numpy-pandas-matplotlib-by-pip/

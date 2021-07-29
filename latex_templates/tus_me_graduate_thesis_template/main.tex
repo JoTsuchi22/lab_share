@@ -1,0 +1,84 @@
+\documentclass[12pt,a4j,oneside,titlepage,fleqn]{jsbook}
+%
+%% パッケージ
+\usepackage[dvipdfmx]{hyperref}
+\usepackage{pxjahyper}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{txfonts}
+\usepackage{bm}
+\usepackage{titlesec}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{booktabs}
+%
+%% 設定
+\geometry{top=20truemm,bottom=15truemm,left=25truemm,right=10truemm}
+\setlength{\fullwidth}{175truemm}
+\linespread{0.97}  % 1 ページ 40 行
+\pagestyle{plain}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\renewcommand{\prechaptername}{}
+\renewcommand{\postchaptername}{.}
+\renewcommand{\thesection}{\thechapter$\cdot$\arabic{section}}
+\renewcommand{\thesubsection}{\thesection$\cdot$\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection$\cdot$\arabic{subsubsection}}
+\titleformat{\chapter}{\centering\sffamily\gtfamily\Large}{\prechaptername\thechapter\postchaptername}{1zw}{}
+\titleformat{\section}{\sffamily\gtfamily\large}{\thesection}{1zw}{}
+\titleformat{\subsection}{\sffamily\gtfamily\normalsize}{\thesubsection}{1zw}{}
+\titleformat{\subsubsection}{\sffamily\gtfamily\normalsize}{\thesubsubsection}{1zw}{}
+\titlespacing{\chapter}{0pt}{0pt}{\baselineskip}
+\titlespacing{\section}{1zw}{\baselineskip}{0pt}
+\titlespacing{\subsection}{1zw}{\baselineskip}{0pt}
+\titlespacing{\subsubsection}{1zw}{\baselineskip}{0pt}
+\renewcommand{\figurename}{Fig.~}
+\renewcommand{\tablename}{Table~}
+\setlength{\mathindent}{2em}
+\setlength{\jot}{\baselineskip}
+%
+%% 表紙
+\renewcommand{\maketitle}{
+\begin{titlepage}
+ \setcounter{page}{0}
+ \begin{center}
+  \vspace*{8\baselineskip}
+  {○○○○年度卒業論文} \\[2\baselineskip]
+  {\Large へたれテンプレート} \\[9\baselineskip]
+  {○○○○年○月} \\[2\baselineskip]
+  {東京理科大学理工学部機械工学科} \\[\baselineskip]
+  {○○研究室} \\[3\baselineskip]
+  {７５＊＊＊＊＊　　機械　工作}
+ \end{center}
+\end{titlepage}
+}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\begin{document}
+%
+%% 設定
+\setlength{\abovedisplayskip}{\baselineskip}
+\setlength{\belowdisplayskip}{\baselineskip}
+%
+%% 前付け
+\frontmatter
+\maketitle
+\tableofcontents
+%
+%% 本文
+\mainmatter
+\include{chapter1}
+\include{chapter2}
+% \include{chapter3}
+% \include{chapter4}
+% \include{chapter5}
+%
+%% 後付け
+\backmatter
+\include{acknowledgments}
+\include{references}
+% \appendix
+% \include{appendix1}
+%
+\end{document}

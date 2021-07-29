@@ -1,0 +1,14 @@
+# Fdb version 3
+["dvipdf"] 0 "acknowledgments.dvi" "acknowledgments.pdf" "acknowledgments" 0
+  "acknowledgments.dvi" 0 -1 0 "latex"
+  (generated)
+  "acknowledgments.pdf"
+["latex"] 1621745171 "acknowledgments.tex" "acknowledgments.dvi" "acknowledgments" 1621745171
+  "acknowledgments.aux" 1621744899 844 8353a70845b79f4277d7d6453f291bf0 ""
+  "acknowledgments.tex" 1621666285 52 183b462ec6ad92ac7200ce6bc884fbab ""
+  "g:/texlive/2020/texmf-dist/web2c/texmf.cnf" 1590101355 39451 60d7debd9ef8ece44cbe965493576c2d ""
+  "g:/texlive/2020/texmf-var/web2c/eptex/platex.fmt" 1590112121 2465829 d0e346f5979d23da3ba3b03bf2ac4302 ""
+  "g:/texlive/2020/texmf.cnf" 1590111811 673 4ae7b2f49cee444c5343a45b5d0f169c ""
+  (generated)
+  "acknowledgments.log"
+  "acknowledgments.dvi"
