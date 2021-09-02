@@ -1,0 +1,7 @@
+輪講メモ
+
+CLASSICAL LINEAR HEAT CONDUCTION:
+STRONG AND WEAK FORMS; EQUIVALENCEから
+
+古典的な線形熱伝導の強形式と弱形式の等価性について
+
