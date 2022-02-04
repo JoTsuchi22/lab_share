@@ -1,5 +1,0 @@
-excel to pdf
-
-pdfcrop
-
-http://teacher.nagano-nct.ac.jp/fujita/files/ExcelGraphonTeX.pdf

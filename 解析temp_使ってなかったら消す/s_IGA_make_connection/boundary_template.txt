@@ -1,0 +1,54 @@
+2   // DIMENSION
+
+// 0   // コネクティビティの種類 0:通常 1:特異パッチを含む
+
+5           // パッチ数
+
+206000  0.3 // ヤング率, ポアソン比
+
+2           // x方向への変位指定する個数
+
+2   0.0     // 辺の個数, 変位量
+1   1   0   // パッチ番号(0から), xi or eta, 始点0 or 終点1 <- 辺上のコントロールポイント(パッチ境界)以外の場合は図を見て手動で行ってください
+3   1   1   // 2個目の辺
+
+1   1.0     // 辺の個数, 変位量
+2   0   0   // パッチ番号(0から), xi or eta, 始点0 or 終点1
+
+1           // y方向への変位指定する個数
+
+1   0.0     // 辺の個数, 変位量
+2   0   0   // パッチ番号(0から), xi or eta, 始点0 or 終点1
+
+1           // 分布荷重の荷重の個数
+
+0   1   1   1.0 0.0 1.0 1.0 0.0 0.0
+            /*
+                分布荷重を与える方向(x:0, y:1, normal to the segemet/surface:2)
+                分布荷重を与えるパッチ番号
+                分布荷重に垂直な方向(ξ:0, η:1)
+                水平方向の座標(CADノットの座標系で)
+                分布荷重を与え始める座標(CADノットの座標系で)
+                荷重を与え終える位置(CADノットの座標系で)
+                ξ^0	ξ^1	ξ^2 (各項の係数，1.0MPa -> 1.0 0.0 0.0)
+
+                type_load: Direction of distributed load: 0-x direction, 1-y direction, 2-normal to the segemet/surface
+                iPatch: Patch number to which the distributed load is assigned., 0, 1, ...
+                iCoord: 0: Distributed load is applied to line along Xi axis.
+                        1: Distributed load is applied to line along Eta axis
+                val_Coord: その時のもう片方の座標
+                Range_Coord[0]: Local coordinate value at which the distributed load starts.
+                Range_Coord[1]: Local coordinate value at which the distributed load ends.
+                Coeff_Dist_Load[0], &Coeff_Dist_Load[1], &Coeff_Dist_Load[2]: The coefficients of distributed load value:
+                    Coeff_Dist_Load[0]*Xi + Coeff_Dist_Load[1]*Xi + Coeff_Dist_Load[2]*Xi^2
+                or
+                    Coeff_Dist_Load[0]*Xi + Coeff_Dist_Load[1]*Eta + Coeff_Dist_Load[2]*Eta^2
+            */
+
+/*
+    Gnuplotをダウンロードして環境変数にgnuplot/binを追加し，
+    プログラムのメイン関数内のOutput_by_Gnuplotのコメントアウトを外してコンパイルすると，
+    Gnuplotで出力できます．でもSVGの方が便利．
+    集中荷重はインプットが大変になるためデフォルトではかけないようにしています
+    出力ファイルを直接編集してください
+*/
