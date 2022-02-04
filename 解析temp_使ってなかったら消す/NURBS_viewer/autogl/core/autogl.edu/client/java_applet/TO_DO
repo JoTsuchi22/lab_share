@@ -1,0 +1,13 @@
+          To Do List
+
+
+
+Bugs
+
+* if only the client side is restarted, panel values are reset.
+  it may be better to call CGI with value command 
+  rather than read initially created value-command-output-file.
+
+
+
+Features

@@ -1,0 +1,24 @@
+これは、etc/のREADMEです。
+
+
+
+ディレクトリ構成
+
+README :  このファイル
+
+scripts/ : 「おてがる」スクリプトのサンプル
+
+images/ : イメージデータ類
+
+old/ : 「おてがる」の古いバージョン
+
+  2003/ : 2003年の分
+
+    autogl.tar.gz : 「おてがる」
+
+    autogl_mmx.tar.gz : 「おてがる」MMX, ステレオ立体視版
+
+    autogl_mp.tar.gz : 「おてがる」-MP, 並列版
+
+
+
