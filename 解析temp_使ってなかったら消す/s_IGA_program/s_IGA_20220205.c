@@ -271,6 +271,7 @@ double inner_product(int ndof, double vec1[], double vec2[]);
 int check_conv_CG(int ndof, double alphak, double pp[], double eps, int itr);
 void Diag_Scaling_CG_pre(int ndof, int flag_operation);
 void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val);
+void PCG_Solver(int ndof, int max_itr, double eps);
 //各種値
 void Make_Strain(double E, double nu, int Total_Element, int El_No, int Total_Control_Point);
 void Make_Stress_2D(double E, double nu, int Total_Element, int DM);
@@ -763,18 +764,23 @@ int main(int argc, char *argv[])
     //for s-IGA
     //反復回数の設定
 
-	/* 反復回数を ndof*5 (K_Whole_Size*5)として収束判定を1.0e-14 にしている(収束しない場合の対策)
-	   収束判定は厳しくしているが収束しなくても最後の反復結果が反映されるので収束しやすくなる
-	   数学的にはndofで収束するが数値計算では誤差が生じる(?) */
+    max_itr = K_Whole_Size;
+	// max_itr = K_Whole_Size * 5;
 
-    // max_itr = K_Whole_Size;
-	max_itr = K_Whole_Size * 5;
+	// CG法
 
-	Diag_Scaling_CG_pre(K_Whole_Size, 0);
-    printf("Finish 1st Diag_Scaling_CG_Pre\n");
-	CG_Solver(K_Whole_Size, max_itr, EPS, 0);
-	Diag_Scaling_CG_pre(K_Whole_Size, 1);
-	printf("Finish CG_Solver\n");
+	// Diag_Scaling_CG_pre(K_Whole_Size, 0);
+    // printf("Finish 1st Diag_Scaling_CG_Pre\n");
+	// CG_Solver(K_Whole_Size, max_itr, EPS, 0);
+	// Diag_Scaling_CG_pre(K_Whole_Size, 1);
+	// printf("Finish CG_Solver\n");
+
+	// PCG法
+
+    printf("\nStart PCG solver\n");
+	PCG_Solver(K_Whole_Size, max_itr, EPS);
+	printf("Finish PCG solver\n\n");
+
 	/////////////変位と歪と応力//////////////////////////////////////
     //for s-IGA
     //Total_Control_Point_to_Now += Total_Control_Point_on_mesh[Total_mesh-1];
@@ -2691,7 +2697,6 @@ void Make_K_Whole_Val(int tm, double E, double nu, int Total_Element, int K_Whol
 	//re=0;
 	for (re = 0; re < Total_Element; re++)
 	{
-
 		//if(i==real_element[re]){
 		//printf("re=%d\n",re);
 		i = real_element[re];
@@ -2701,15 +2706,14 @@ void Make_K_Whole_Val(int tm, double E, double nu, int Total_Element, int K_Whol
 		{
 			Make_gauss_array(0);
 		}
-
-		if(Element_mesh[i] > 0)
+		else if(Element_mesh[i] > 0)
 		{
 			printf("NNLOVER[%d]:%d\tNNLOVER[%d]:%d\tElement_mesh[%d]:%d\n", i, NNLOVER[i], real_element[re - 1], NNLOVER[real_element[re - 1]], real_element[re - 1], Element_mesh[real_element[re - 1]]);
 			if(NNLOVER[i] == 1 && (NNLOVER[real_element[re - 1]] != 1 || Element_mesh[real_element[re - 1]] == 0))/*2つめ以降の条件は効率化のため*/
 			{
 				Make_gauss_array(0);
 			}
-			if(NNLOVER[i] >= 2 && (NNLOVER[real_element[re - 1]] == 1 || Element_mesh[real_element[re - 1]] == 0))/*2つめ以降の条件は効率化のため*/
+			else if(NNLOVER[i] >= 2 && (NNLOVER[real_element[re - 1]] == 1 || Element_mesh[real_element[re - 1]] == 0))/*2つめ以降の条件は効率化のため*/
 			{
 				Make_gauss_array(1);
 			}
@@ -3155,6 +3159,138 @@ void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val)
 
 	printf("\nss");
 }
+
+
+void IncompleteCholeskyDecomp2()
+{
+
+}
+
+
+void ICRes()
+{
+
+}
+
+
+//元コード
+inline void ICRes(const vector< vector<double> > &L, const vector<double> &d, const vector<double> &r, vector<double> &u, int n)
+{
+    vector<double> y(n);
+    for(int i = 0; i < n; ++i){
+        double rly = r[i];
+        for(int j = 0; j < i; ++j){
+            rly -= L[i][j]*y[j];
+        }
+        y[i] = rly/L[i][i];
+    }
+ 
+    for(int i = n-1; i >= 0; --i){
+        double lu = 0.0;
+        for(int j = i+1; j < n; ++j){
+            lu += L[j][i]*u[j];
+        }
+        u[i] = y[i]-d[i]*lu;
+    }
+}
+
+
+// 不完全コレスキー分解による前処理付共役勾配法により[K]{d}={f}を解く
+void PCG_Solver(int ndof, int max_itr, double eps)
+{
+	int i, j;
+
+	double *r = (double *)malloc(sizeof(double) * ndof);
+	double *p = (double *)malloc(sizeof(double) * ndof);
+	double *y = (double *)malloc(sizeof(double) * ndof);
+	double *r2 = (double *)malloc(sizeof(double) * ndof);
+
+	// 初期化
+	for (i = 0; i < ndof; i++)
+	{
+		sol_vec[i] = 0.0;
+	}
+
+	//	不完全コレスキー分解
+	IncompleteCholeskyDecomp2(A, L, d, ndof);
+
+	// 第0近似解に対する残差の計算
+	int icount = 0;
+	double *ax = (double *)malloc(sizeof(double) * ndof);
+	for (i = 0; i < ndof; i++)
+	{
+		ax[i] = 0;
+	}
+    for (i = 0; i < ndof; i++)
+	{
+        for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		{
+            ax[i] += K_Whole_Val[icount] * sol_vec[K_Whole_Col[j]];
+			if (i != K_Whole_Col[j])
+			{
+				ax[K_Whole_Col[j]] += K_Whole_Val[icount] * sol_vec[i];
+			}
+			icount++;
+        }
+    }
+	for (i = 0; i < ndof; i++)
+	{
+		r[i] = rhs_vec[i] - ax[i];
+	}
+	free(ax);
+ 
+    // p_0 = (LDL^T)^-1 r_0 の計算
+    ICRes(L, d, r, p, ndof);
+ 
+    double rr0 = inner_product(ndof, r, p), rr1;
+    double alpha, beta;
+
+	double e = 0.0;
+    int k;
+    for(k = 0; k < max_itr; ++k){
+        // y = AP の計算
+        for(int i = 0; i < n; ++i){
+            y[i] = dot(A[i], p, n);
+        }
+ 
+        // alpha = r*r/(P*AP)の計算
+        alpha = rr0/dot(p, y, n);
+ 
+        // 解x、残差rの更新
+        for(int i = 0; i < n; ++i){
+            x[i] += alpha*p[i];
+            r[i] -= alpha*y[i];
+        }
+ 
+        // (r*r)_(k+1)の計算
+        ICRes(L, d, r, r2, n);
+        rr1 = dot(r, r2, n);
+ 
+        // 収束判定 (||r||<=eps)
+        e = sqrt(rr1);
+        if(e < eps){
+            k++;
+            break;
+        }
+ 
+        // βの計算とPの更新
+        beta = rr1/rr0;
+        for(int i = 0; i < n; ++i){
+            p[i] = r2[i]+beta*p[i];
+        }
+ 
+        // (r*r)_(k+1)を次のステップのために確保しておく
+        rr0 = rr1;
+    }
+ 
+    max_iter = k;
+    eps = e;
+
+
+
+	free(r), free(p), free(y), free(r2)
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 /////////////////基底関数
