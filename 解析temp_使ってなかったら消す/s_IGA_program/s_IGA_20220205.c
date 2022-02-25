@@ -8716,7 +8716,7 @@ static void Calculation_at_GP(double E, double nu)
 	}
 	fclose(fp);
 
-	fp = fopen("at_GP_overlay_for_errror_norm.txt", "w");
+	fp = fopen("at_GP_overlay_for_error_norm.txt", "w");
 	fprintf(fp, "e\tガウス番号\tx\ty\tstress_r-theory\tstress_theta-theory\n");
 	for (e = 0; e < ele_glo_n; e++)
 	{
@@ -8741,7 +8741,7 @@ static void Calculation_at_GP(double E, double nu)
 			temp5 += w[i] * pow(stress_r_theta_GP[e][i][1], 2.0) * Jac[e][i];
 		}
 	}
-	fp = fopen("at_GP_overlay_for_errror_norm_surface_integral.txt", "w");
+	fp = fopen("at_GP_overlay_for_error_norm_surface_integral.txt", "w");
 	fprintf(fp, "(stress_r-theory)^2_surface_integral\t(stress_theta-thory)^2_surface_integral\tstress_r^2_surface_integral\n");
 	fprintf(fp, "%.15e\t%.15e\t%.15e\t%.15e\n", temp2, temp3, temp4, temp5);
 	fclose(fp);
@@ -8941,7 +8941,7 @@ void Calculation_overlay_at_GP(double E, double nu,
 	}
 	fclose(fp);
 
-	fp = fopen("at_GP_overlay_for_errror_norm.txt", "w");
+	fp = fopen("at_GP_overlay_for_error_norm.txt", "w");
 	fprintf(fp, "e\tガウス番号\tx\ty\tstress_r-theory\tstress_theta-theory\n");
 	for (e = 0; e < ele_loc_n; e++)
 	{
@@ -8967,7 +8967,7 @@ void Calculation_overlay_at_GP(double E, double nu,
 			temp6 += w[i] * Jac[e][i];
 		}
 	}
-	fp = fopen("at_GP_overlay_for_errror_norm_surface_integral.txt", "w");
+	fp = fopen("at_GP_overlay_for_error_norm_surface_integral.txt", "w");
 	fprintf(fp, "(stress_r-theory)^2_surface_integral\t(stress_theta-thory)^2_surface_integral\tstress_r^2_surface_integral\tstress_theta^2_surface_integral\t面積(analysis)\n");
 	fprintf(fp, "%.15e\t%.15e\t%.15e\t%.15e\t%.15e\n", temp2, temp3, temp4, temp5, temp6);
 	fclose(fp);
