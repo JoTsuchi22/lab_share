@@ -1,0 +1,151 @@
+<?xml version='1.0'?>
+<svg width='9.000000e+02' height='9.000000e+02' version='1.1' style='background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>
+<path d='M 1.500000e+02 7.500000e+02 L 4.500000e+02 7.500000e+02 L 4.500000e+02 4.500000e+02 L 1.500000e+02 4.500000e+02 Z' fill='#a9a9a9'/>
+<path d='M 4.500000e+02 7.500000e+02 L 7.500000e+02 7.500000e+02 L 7.500000e+02 4.500000e+02 L 4.500000e+02 4.500000e+02 Z' fill='#00bfff'/>
+<path d='M 4.500000e+02 4.500000e+02 L 7.500000e+02 4.500000e+02 L 7.500000e+02 1.500000e+02 L 4.500000e+02 1.500000e+02 Z' fill='#00fa9a'/>
+<path d='M 1.500000e+02 4.500000e+02 L 4.500000e+02 4.500000e+02 L 4.500000e+02 1.500000e+02 L 1.500000e+02 1.500000e+02 Z' fill='#ffff00'/>
+<circle cx='1.500000e+02' cy='7.500000e+02' r='2' fill='#dc143c'/>
+<text x='1.520000e+02' y='7.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+0
+</text>
+<circle cx='3.000000e+02' cy='7.500000e+02' r='2' fill='#dc143c'/>
+<text x='3.020000e+02' y='7.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+1
+</text>
+<circle cx='4.500000e+02' cy='7.500000e+02' r='2' fill='#dc143c'/>
+<text x='4.520000e+02' y='7.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+2
+</text>
+<circle cx='1.500000e+02' cy='6.000000e+02' r='2' fill='#dc143c'/>
+<text x='1.520000e+02' y='6.000000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+3
+</text>
+<circle cx='3.000000e+02' cy='6.000000e+02' r='2' fill='#dc143c'/>
+<text x='3.020000e+02' y='6.000000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+4
+</text>
+<circle cx='4.500000e+02' cy='6.000000e+02' r='2' fill='#dc143c'/>
+<text x='4.520000e+02' y='6.000000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+5
+</text>
+<circle cx='1.500000e+02' cy='4.500000e+02' r='2' fill='#dc143c'/>
+<text x='1.520000e+02' y='4.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+6
+</text>
+<circle cx='3.000000e+02' cy='4.500000e+02' r='2' fill='#dc143c'/>
+<text x='3.020000e+02' y='4.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+7
+</text>
+<circle cx='4.500000e+02' cy='4.500000e+02' r='2' fill='#dc143c'/>
+<text x='4.520000e+02' y='4.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+8
+</text>
+<circle cx='5.250000e+02' cy='7.500000e+02' r='2' fill='#dc143c'/>
+<text x='5.270000e+02' y='7.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+9
+</text>
+<circle cx='6.750000e+02' cy='7.500000e+02' r='2' fill='#dc143c'/>
+<text x='6.770000e+02' y='7.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+10
+</text>
+<circle cx='7.500000e+02' cy='7.500000e+02' r='2' fill='#dc143c'/>
+<text x='7.520000e+02' y='7.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+11
+</text>
+<circle cx='5.250000e+02' cy='6.000000e+02' r='2' fill='#dc143c'/>
+<text x='5.270000e+02' y='6.000000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+12
+</text>
+<circle cx='6.750000e+02' cy='6.000000e+02' r='2' fill='#dc143c'/>
+<text x='6.770000e+02' y='6.000000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+13
+</text>
+<circle cx='7.500000e+02' cy='6.000000e+02' r='2' fill='#dc143c'/>
+<text x='7.520000e+02' y='6.000000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+14
+</text>
+<circle cx='5.250000e+02' cy='4.500000e+02' r='2' fill='#dc143c'/>
+<text x='5.270000e+02' y='4.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+15
+</text>
+<circle cx='6.750000e+02' cy='4.500000e+02' r='2' fill='#dc143c'/>
+<text x='6.770000e+02' y='4.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+16
+</text>
+<circle cx='7.500000e+02' cy='4.500000e+02' r='2' fill='#dc143c'/>
+<text x='7.520000e+02' y='4.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+17
+</text>
+<circle cx='4.500000e+02' cy='3.750000e+02' r='2' fill='#dc143c'/>
+<text x='4.520000e+02' y='3.750000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+18
+</text>
+<circle cx='5.250000e+02' cy='3.750000e+02' r='2' fill='#dc143c'/>
+<text x='5.270000e+02' y='3.750000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+19
+</text>
+<circle cx='6.750000e+02' cy='3.750000e+02' r='2' fill='#dc143c'/>
+<text x='6.770000e+02' y='3.750000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+20
+</text>
+<circle cx='7.500000e+02' cy='3.750000e+02' r='2' fill='#dc143c'/>
+<text x='7.520000e+02' y='3.750000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+21
+</text>
+<circle cx='4.500000e+02' cy='2.250000e+02' r='2' fill='#dc143c'/>
+<text x='4.520000e+02' y='2.250000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+22
+</text>
+<circle cx='5.250000e+02' cy='2.250000e+02' r='2' fill='#dc143c'/>
+<text x='5.270000e+02' y='2.250000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+23
+</text>
+<circle cx='6.750000e+02' cy='2.250000e+02' r='2' fill='#dc143c'/>
+<text x='6.770000e+02' y='2.250000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+24
+</text>
+<circle cx='7.500000e+02' cy='2.250000e+02' r='2' fill='#dc143c'/>
+<text x='7.520000e+02' y='2.250000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+25
+</text>
+<circle cx='4.500000e+02' cy='1.500000e+02' r='2' fill='#dc143c'/>
+<text x='4.520000e+02' y='1.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+26
+</text>
+<circle cx='5.250000e+02' cy='1.500000e+02' r='2' fill='#dc143c'/>
+<text x='5.270000e+02' y='1.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+27
+</text>
+<circle cx='6.750000e+02' cy='1.500000e+02' r='2' fill='#dc143c'/>
+<text x='6.770000e+02' y='1.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+28
+</text>
+<circle cx='7.500000e+02' cy='1.500000e+02' r='2' fill='#dc143c'/>
+<text x='7.520000e+02' y='1.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+29
+</text>
+<circle cx='1.500000e+02' cy='3.750000e+02' r='2' fill='#dc143c'/>
+<text x='1.520000e+02' y='3.750000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+30
+</text>
+<circle cx='3.000000e+02' cy='3.750000e+02' r='2' fill='#dc143c'/>
+<text x='3.020000e+02' y='3.750000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+31
+</text>
+<circle cx='1.500000e+02' cy='2.250000e+02' r='2' fill='#dc143c'/>
+<text x='1.520000e+02' y='2.250000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+32
+</text>
+<circle cx='3.000000e+02' cy='2.250000e+02' r='2' fill='#dc143c'/>
+<text x='3.020000e+02' y='2.250000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+33
+</text>
+<circle cx='1.500000e+02' cy='1.500000e+02' r='2' fill='#dc143c'/>
+<text x='1.520000e+02' y='1.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+34
+</text>
+<circle cx='3.000000e+02' cy='1.500000e+02' r='2' fill='#dc143c'/>
+<text x='3.020000e+02' y='1.500000e+02' font-family='Verdana' font-size='6' fill='#dc143c' font-weight='700'>
+35
+</text>
+</svg>

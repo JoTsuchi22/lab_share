@@ -1,0 +1,65 @@
+
+         ADV_AutoGL : a simple graphics & GUI library 
+                         for making your own viewer
+           (pronounced as "O-te-ga-lu")
+
+
+This file is README.
+You can get manual in directory manual/.
+You may see README file in each subdirectory.
+Anyway, read INSTALL file for installation.
+And compile, run and enjoy our sample programs.
+
+
+
+1. What is AutoGL ???
+
+This is a simple 2-D / 3-D graphics and graphical user interface (GUI) library.
+By the way, AutoGL, "o-te-ga-lu" means "handy" in Japanese.
+It also contains some visualization capabilities a little bit.
+Application programming interfaces (API) for C, C++ and FORTRAN are provided.
+Linux, UNIX, Windows and MacOS are supported.
+Not only on PC and workstations, it also works on PC clusters, supercomputers, 
+PDA and smartphones.
+Parallel rendering, stereo projection and Web application might also be.
+Code is written in a very simple way, so you may also be interested 
+in the source code itself.
+
+
+
+2. Directory tree structure
+
+README
+README.english : this file
+
+INSTALL        
+INSTALL.english : how to install AutoGL
+
+CHANGE_SUMMARY  : for users of old versions earlier than Ver. 0.2
+
+CHANGE_LOG : new features and bug fixes
+
+TO_DO : known bugs, feature restrictions, and future plans
+
+lib/ : library
+
+sample_c/ :      sample programs written in C language
+more_sample_c/ :
+
+sample_f/ :      sample programs written in FORTRAN language
+more_sample_f/ :
+
+sample_cpp/ : sample programs written in C++ language
+
+scripts/ : AutoGL script language samples
+
+manual/ : manuals
+
+hetare/ : HE-TA-RE ... means, well, light-weight 
+          mainly for study how to write programs
+
+core/ : KO-A- ... means heavy-weight (like Hard-core, you know)
+        a bit dangerous
+
+etc/ : other data
+

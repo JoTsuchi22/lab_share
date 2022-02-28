@@ -1,0 +1,1 @@
+gcc -o hello hello.c -I../lib -L../lib -lautogl -lglu32 -lopengl32 -luser32 -lgdi32

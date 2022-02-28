@@ -1,0 +1,1 @@
+gcc -o hello hello.c -I../lib -L../lib -lautogl -lgtkgl -lGLU -lGL `gtk-config --libs`

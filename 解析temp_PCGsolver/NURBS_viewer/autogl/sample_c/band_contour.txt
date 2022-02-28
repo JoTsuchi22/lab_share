@@ -1,0 +1,83 @@
+                サンプルプログラムband_contourの解説
+
+目次
+
+1. 概要
+2. プログラムの動作について
+3. ソースコードの解説
+
+このサンプルプログラムのポイント
+
+* バンドコンター
+* バンドの境界線として、単色で線コンターを描画する方法
+
+このサンプルプログラムで紹介されている「おてがる」API
+
+AutoGL_DrawBandContourQuadrangle 
+  四辺形領域内部にバンドコンターを描画する。
+AutoGL_DrawBandContourTriangle 
+  三角形領域内部にバンドコンターを描画する。
+AutoGL_DrawLineContourQuadrangle 
+  四辺形領域内部に線コンターを描画する。
+AutoGL_DrawLineContourTriangle 
+  三角形領域内部に線コンターを描画する。
+AutoGL_DrawBandContourMap
+  画面右端にバンドコンターマップを表示する。
+
+
+
+1. 概要
+
+サンプルプログラムband_contourでは、「おてがる」可視化ユーティリティの
+バンドコンター機能を紹介しています。
+これ以外は、サンプルプログラムのmore_sample_c/line_contour.cと同じです。
+
+
+
+2. プログラムの動作について
+
+このプログラムは、起動するとコンタープロットを表示します。
+段階的に色が変化し、バンド状に塗りつぶすようなコンタープロットです。
+これは一般にバンドコンターと呼ばれます。
+
+それ以外は、more_sample_c/line_contour.cと同じです。
+
+
+
+3. ソースコードの解説
+
+ソースコードband_contour.cを上から眺めていきます。
+
+基本的には、more_sample_c/line_contour.cと同じ構造です。
+線コンターのかわりに、バンドコンターを表示しています。
+
+各セルのバンドコンターは、
+「おてがる」のAutoGL_DrawBandContourQuadrangleによってなされます。
+これは、「おてがる」の可視化ユーティリティに所属し、
+四辺形の内部にバンドコンターを表示するものです。
+
+AutoGL_DrawBandContourQuadrangleの引数は、
+順に、コンターの最大値、最小値、グレードの段数、
+および、四辺形の各頂点ごとに、x、y、z座標とスカラーの値を並べます。
+ちなみに、三角形の場合は、
+AutoGL_DrawBandContourTriangleとなります。
+詳しくは、マニュアルのAPIリファレンスmanual/api_reference.txtのうち、
+可視化ユーティリティのセクションか、
+または、「おてがる」ヘッダファイルautogl.hよりインクルードされている、
+lib/autogl_visualization.hを御覧下さい。
+
+それと、バンドコンター自体に加えて、
+隣り合うバンド間の境界線を単色(黒)の線コンターとして表示しています。
+線コンターを描画する
+AutoGL_DrawLineContourQuadrangle、
+AutoGL_DrawLineContourTriangleなどの引数について、
+最初の二つminRange、maxRangeを同じ値にして、3つ目のnGradesを0とすると、
+minRange(＝maxRange)に対応する部分の線だけを
+カレントカラーで描画します。
+
+あと、コンターバーの表示ルーチンが、
+バンドコンター用のAutoGL_DrawBandContourMapになっています。
+このコールもまた、ディスプレイリストに収納してはいけません。
+
+
+

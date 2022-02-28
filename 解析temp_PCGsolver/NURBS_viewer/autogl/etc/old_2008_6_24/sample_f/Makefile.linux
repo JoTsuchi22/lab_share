@@ -1,0 +1,14 @@
+AUTOGL_DIR = ../lib
+
+LIBS = -L$(AUTOGL_DIR) -lautoglf \
+	-lgtkgl -lGLU -lGL `gtk-config --libs`
+
+
+
+all : hello
+
+hello     : hello.f
+	g77 -o hello hello.f $(LIBS)
+
+
+

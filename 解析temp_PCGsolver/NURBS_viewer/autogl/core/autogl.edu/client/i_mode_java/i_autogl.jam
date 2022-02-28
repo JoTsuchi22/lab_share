@@ -1,0 +1,7 @@
+UseNetwork = http
+LastModified = Mon, 22 Nov 2004 22:14:52
+SPsize = 10000
+AppClass = AutoGLApplication
+AppName = iAutoGL
+PackageURL = i_autogl.jar
+AppSize = 7052

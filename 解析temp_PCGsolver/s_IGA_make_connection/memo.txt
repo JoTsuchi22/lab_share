@@ -1,0 +1,20 @@
+s_IGA_make_connection
+
+gcc -o s_IGA_make_connection.x s_IGA_make_connection.c -Og -lm -Wall
+
+./s_IGA_make_connection.x ./boundary.txt ./0_edited.txt ./1_edited.txt ./2_edited.txt ./3_edited.txt
+./s_IGA_make_connection.x ./boundary.txt ./0_edited.txt ./1_edited.txt ./2_edited.txt ./3_edited.txt > result.dat
+
+./s_IGA_make_connection.x ./boundary.txt ./0_edited.txt ./1_edited.txt ./2_edited.txt ./3_edited.txt ./4_edited.txt > result.dat
+
+gdb
+gcc -o s_IGA_make_connection.x s_IGA_make_connection.c -g -Og -lm -Wall
+gcc -o s_IGA_make_connection.x s_IGA_make_connection.c -g -lm -Wall
+
+gdb ./s_IGA_make_connection.x
+run ./boundary.txt ./0_edited.txt ./1_edited.txt ./2_edited.txt ./3_edited.txt
+
+test_malloc
+
+gcc -o test_malloc.x test_malloc.c -Og -lm -Wall
+./test_malloc.x

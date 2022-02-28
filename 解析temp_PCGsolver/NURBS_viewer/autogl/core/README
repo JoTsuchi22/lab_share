@@ -1,0 +1,46 @@
+これは、core/のREADMEです。
+
+
+
+ディレクトリ構成
+
+README :  このファイル
+
+autogl.edu/ ： Webアプリ版、「おてがる」.edu
+
+  client/ : クライアント側ツール
+
+    autogl/ : 「おてがる」によるクライアントの実装
+
+    i_mode_java/ : iモードJava(iアプリ)によるクライアントの実装
+
+    java_applet/ : Javaアプレットによるクライアントの実装
+
+  server/ : サーバ側ツール
+
+    html/ : シンクライアント向けサーバ側CGIスクリプト
+      HTMLとJavaScriptによる実装です。
+      クライアント側はIEやMozillaだけでOKです。
+              
+    rich_client_cgi/ : リッチクライアント向けサーバ側CGIスクリプト
+      「おてがる」クライアント、JavaアプレットおよびiモードJavaの
+      クライアントに対応します。
+
+  manual/ : マニュアル類 
+
+autogl_mp/ : 並列版、「おてがる」-MP
+
+  sample_c/ : Cのサンプルプログラム
+
+  manual/ : マニュアル類 
+
+autogl_mmx/ ： ステレオ立体視版、「おてがる」MMX (Multi-Monitor eXtension)
+
+  manual/ : マニュアル類 
+
+autogl_osx/ ： オフラインレンダリング版、「おてがる」OS-X (Off-Screen eXtension)
+
+  manual/ : マニュアル類 
+
+test/ : 「おてがる」最新機能のサンプルプログラム  (まじやばいかも)
+

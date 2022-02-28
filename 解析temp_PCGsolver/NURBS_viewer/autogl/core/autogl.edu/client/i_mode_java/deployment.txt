@@ -1,0 +1,56 @@
+     Deployment of AutoGL i-mode Java application (i-appli)
+
+
+
+NOTICE:
+  Java application is based on NTT DoCoMo Java, DoJa 3.5.
+  So only 900i series is supported.
+  Screen resolution 240x240 is assumed.
+  Web server URL is hard-coded into AutoGLApplication.java
+
+
+
+A) Deployment of Infrastructure
+
+1. Put autogl.edu/server/rich_client_cgi/autogl_post_command.c 
+   on the web server home page directory (~/public_html).
+
+2. Compile autogl_post_command.c on the web server.
+   Create CGI binary executable, autogl_post_command.cgi .
+
+ex:  gcc -o autogl_post_command.cgi autogl_post_command.c
+   
+3. Compile AutoGLApplication.java using emulator on PC.
+   Create JAR file, i_autogl.jar .
+   Also, ADF file, i_autogl.jam .
+   in the ADF file, file size of JAR file is written.
+
+4. Send i_autogl.jar and i_autogl_jam in bin/ directory 
+   of the emulator machine, to the web server home page
+
+5. Also, put i_autogl.html on the web server home page directory.
+
+
+
+B) Deployment of User Application
+
+1. Compile AutoGL application as server version.
+   You may need to modify Makefile to commend out "Server".
+   May also need to recompile AutoGL library with the modified Makefile.
+   Create server version executable (based on software emulation).
+
+2. Put AutoGL binary executable on the web server home page directory.
+
+
+
+C) Run
+
+1. On the web server, run AutoGL executable.
+
+2. From i-mode terminal, access i_autogl.html. 
+
+ex: http://DOMAIN/~USER/i_autogl.html
+
+3. Download i-appli, iAutoGL.
+
+4. Run iAutoGL.

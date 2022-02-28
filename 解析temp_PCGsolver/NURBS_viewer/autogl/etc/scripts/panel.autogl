@@ -1,0 +1,17 @@
+print Shape
+print OriginLabel
+print AxisIsShown
+print Number
+print Value
+set Shape line
+set OriginLabel aaa
+set AxisIsShown false
+draw
+set Value 0.01
+set Number 50
+call Print
+print Shape
+print OriginLabel
+print AxisIsShown
+print Number
+print Value
