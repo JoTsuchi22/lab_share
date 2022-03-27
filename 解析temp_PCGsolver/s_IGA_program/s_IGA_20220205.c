@@ -55,7 +55,7 @@ mkdir checkAns
 
 #define K_DIVISION_LENGE 10 	//全体剛性マトリックスのcol&ptrを制作時に分ける節点数
 // #define EPS 0.0000000001		//連立1次方程式の残差
-#define EPS 1.0e-13				//連立1次方程式の残差
+#define EPS 1.0e-10				//連立1次方程式の残差
 #define N_STRAIN 4
 #define N_STRESS 4
 //各種最大配置可能数
@@ -274,8 +274,13 @@ void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val);
 //PCG solver
 int RowCol_to_icount(int row, int col);
 void IncompleteCholeskyDecomp2(double *LT, double *d, int n);
+void Check_LT_and_d(double *LT, double *d, int n);
 void ICRes(double *LT, double *d, double *r, double *u, int n);
 void PCG_Solver(int ndof, int max_itr, double eps);
+void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof);
+void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double vec_result[], double vec[], const int ndof);
+int M_check_conv_CG(int ndof, double alphak, double pp[], double eps, int itr, double solution_vec[]);
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec);
 //各種値
 void Make_Strain(double E, double nu, int Total_Element, int El_No, int Total_Control_Point);
 void Make_Stress_2D(double E, double nu, int Total_Element, int DM);
@@ -819,9 +824,9 @@ int main(int argc, char *argv[])
 			if (index >= 0)
 				Displacement[i * DIMENSION + j] = sol_vec[index];
 
-            printf("%d\t%le\t",i*DIMENSION+j,Displacement[i*DIMENSION+j]);
+            // printf("%d\t%le\t",i*DIMENSION+j,Displacement[i*DIMENSION+j]);
 		}
-        printf("\n");
+        // printf("\n");
 	}
 	printf("Finish Make_Displacement\n");
 	end = clock();
@@ -2441,7 +2446,7 @@ int Make_Index_Dof(int Total_Control_Point,
     //Index_Dofの初期化(複数メッシュ読み込みのため)
     for (i = 0; i < Total_Control_Point * 2; i++)
     {
-        Index_Dof[i]=0;
+        Index_Dof[i] = 0;
         //printf("test_DOF[%d]:%d\n",i,Index_Dof[i]);
     }
     //拘束されている自由度(Degree Of free)をERRORにする
@@ -3165,48 +3170,177 @@ void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val)
 }
 
 
-int RowCol_to_icount(int row, int col)
+void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof)
 {
 	int i, j;
+	int ndof_glo = 0;
 
-	// for (i = 0; i < row; i++)
+	// グローバルパッチのdofを求める
+	for (i = 0; i < Total_Control_Point_on_mesh[0] * DIMENSION; i++)
+	{
+		if (Index_Dof[i] != ERROR)
+		{
+			ndof_glo++;
+		}
+	}
+	printf("ndof		%d\n", ndof);
+	printf("ndof_glo	%d\n", ndof_glo);
+
+	int counter = 0;
+	
+	// M = [[K^G, 0], [0, K^L]] を作成
+	M_Ptr[0] = 0;
+	for (i = 0; i < ndof; i++)
+	{
+		M_Ptr[i + 1] = M_Ptr[i];
+
+        for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		{
+			if (i < ndof_glo && K_Whole_Col[j] < ndof_glo)
+			{
+				M[counter] = K_Whole_Val[j];
+				M_Col[counter] = K_Whole_Col[j];
+				counter++;
+				M_Ptr[i + 1]++;
+			}
+			else if (i >= ndof_glo)
+			{
+				M[counter] = K_Whole_Val[j];
+				M_Col[counter] = K_Whole_Col[j];
+				counter++;
+				M_Ptr[i + 1]++;
+			}
+        }
+    }
+}
+
+void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double vec_result[], double vec[], const int ndof)
+{
+	int i, j, icount = 0;
+
+	for (i = 0; i < ndof; i++)
+		vec_result[i] = 0;
+	for (i = 0; i < ndof; i++)
+	{
+        for (j = M_Ptr[i]; j < M_Ptr[i + 1]; j++)
+		{
+			vec_result[i] += M[icount] * vec[M_Col[j]];
+            if (i != M_Col[j])
+				vec_result[M_Col[j]] += M[icount] * vec[i];
+			icount++;
+		}
+	}
+}
+
+
+int M_check_conv_CG(int ndof, double alphak, double pp[], double eps, int itr, double solution_vec[])
+{
+	double rrr1 = 0.0, rrr2 = 0.0, rrr3;
+	int i, istop = 0;
+	for (i = 0; i < ndof; i++)
+	{
+		rrr1 += pp[i] * pp[i];
+		rrr2 += solution_vec[i] * solution_vec[i];
+	}
+	rrr3 = fabs(alphak) * sqrt(rrr1 / rrr2);
+	if (rrr3 < eps)
+		istop = 1;
+	return (istop);
+}
+
+
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec)
+{
+	int i, j;
+	int icount = 0;
+
+	// 対角スケーリング 前処理
+	// diag_scaling[0] = 1.0 / sqrt(M[0]);
+	// for (i = 1; i < ndof; i++)
 	// {
-	// 	for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+	// 	diag_scaling[i] = 1.0 / sqrt(M[M_Ptr[i]]);
+	// }
+	// for (i = 0; i < ndof; i++)
+	// {
+	// 	for (j = M_Ptr[i]; j < M_Ptr[i + 1]; j++)
 	// 	{
-	// 		if (i == row - 1 && K_Whole_Col[j] == col)
-	// 		{
-	// 			return icount;
-	// 		}
+	// 		M[icount] = M[icount] * diag_scaling[i] * diag_scaling[M_Col[j]];
 	// 		icount++;
 	// 	}
+	// 	right_vec[i] = right_vec[i] * diag_scaling[i];
 	// }
 
-	int icount = K_Whole_Ptr[row];
-	for (j = K_Whole_Ptr[row]; j < K_Whole_Ptr[row + 1]; j++)
+	// CG solver
+	static double gg[MAX_K_WHOLE_SIZE], dd[MAX_K_WHOLE_SIZE], pp[MAX_K_WHOLE_SIZE];
+	static double qqq, ppp, rrr;
+	static double alphak, betak;
+	int itr;
+	int ii, istop;
+	int max_itr = ndof;
+	double eps = 1.0e-13;
+
+	for (i = 0; i < ndof; i++)
+	{
+		solution_vec[i] = 0.0;
+	}
+	M_mat_vec_crs(M, M_Ptr, M_Col, dd, solution_vec, ndof);
+	for (i = 0; i < ndof; i++)
+	{
+		gg[i] = right_vec[i] - dd[i];
+		pp[i] = gg[i];
+	}
+	for (itr = 0; itr < max_itr; itr++)
+	{
+		ppp = inner_product(ndof, gg, gg);
+		M_mat_vec_crs(M, M_Ptr, M_Col, dd, pp, ndof);
+		rrr = inner_product(ndof, dd, pp);
+		alphak = ppp / rrr;
+		for (ii = 0; ii < ndof; ii++)
+		{
+			solution_vec[ii] += alphak * pp[ii];
+			gg[ii] -= alphak * dd[ii];
+		}
+		qqq = inner_product(ndof, gg, dd);
+		betak = qqq / rrr;
+		for (ii = 0; ii < ndof; ii++)
+			pp[ii] = gg[ii] - betak * pp[ii];
+		istop = M_check_conv_CG(ndof, alphak, pp, eps, itr, solution_vec);
+		if (istop == 1)
+			break;
+	}
+	printf("\titr %d\n", itr);
+
+	// 対角スケーリング 後処理
+	// for (i = 0; i < ndof; i++)
+	// {
+	// 	solution_vec[i] = solution_vec[i] * diag_scaling[i];
+	// }
+}
+
+
+int RowCol_to_icount(int row, int col)
+{
+	for (int j = K_Whole_Ptr[row]; j < K_Whole_Ptr[row + 1]; j++)
 	{
 		if (K_Whole_Col[j] == col)
 		{
-			return icount;
+			return j;
 		}
 		else if (K_Whole_Col[j] > col)
 		{
 			return -1;
 		}
-		icount++;
 	}
-
 	return -1;
 }
 
-
+/*
 void IncompleteCholeskyDecomp2(double *LT, double *d, int n)
 {
 	int i, j, k;
 
     // LT[0] = K_Whole_Val[0];
     // d[0] = 1.0 / LT[0];
-	// int icount = 1;
-	// int dcount = 1;
 
 	int icount = 0;
 	int dcount = 0;
@@ -3218,7 +3352,7 @@ void IncompleteCholeskyDecomp2(double *LT, double *d, int n)
 
 			double lld = K_Whole_Val[icount];
 
-			for (k = 0; k < i; k++)
+			for (k = 0; k < i; k++) // i
 			{
 				int temp1 = RowCol_to_icount(k, i); // LT[k][i]
 				int temp2 = RowCol_to_icount(k, j); // LT[k][j]
@@ -3238,6 +3372,82 @@ void IncompleteCholeskyDecomp2(double *LT, double *d, int n)
 
 			icount++;
 		}
+	}
+}
+*/
+
+
+/*
+void IncompleteCholeskyDecomp2(double *LT, double *d, int n)
+{
+	int i, j, k;
+
+	for (i = 0; i < n; i++)
+	{
+		// 対角項
+		d[i] = 1.0 / K_Whole_Val[RowCol_to_icount(i, i)];
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		{
+			double lld = K_Whole_Val[j];
+			for (k = 0; k < K_Whole_Col[j]; k++)
+			{
+				int temp1 = RowCol_to_icount(k, i); // LT[k][i]
+				int temp2 = RowCol_to_icount(k, K_Whole_Col[j]); // LT[k][j]
+				if (temp1 != -1 && temp2 != -1)
+				{
+					lld -= LT[temp1] * LT[temp2] * d[k];
+					if (d[k] <= 1.0e-13 && K_Whole_Val[RowCol_to_icount(k, k)] >= 1.0e-13)
+					{
+						printf("d[%d] okasii\n", k);
+					}
+				}
+			}
+			LT[j] = lld;
+
+			// // 対角項
+			// if (i == K_Whole_Col[j])
+            // {
+            //     d[i] = 1.0 / LT[j];
+            // }
+		}
+	}
+}
+*/
+
+
+void IncompleteCholeskyDecomp2(double *LT, double *d, int n)
+{
+	int i, j, k;
+
+	LT[0] = K_Whole_Val[0];
+	d[0] = 1.0 / LT[0];
+
+	for (i = 1; i < n; i++)
+	{
+		for (j = 0; j <= i; j++)
+		{
+			int temp1 = RowCol_to_icount(j, i); // K_Whole_Val[j][i] (ここでは常に j <= i のため)
+			if (temp1 != -1)
+			{
+				double lld = K_Whole_Val[temp1]; // K_Whole_Val[j][i] = K_Whole_Val[i][j]
+
+				for (k = 0; k < j; k++)
+				{
+					int temp2 = RowCol_to_icount(k, i); // LT[k][i]
+					int temp3 = RowCol_to_icount(k, j); // LT[k][j]
+					if (temp2 != -1 && temp3 != -1)
+					{
+						lld -= LT[temp2] * LT[temp3] * d[k];
+					}
+				}
+				LT[temp1] = lld;
+			}
+		}
+		d[i] = 1.0 / LT[RowCol_to_icount(i, i)];
 	}
 }
 
@@ -3270,6 +3480,7 @@ int IncompleteCholeskyDecomp2(const vector< vector<double> > &A, vector< vector<
 */
 
 
+/*
 void ICRes(double *LT, double *d, double *r, double *u, int n)
 {
 	int i, j;
@@ -3309,7 +3520,89 @@ void ICRes(double *LT, double *d, double *r, double *u, int n)
 
 	free(y);
 }
+*/
 
+
+/*
+void ICRes(double *LT, double *d, double *r, double *u, int n)
+{
+	int i, j;
+    double *y = (double *)calloc(n, sizeof(double));
+
+	for(i = 0; i < n; i++)
+	{
+		double rly = r[i];
+		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		{
+			if (i != K_Whole_Col[j])
+			{
+				int temp1 = RowCol_to_icount(K_Whole_Col[j], i); // LT[j][i]
+				if (temp1 != -1)
+				{
+					rly -= LT[temp1] * y[K_Whole_Col[j]];
+				}
+			}
+		}
+		int temp2 = RowCol_to_icount(i, i); // LT[i][i]
+		y[i] = rly / LT[temp2];
+	}
+ 
+    for(i = n - 1; i >= 0; --i)
+	{
+        double lu = 0.0;
+        for(j = i + 1; j < n; ++j)
+		{
+			int temp3 = RowCol_to_icount(i, j); // LT[i][j]
+			if (temp3 != -1)
+			{
+            	lu += LT[temp3] * u[j];
+			}
+        }
+        u[i] = y[i] - d[i] * lu;
+    }
+
+	free(y);
+}
+*/
+
+
+void ICRes(double *LT, double *d, double *r, double *u, int n)
+{
+	int i, j;
+    double *y = (double *)calloc(n, sizeof(double));
+
+	for(i = 0; i < n; i++)
+	{
+		double rly = r[i];
+		for (j = 0; j < i; j++)
+		{
+			int temp1 = RowCol_to_icount(j, i); // LT[j][i]
+			if (temp1 != -1)
+			{
+				rly -= LT[temp1] * y[j];
+			}
+		}
+	
+		int temp2 = RowCol_to_icount(i, i); // LT[i][i]
+		y[i] = rly / LT[temp2];
+	}
+ 
+    for(i = n - 1; i >= 0; i--)
+	{
+        double lu = 0.0;
+        for(j = i + 1; j < n; j++)
+		{
+			int temp3 = RowCol_to_icount(i, j); // LT[i][j]
+			if (temp3 != -1)
+			{
+            	lu += LT[temp3] * u[j];
+			}
+        }
+        u[i] = y[i] - d[i] * lu;
+    }
+
+	free(y);
+}
 
 
 /*
@@ -3342,44 +3635,42 @@ inline void ICRes(const vector< vector<double> > &L, const vector<double> &d, co
 
 
 // 不完全コレスキー分解による前処理付共役勾配法により[K]{d}={f}を解く
-void PCG_Solver(int ndof, int max_itr, double eps)
+void PCG_Solver(int ndof, int max_itetarion, double eps)
 {
 	int i, j, k;
 
 	double *r = (double *)malloc(sizeof(double) * ndof);
-	double *p = (double *)malloc(sizeof(double) * ndof);
+	double *p = (double *)calloc(ndof, sizeof(double));
 	double *y = (double *)malloc(sizeof(double) * ndof);
-	double *r2 = (double *)malloc(sizeof(double) * ndof);
+	double *r2 = (double *)calloc(ndof, sizeof(double));
 
 	// 初期化
 	for (i = 0; i < ndof; i++)
-	{
-		sol_vec[i] = 0.0;
-	}
+	sol_vec[i] = 0.0;
 
-	double *LT = (double *)malloc(sizeof(double) * MAX_NON_ZERO); 	// M = L d L^T
-	double *d = (double *)malloc(sizeof(double) * ndof);
+	// double *LT = (double *)malloc(sizeof(double) * MAX_NON_ZERO); 	// M = L d L^T
+	// double *d = (double *)malloc(sizeof(double) * ndof);
 
-	//	不完全コレスキー分解
-	IncompleteCholeskyDecomp2(LT, d, ndof);
+	// 不完全コレスキー分解
+	// IncompleteCholeskyDecomp2(LT, d, ndof);
+
+	// 前処理行列作成
+	double *M = (double *)malloc(sizeof(double) * MAX_NON_ZERO);
+	int *M_Ptr = (int *)malloc(sizeof(int) * MAX_K_WHOLE_SIZE + 1);
+	int *M_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);
+	Make_M(M, M_Ptr, M_Col, ndof);
 
 	// 第0近似解に対する残差の計算
-	int icount = 0;
-	double *ax = (double *)malloc(sizeof(double) * ndof);
-	for (i = 0; i < ndof; i++)
-	{
-		ax[i] = 0;
-	}
+	double *ax = (double *)calloc(ndof, sizeof(double));
     for (i = 0; i < ndof; i++)
 	{
         for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
 		{
-            ax[i] += K_Whole_Val[icount] * sol_vec[K_Whole_Col[j]];
+            ax[i] += K_Whole_Val[j] * sol_vec[K_Whole_Col[j]];
 			if (i != K_Whole_Col[j])
 			{
-				ax[K_Whole_Col[j]] += K_Whole_Val[icount] * sol_vec[i];
+				ax[K_Whole_Col[j]] += K_Whole_Val[j] * sol_vec[i];
 			}
-			icount++;
         }
     }
 	for (i = 0; i < ndof; i++)
@@ -3387,22 +3678,35 @@ void PCG_Solver(int ndof, int max_itr, double eps)
 		r[i] = rhs_vec[i] - ax[i];
 	}
 	free(ax);
- 
+
+	// 第0近似解に対する残差の計算
+	// for (i = 0; i < ndof; i++)
+	// {
+	// 	r[i] = rhs_vec[i];
+	// }
+
     // p_0 = (LDL^T)^-1 r_0 の計算
-    ICRes(LT, d, r, p, ndof);
- 
-    double rr0 = inner_product(ndof, r, p), rr1;
-	// printf("rr0 %le\n", rr0);
+    // ICRes(LT, d, r, p, ndof);
+
+	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし，p_0 = (LDL^T)^-1 r_0 = M^-1 r_0 (対角スケーリング)
+	CG(ndof, p, M, M_Ptr, M_Col, r);
+
+
+    // double rr0 = inner_product(ndof, r, p), rr1;
+	double rr0;
     double alpha, beta;
 
 	double e = 0.0;
-    for(k = 0; k < max_itr; ++k)
+    for(k = 0; k < max_itetarion; k++)
 	{
+		// rr0 の計算
+		rr0 = inner_product(ndof, r, p);
+
         // y = AP の計算
-        for(i = 0; i < ndof; ++i)
+        for(i = 0; i < ndof; i++)
 		{
 			double *temp_array_K = (double *)calloc(ndof, sizeof(double));
-			for (j = 0; j < ndof; ++j)
+			for (j = 0; j < ndof; j++)
 			{
 				int temp1;
 				if (i <= j)
@@ -3411,7 +3715,7 @@ void PCG_Solver(int ndof, int max_itr, double eps)
 				}
 				else if (i > j)
 				{
-					temp1 = RowCol_to_icount(j, i); // temp_array_K[i][j] = K^T[j][i]
+					temp1 = RowCol_to_icount(j, i); // temp_array_K[i][j] = temp_array_K[j][i]
 				}
 
 				if (temp1 != -1)
@@ -3424,23 +3728,45 @@ void PCG_Solver(int ndof, int max_itr, double eps)
         }
  
         // alpha = r*r/(P*AP)の計算
-        alpha = rr0 / inner_product(ndof, p, y);
+		double temp_scaler = inner_product(ndof, p, y);
+        alpha = rr0 / temp_scaler;
 		// printf("alpha %le\n", alpha);
  
         // 解x、残差rの更新
-        for(i = 0; i < ndof; ++i)
+        for(i = 0; i < ndof; i++)
 		{
-            sol_vec[i] += alpha*p[i];
-            r[i] -= alpha*y[i];
+            sol_vec[i] += alpha * p[i];
+            r[i] -= alpha * y[i];
         }
  
         // (r*r)_(k+1)の計算
-        ICRes(LT, d, r, r2, ndof);
-        rr1 = inner_product(ndof, r, r2);
+        // ICRes(LT, d, r, r2, ndof);
+
+		// (r*r)_(k+1)の計算
+		CG(ndof, r2, M, M_Ptr, M_Col, r);
+	
+	
+        // rr1 = inner_product(ndof, r, r2); // 旧
+		// rr1 = inner_product(ndof, y, r2); // 新
 		// printf("rr1 %le\n", rr1);
  
         // 収束判定 (||r||<=eps)
-        e = sqrt(rr1);
+		// double rr1 = inner_product(ndof, y, r2);
+        // e = sqrt(fabs(rr1));
+        // if(e < eps)
+		// {
+        //     k++;
+        //     break;
+        // }
+
+		// 収束判定 (CG法と同じ)
+		double e1 = 0.0, e2 = 0.0;
+		for (i = 0; i < ndof; i++)
+		{
+			e1 += p[i] * p[i];
+			e2 += sol_vec[i] * sol_vec[i];
+		}
+        e = fabs(alpha) * sqrt(e1 / e2);
         if(e < eps)
 		{
             k++;
@@ -3448,29 +3774,39 @@ void PCG_Solver(int ndof, int max_itr, double eps)
         }
  
         // βの計算とPの更新
-        beta = rr1 / rr0;
-        for(i = 0; i < ndof; ++i)
+        // beta = rr1 / rr0; //旧
+		// beta = - rr1 / temp_scaler; // 新
+		beta = - inner_product(ndof, y, r2) / temp_scaler;
+
+        for(i = 0; i < ndof; i++)
 		{
-            p[i] = r2[i] + beta * p[i];
+            // p[i] = r2[i] - beta * p[i];
+			p[i] = r2[i] + beta * p[i];
         }
 		// printf("beta %le\n", beta);
  
         // (r*r)_(k+1)を次のステップのために確保しておく
-        rr0 = rr1;
-
+        // rr0 = rr1;
+	
 		printf("itr %d\t", k);
-		printf("eps %.15e\n", e);
+		printf("eps %.15e", e);
+		// if (rr1 < 0)
+		// {
+		// 	printf("\t rr1 < 0");
+		// }
+		printf("\n");
     }
  
     int max_itr_result = k;
     double eps_result = e;
 
 	printf("\nndof = %d\n", ndof);
-	printf("itr_result = %d\n", k);
+	printf("itr_result = %d\n", max_itr_result);
 	printf("eps_result = %.15e\n", eps_result);
 
 	free(r), free(p), free(y), free(r2);
-	free(LT), free(d);
+	// free(LT), free(d);
+	free(M), free(M_Ptr), free(M_Col);
 }
 
 
@@ -5536,7 +5872,7 @@ void calculate_Controlpoint_using_NURBS(double element[DIMENSION], int Total_Ele
 	{
 		e = real_element[re];
 		//printf("\n");
-		printf("Element_No:%d\n",e );
+		// printf("Element_No:%d\n",e );
 		double element_gg = 0.0, element_ee = 0.0, element_delta;
 
 		int i_gg, i_ee;
@@ -7122,8 +7458,8 @@ int CalcXiEtaByNR(double px, double py,
 		//収束した場合////////////////////////////////////////////////////////////////
 		//if (temp_tol_x < tol && temp_tol_y < tol) {
         if (temp_tol_x + temp_tol_y < tol) {
-			printf("rNURBS\n");
-			printf("repeat = %d\n", i);
+			// printf("rNURBS\n");
+			// printf("repeat = %d\n", i);
 			if (temp_xi == input_knot_vec_xi[0] || temp_eta == input_knot_vec_eta[0])
 			{
 				break;
@@ -7146,14 +7482,14 @@ int CalcXiEtaByNR(double px, double py,
 			for (i = 0; i < knot_n_xi; i++) {
 				if ( input_knot_vec_xi[i] < temp_xi && temp_xi <= input_knot_vec_xi[i + 1]) {
 					dtilda_xi = ( input_knot_vec_xi[i + 1] - input_knot_vec_xi[i] ) / 2.0;
-					printf("xi%f\n", dtilda_xi);
+					// printf("xi%f\n", dtilda_xi);
 					break;
 				}
 			}
 			for (i = 0; i < knot_n_eta; i++) {
 				if ( input_knot_vec_eta[i] < temp_eta && temp_eta <= input_knot_vec_eta[i + 1]) {
 					dtilda_eta = ( input_knot_vec_eta[i + 1] - input_knot_vec_eta[i] ) / 2.0;
-					printf("eta%f\n", dtilda_eta);
+					// printf("eta%f\n", dtilda_eta);
 					break;
 				}
 			}
@@ -7165,8 +7501,8 @@ int CalcXiEtaByNR(double px, double py,
 			               &temp, &temp,
 			               &dxi_x, &deta_x,
 			               &dxi_y, &deta_y);
-			printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
-				   dxi_x, deta_x, dxi_y, deta_y);
+			// printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
+			// 	   dxi_x, deta_x, dxi_y, deta_y);
 
 			rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 			               disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
@@ -7175,8 +7511,8 @@ int CalcXiEtaByNR(double px, double py,
 			               &disp_x, &disp_y,
 			               &dxi_disp_x, &deta_disp_x,
 			               &dxi_disp_y, &deta_disp_y);
-			printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
-				   dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y);
+			// printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
+			// 	   dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y);
 
 			temp_matrix2[0][0] = dxi_x * dtilda_xi;
 			temp_matrix2[0][1] = dxi_y * dtilda_xi;
@@ -7292,8 +7628,8 @@ int CalcXiEtaByNR(double px, double py,
 		//収束した場合////////////////////////////////////////////////////////////////
 		//if (temp_tol_x < tol && temp_tol_y < tol) {
         if (temp_tol_x + temp_tol_y < tol) {
-			printf("lNURBS\n");
-			printf("repeat = %d\n", i);
+			// printf("lNURBS\n");
+			// printf("repeat = %d\n", i);
 			if (temp_xi == input_knot_vec_xi[cntl_p_n_xi + order_xi] || temp_eta == input_knot_vec_eta[cntl_p_n_eta + order_eta])
 			{
 				break;
@@ -7316,14 +7652,14 @@ int CalcXiEtaByNR(double px, double py,
 			for (i = 0; i < knot_n_xi; i++) {
 				if ( input_knot_vec_xi[i] <= temp_xi && temp_xi < input_knot_vec_xi[i + 1]) {
 					dtilda_xi = ( input_knot_vec_xi[i + 1] - input_knot_vec_xi[i] ) / 2.0;
-					printf("%f\n", dtilda_xi);
+					// printf("%f\n", dtilda_xi);
 					break;
 				}
 			}
 			for (i = 0; i < knot_n_eta; i++) {
 				if ( input_knot_vec_eta[i] <= temp_eta && temp_eta < input_knot_vec_eta[i + 1]) {
 					dtilda_eta = ( input_knot_vec_eta[i + 1] - input_knot_vec_eta[i] ) / 2.0;
-					printf("%f\n", dtilda_eta);
+					// printf("%f\n", dtilda_eta);
 					break;
 				}
 			}
@@ -7335,8 +7671,8 @@ int CalcXiEtaByNR(double px, double py,
 			               &temp, &temp,
 			               &dxi_x, &deta_x,
 			               &dxi_y, &deta_y);
-			printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
-				   dxi_x, deta_x, dxi_y, deta_y);
+			// printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
+			// 	   dxi_x, deta_x, dxi_y, deta_y);
 
 			lNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 			               disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
@@ -7345,8 +7681,8 @@ int CalcXiEtaByNR(double px, double py,
 			               &disp_x, &disp_y,
 			               &dxi_disp_x, &deta_disp_x,
 			               &dxi_disp_y, &deta_disp_y);
-			printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
-				   dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y);
+			// printf("% 1.4e % 1.4e % 1.4e % 1.4e\n",
+			// 	   dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y);
 
 			temp_matrix2[0][0] = dxi_x * dtilda_xi;
 			temp_matrix2[0][1] = dxi_y * dtilda_xi;
@@ -7462,7 +7798,7 @@ int CalcXiEtaByNR(double px, double py,
 		//収束した場合////////////////////////////////////////////////////////////////
 		//if (temp_tol_x < tol && temp_tol_y < tol) {
         if (temp_tol_x + temp_tol_y < tol) {
-			printf("rlNURBS\n");
+			// printf("rlNURBS\n");
 			if (temp_xi == input_knot_vec_xi[0])
 			{
 				break;
@@ -7631,7 +7967,7 @@ int CalcXiEtaByNR(double px, double py,
 		//収束した場合////////////////////////////////////////////////////////////////
 		//if (temp_tol_x < tol && temp_tol_y < tol) {
         if (temp_tol_x + temp_tol_y < tol) {
-			printf("lrNURBS\n");
+			// printf("lrNURBS\n");
 			(*output_xi) = temp_xi;
 			(*output_eta) = temp_eta;
 
@@ -7881,12 +8217,12 @@ static void Calculation(int order_xi, int order_eta,
 						   &coord_x[i][j], &coord_y[i][j],
 						   &dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
 						   &dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
-			printf("[%d][%d] [%d][%d][%d][%d]"
-				   "% 1.4e % 1.4e "
-				   "% 1.4e % 1.4e\n",
-				   i, j, ii, jj, kk, ll,
-				   calc_xi[i], calc_eta[j],
-				   coord_x[i][j], coord_y[i][j]);
+			// printf("[%d][%d] [%d][%d][%d][%d]"
+			// 	   "% 1.4e % 1.4e "
+			// 	   "% 1.4e % 1.4e\n",
+			// 	   i, j, ii, jj, kk, ll,
+			// 	   calc_xi[i], calc_eta[j],
+			// 	   coord_x[i][j], coord_y[i][j]);
 		}
 		//printf("\n");
 	}
@@ -7909,12 +8245,12 @@ static void Calculation(int order_xi, int order_eta,
 							   &disp_x[i][j], &disp_y[i][j],
 							   &dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
 							   &dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
-				printf("[%d][%d] [%d][%d][%d][%d]"
-					   "% 1.4e % 1.4e "
-					   "% 1.4e % 1.4e\n",
-					   i, j, ii, jj, kk, ll,
-					   calc_xi[i], calc_eta[j],
-					   disp_x[i][j], disp_y[i][j]);
+				// printf("[%d][%d] [%d][%d][%d][%d]"
+				// 	   "% 1.4e % 1.4e "
+				// 	   "% 1.4e % 1.4e\n",
+				// 	   i, j, ii, jj, kk, ll,
+				// 	   calc_xi[i], calc_eta[j],
+				// 	   disp_x[i][j], disp_y[i][j]);
 			}
 			//printf("\n");
 		}
@@ -8453,9 +8789,9 @@ static void Calculation_overlay(int order_xi_loc, int order_eta_loc,
                                       &strain_xx_glo, &strain_yy_glo, &strain_xy_glo);
             if (itr_n == 0)
             {
-                printf("itr=0\n");
+                // printf("itr=0\n");
             }
-			printf("iteration : %d\n",itr_n);
+			// printf("iteration : %d\n",itr_n);
 
 			//ローカル内の表示点上のグローバル変位
 			// printf("disp_x_glo =% 1.4e\tdisp_y_glo =% 1.4e\n", disp_x_glo, disp_y_glo);

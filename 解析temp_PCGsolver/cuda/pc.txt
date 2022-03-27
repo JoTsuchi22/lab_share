@@ -1,0 +1,4 @@
+intel core i9 12900K
+
+グリス
+    Thermal Grizzly 1~5.5g

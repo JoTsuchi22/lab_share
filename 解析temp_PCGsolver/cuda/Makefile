@@ -1,0 +1,8 @@
+s_IGA_cuda_cpp.x:	s_IGA_cuda_cpp.cpp
+				g++ -o s_IGA_cuda_cpp.x s_IGA_cuda_cpp.cpp -O1
+
+01:	s_IGA_cuda.cu
+	nvcc -O0 s_IGA_cuda.cu -o s_IGA_cuda.x -Xcompiler "/wd 4819"
+
+a:	a.cu
+	nvcc -O0 a.cu -o a.exe -Xcompiler "/wd 4819"

@@ -13,7 +13,20 @@ mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
 
 ../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt > result.dat
 
+../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt > result.dat
+
+../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_5x5.txt ../input_loc_3_5x5.txt
+../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
+
+../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
 
 NURBSviewer
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_local.txt overlay_view.dat Displacement_loc.dat
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_for_NURBS.txt view.dat Displacement.dat
+
+
+c++ test
+
+../../../../cuda/s_IGA_cuda_cpp.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
