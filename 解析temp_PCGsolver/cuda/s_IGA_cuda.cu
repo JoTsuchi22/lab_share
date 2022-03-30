@@ -33,6 +33,9 @@ mkdir checkAns
 	  shapefunc
 
 **************************************/
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +44,6 @@ mkdir checkAns
 #include <time.h>
 
 #define ERROR -999
-//#define ERROR					0
 #define PI  3.14159265359
 
 #define MAX_NO_CCpoint_ON_ELEMENT 16						//分割節点数
@@ -54,7 +56,6 @@ mkdir checkAns
 #define D_MATRIX_SIZE 3										//応力歪マトリックスの大きさ（2次元:3 3次元:6）
 
 #define K_DIVISION_LENGE 10 	//全体剛性マトリックスのcol&ptrを制作時に分ける節点数
-// #define EPS 0.0000000001		//連立1次方程式の残差
 #define EPS 1.0e-10				//連立1次方程式の残差
 #define N_STRAIN 4
 #define N_STRESS 4
@@ -109,136 +110,6 @@ mkdir checkAns
 #define MAX_POINTS (MAX_ELEMENTS * MAX_DIVISION + 1)	//最大点数
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-/* Hard-coded user parameters */
-
-#define FILE_INPUT_BUFFER_SIZE 1024
-
-#define COORDS_SCALE_FACTOR 1.0e+3
-/* Magnify coordinates before drawing view,
- * because very small objects vanish in OpenGL */
-
-#define EFFECTIVE_ZERO 1.0e-9
-#define VIEW_CENTER_MOVING_DISTANCE 0.1
-#define POINTS_NUM_CONTOUR_GRADES 10
-
-/* Default command-line parameters */
-
-#define DEFAULT_FILENAME_VIEW_IMAGE "image.png"
-#define DEFAULT_WINDOW_SIZE 600
-#define DEFAULT_DIVISION_NUMBER 3
-
-#define DEFAULT_FIRST_TIME_STEP 0
-#define DEFAULT_TIME_STEP_INCREMENT 1
-#define DEFAULT_TIME_STEP_LOOP_FLAG 1
-#define DEFAULT_SLOW_DOWN_LEVEL 0
-#define DEFAULT_FILENAME_ALL_VIEW_IMAGES "image-%d.png"
-
-/* Default panel parameters */
-
-#define DEFAULT_PLOT_TYPE VOLUME_PLOT_TYPE
-#define DEFAULT_MESH_FLAG 1
-#define DEFAULT_EDGES_FLAG 1
-#define DEFAULT_CRACK_MESH_FLAG 1
-#define DEFAULT_CRACK_FRONT_EDGES_FLAG 1
-#define DEFAULT_SEGMENTS_FLAG 1
-#define DEFAULT_DEFORMED_MESH_FLAG 0
-#define DEFAULT_DEFORMED_EDGES_FLAG 0
-#define DEFAULT_DEFORMED_CRACK_MESH_FLAG 0
-#define DEFAULT_DEFORMED_CRACK_FRONT_EDGES_FLAG 0
-#define DEFAULT_DEFORMED_SEGMENTS_FLAG 0
-#define DEFAULT_DEFORMATION_SCALE_FACTOR 1.0e+0
-#define DEFAULT_POINTS_TYPE POINTS_POINTS_TYPE
-#define DEFAULT_TITLE ""
-#define DEFAULT_COORD_AXES_FLAG 1
-#define DEFAULT_COORD_AXES_AT_ORIGIN_FLAG 0
-#define DEFAULT_OTHER_MODE NODE_PICK_OTHER_MODE
-#define DEFAULT_SCALE_BAR_FLAG 0
-#define DEFAULT_SCALE_BAR_FORMAT "%.0e mm"
-#define DEFAULT_SCALE_BAR_SCALE_FACTOR 1.0e+0
-#define DEFAULT_SECTION_FLAG 0
-#define DEFAULT_SECTION_TYPE LESS_EQUAL_SECTION_TYPE
-#define DEFAULT_VOLUME_COLOR "whitesmoke"
-#define DEFAULT_MESH_COLOR "black"
-#define DEFAULT_EDGE_COLOR "black"
-#define DEFAULT_CRACK_MESH_COLOR "blue"
-#define DEFAULT_CRACK_FRONT_EDGE_COLOR "blue"
-#define DEFAULT_SEGMENT_COLOR "black"
-#define DEFAULT_POINT_COLOR "black"
-#define DEFAULT_MESH_LINE_WIDTH 2
-#define DEFAULT_EDGE_LINE_WIDTH 2
-#define DEFAULT_CRACK_MESH_LINE_WIDTH 2
-#define DEFAULT_CRACK_FRONT_EDGE_LINE_WIDTH 2
-#define DEFAULT_SEGMENT_LINE_WIDTH 2
-#define DEFAULT_POINT_SIZE 2
-#define DEFAULT_CONTOUR_TYPE BAND_CONTOUR_TYPE
-#define DEFAULT_REVERSED_CONTOUR_COLORS_FLAG 0
-#define DEFAULT_GRAY_CONTOUR_COLOR_BELOW_MAGENTA_ONE_FLAG 0
-#define DEFAULT_NUM_CONTOUR_GRADES 10
-#define DEFAULT_CONTOUR_BAR_FLAG 1
-#define DEFAULT_AUTO_CONTOUR_BAR_FORMAT_FLAG 1
-#define DEFAULT_CONTOUR_BAR_FORMAT "%.2e"
-#define DEFAULT_CONTOUR_BAR_SCALE_FACTOR 1.0e+0
-#define DEFAULT_INTEGER_CONTOUR_FIELD_MOD 0
-#define DEFAULT_POINT_MARK CROSS_POINT_MARK
-#define DEFAULT_POINTS_REVERSED_CONTOUR_COLORS_FLAG 0
-#define DEFAULT_POINTS_CONTOUR_BAR_FLAG 1
-#define DEFAULT_POINTS_AUTO_CONTOUR_BAR_FORMAT_FLAG 1
-#define DEFAULT_POINTS_CONTOUR_BAR_FORMAT "%.2e"
-#define DEFAULT_POINTS_CONTOUR_BAR_SCALE_FACTOR 1.0e+0
-
-/* Hard-coded internal parameters */
-
-#define NOTHING_PLOT_TYPE 0
-#define VOLUME_PLOT_TYPE 1
-#define CONTOUR_VOLUME_PLOT_TYPE 2
-#define DEFORMED_VOLUME_PLOT_TYPE 3
-#define DEFORMED_CONTOUR_VOLUME_PLOT_TYPE 4
-#define CRACK_PLOT_TYPE 5
-#define DEFORMED_CRACK_PLOT_TYPE 6
-
-#define DISP_X 0
-#define DISP_Y 1
-#define DISP_VAL 2
-#define STRAIN_XX 3
-#define STRAIN_YY 4
-#define STRAIN_XY 5
-#define STRESS_XX 6
-#define STRESS_YY 7
-#define STRESS_XY 8
-
-#define NOTHING_POINTS_TYPE 0
-#define POINTS_POINTS_TYPE 1
-#define COLORED_POINTS_POINTS_TYPE 2
-
-#define NODE_PICK_OTHER_MODE 0
-#define ELEMENT_PICK_OTHER_MODE 1
-#define POINT_PICK_OTHER_MODE 2
-
-#define EQUAL_SECTION_TYPE 0
-#define LESS_EQUAL_SECTION_TYPE 1
-#define GREATER_EQUAL_SECTION_TYPE 2
-#define ELEMENTAL_LESS_EQUAL_SECTION_TYPE 3
-#define ELEMENTAL_GREATER_EQUAL_SECTION_TYPE 4
-
-#define SMOOTH_CONTOUR_TYPE 0
-#define BAND_CONTOUR_TYPE 1
-
-#define CROSS_POINT_MARK 0
-#define DIAMOND_POINT_MARK 1
-#define CUBE_POINT_MARK 2
-
-#define LINEAR_TETRAHEDRON_ELEMENT_TYPE 0
-#define QUADRATIC_TETRAHEDRON_ELEMENT_TYPE 1
-#define LINEAR_HEXAHEDRON_ELEMENT_TYPE 2
-#define QUADRATIC_HEXAHEDRON_ELEMENT_TYPE 3
-#define QUADRATIC_HEXAHEDRON27_ELEMENT_TYPE 4
-#define LINEAR_TRIANGLE_ELEMENT_TYPE 5
-#define QUADRATIC_TRIANGLE_ELEMENT_TYPE 6
-#define LINEAR_QUADRANGLE_ELEMENT_TYPE 7
-#define QUADRATIC_QUADRANGLE_ELEMENT_TYPE 8
-#define QUADRATIC_QUADRANGLE9_ELEMENT_TYPE 9
-
-#define M_PI 3.14159265358979323846
 
 //void Force_Dis( int Total_DistributeForce, int DistributeForce[MAX_N_DISTRIBUTE_FORCE][3], double Val_DistributeForce[MAX_N_DISTRIBUTE_FORCE],int *Total_Load,int Load_Node_Dir[MAX_N_LOAD][2],double Value_of_Load[MAX_N_LOAD],int Total_Control_Point, int El_No, int *Total_Element );
 void Make_gauss_array(int select_GP);
@@ -417,22 +288,8 @@ static int line_No_real_element[MAX_N_PATCH][DIMENSION];  /*ゼロエレメン�
 static int real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];   /*ゼロエレメントではない要素列*/
 
 static int No_points_for_colored_points; /*zarusobaで点に色付ける時の全ての点の数*/
-/*
-static double data_result_shape_x[10000];
-static double data_result_shape_y[10000];
-static double data_result_disp_x[10000];
-static double data_result_disp_y[10000];
-*/
 
 static int No_points_for_new_zarusoba; /*zarusobaで点に色付ける時の全ての点の数*/
-/*
-static double data_result_shape_x_for_new_zarusoba[10000];
-static double data_result_shape_y_for_new_zarusoba[10000];
-static double data_result_disp_x_for_new_zarusoba[10000];
-static double data_result_disp_y_for_new_zarusoba[10000];
-*/
-
-//static double Strain_x[MAX_N_ELEMENT][POW_Ng][N_STRAIN];
 
 //for s-IGA
 static int Total_mesh;
