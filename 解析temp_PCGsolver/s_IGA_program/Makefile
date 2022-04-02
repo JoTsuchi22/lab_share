@@ -1,4 +1,4 @@
-all_program: 04
+all_program: 05
 
 01:	s_IGA_20220205.c
 	gcc -o s_IGA_CGex.x s_IGA_20220205.c -O1 -lm -Wall -Wextra
@@ -11,3 +11,6 @@ all_program: 04
 
 04:	s_IGA_20220317.c
 	gcc -o s_IGA_CGex.x s_IGA_20220205.c -O1 -lm -Wall -Wextra
+
+05:	s_IGA_PCGv3.c
+	gcc -o s_IGA_PCGv3.x s_IGA_PCGv3.c -O1 -lm -Wall -Wextra
