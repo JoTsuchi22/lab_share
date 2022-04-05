@@ -9499,6 +9499,7 @@ void K_output_png()
 {
 	// pngで出力
 	// [K] = [[K^G, K^GL], [K^GL, K^L]]
+	
 
 }
 
