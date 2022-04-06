@@ -9499,7 +9499,8 @@ void K_output_png()
 {
 	// pngで出力
 	// [K] = [[K^G, K^GL], [K^GL, K^L]]
-	
+
+
 
 }
 
@@ -9516,7 +9517,7 @@ void K_output_svg(int ndof)
 
 	double space = 3.0, scale = 1000.0 / (((double)ndof) + 2.0 * space);
 
-	double width = (((double)ndof) + 2.0 * space);
+	double width = (((double)ndof) + 2.0 * space) * scale;
 	double height = width;
 
 	char str[256] = "K_matrix.svg";
