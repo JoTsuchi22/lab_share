@@ -34,6 +34,12 @@ mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
 ../../../../s_IGA_program/s_IGA_PCGv4.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
 ../../../../s_IGA_program/s_IGA_PCGv4.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
 
+実行(IMM_PCGv1)
+../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
+../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
+
 NURBSviewer
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_local.txt overlay_view.dat Displacement_loc.dat
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_for_NURBS.txt view.dat Displacement.dat
