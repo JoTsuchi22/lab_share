@@ -1948,7 +1948,7 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 	double K_2 = 0.0;
 	double q_func_grad[DIMENSION][DIMENSION], q_func_grad_local[DIMENSION][DIMENSION], EMT_mode1[DIMENSION][DIMENSION], EMT_mode2[DIMENSION][DIMENSION], EMT_aux_mode1[DIMENSION][DIMENSION], EMT_aux_mode2[DIMENSION][DIMENSION];
 	double Virtual_Crack_Extension_El_Nodes[MAX_NO_CCpoint_ON_ELEMENT * DIMENSION];
-	double GXY[9][2], qXY[2];
+	double GXY[POW_Ng_extended][2], qXY[2];
 	double check_int_r = 0.0;
 
 	Make_gauss_array(0);
@@ -2004,7 +2004,7 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 			for(N = 0; N < GP_2D; N++){
 				GXY[N][0] = 0.0; GXY[N][1] = 0.0; qXY[0] = 0.0; qXY[1] = 0.0;
 				for(i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[e]]; i++){
-					double R_shape_func = Shape_func(i, Gxi[N],e);
+					double R_shape_func = Shape_func(i, Gxi[N], e);
 					for(j = 0; j < DIMENSION; j++){
 						GXY[N][j] += R_shape_func * X[i][j];
 						qXY[j] += R_shape_func * Virtual_Crack_Extension_El_Nodes[i * DIMENSION + j];
