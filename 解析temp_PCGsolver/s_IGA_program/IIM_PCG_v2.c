@@ -2048,7 +2048,7 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 			for(N = 0; N < GP_2D; N++){
 				GXY[N][0] = 0.0; GXY[N][1] = 0.0; qXY[0] = 0.0; qXY[1] = 0.0;
 				for(i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[e]]; i++){
-					double R_shape_func = Shape_func(i, Gxi[N],e);
+					double R_shape_func = Shape_func(i, Gxi[N], e);
 					for(j = 0; j < DIMENSION; j++){
 						GXY[N][j] += R_shape_func * X[i][j];
 						qXY[j] += R_shape_func * Virtual_Crack_Extension_El_Nodes[i * DIMENSION + j];
@@ -2169,8 +2169,10 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 				K_2 -= (EMT_mode2[0][1] * q_func_grad[1][0] + EMT_mode2[1][1] * q_func_grad[1][1]) * w[N] * J; 
 
 				//補助場のモードI
-				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][0] * q_func_grad[0][0] + EMT_aux_mode1[1][0] * q_func_grad[0][1]) * w[N] * J;
-				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][1] * q_func_grad[1][0] + EMT_aux_mode1[1][1] * q_func_grad[1][1]) * w[N] * J;
+				// J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][0] * q_func_grad[0][0] + EMT_aux_mode1[1][0] * q_func_grad[0][1]) * w[N] * J;
+				// J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][1] * q_func_grad[1][0] + EMT_aux_mode1[1][1] * q_func_grad[1][1]) * w[N] * J;
+				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][0] * q_func_grad_local[0][0] + EMT_aux_mode1[1][0] * q_func_grad_local[0][1]) * w[N] * J;
+				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][1] * q_func_grad_local[1][0] + EMT_aux_mode1[1][1] * q_func_grad_local[1][1]) * w[N] * J;
 
 				//補助場のモードII
 				J_integral_value_aux_mode2 -= (EMT_aux_mode2[0][0] * q_func_grad[0][0] + EMT_aux_mode2[1][0] * q_func_grad[0][1]) * w[N] * J;
@@ -2210,6 +2212,7 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 	}
 	return 0;
 }
+
 
 /*
 double J_Integral_Computation6by6(int Total_Control_Point, int Total_Element,int Location_Crack_Tip_Patch, double Location_Local_Coordinates[DIMENSION], double Virtual_Crack_Extension_Ct_Pt[MAX_N_NODE][DIMENSION], double DeltaA, int El_No, double E, double nu, int DM)
@@ -2401,6 +2404,7 @@ double J_Integral_Computation6by6(int Total_Control_Point, int Total_Element,int
 	return(J_integral_value/DeltaA);
 }
 */
+
 
 //ファイルからデータをもらう
 void Get_InputData(int tm,
@@ -6213,7 +6217,7 @@ void Make_StrainEnergyDensity_2D_overlay()
 	Make_gauss_array(0);
 
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
-		e = real_element[re];	
+		e = real_element[re];
 		for(k = 0; k < GP_2D; k++){
 			StrainEnergyDensity_overlay[e][k] = 0.0;
 		}
