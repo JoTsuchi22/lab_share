@@ -1,38 +1,8 @@
 
 共役勾配法用のテストプログラム
 
-コンパイル
-gcc -o s_IGA_CGex.x s_IGA_20220205.c -O1 -lm -Wall
-
 実行
 mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
-
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_5x5.txt > result.dat
-../../../../s_IGA_program/old.x ../input_glo_3_30x30.txt ../input_loc_3_5x5.txt > result.dat
-
-
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt > result.dat
-
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt > result.dat
-
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_5x5.txt ../input_loc_3_5x5.txt
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
-
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-../../../../s_IGA_program/s_IGA_CGex.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
-
-実行(PCGv3)
-../../../../s_IGA_program/s_IGA_PCGv3.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-../../../../s_IGA_program/s_IGA_PCGv3.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
-../../../../s_IGA_program/s_IGA_PCGv3.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-../../../../s_IGA_program/s_IGA_PCGv3.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
-
-実行(PCGv4)
-../../../../s_IGA_program/s_IGA_PCGv4.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-../../../../s_IGA_program/s_IGA_PCGv4.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
-../../../../s_IGA_program/s_IGA_PCGv4.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-../../../../s_IGA_program/s_IGA_PCGv4.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
 
 実行(IMM_PCGv1)
 ../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
@@ -40,17 +10,31 @@ mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
 ../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
 ../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
 
-実行(IMM_PCGv1 + J)
-../../../../s_IGA_program/IMM_PCGv1.x ../input_glo_element.txt ../local3_Interaction.txt
-
-実行(cuda_test_IMM)
-../../../../s_IGA_program/cuda_test_IMM.x ../input_glo_element.txt ../local3_Interaction.txt
+実行(IIM_PCG_v2)
+../../../../s_IGA_program/IIM_PCG_v2.x ../input_glo_element.txt ../local3_Interaction.txt
 
 NURBSviewer
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_local.txt overlay_view.dat Displacement_loc.dat
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_for_NURBS.txt view.dat Displacement.dat
 
 
-c++ test
 
+cuda test
+../../../../s_IGA_program/cuda_test_IMM.x ../input_glo_element.txt ../local3_Interaction.txt
+c++ test
 ../../../../cuda/s_IGA_cuda_cpp.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+
+
+***************************************
+*
+* ssh 手順
+*
+***************************************
+
+VPN on
+ssh tsuchiyama@Prius
+yes
+kinoko0000
+
+cd ドキュメント/lab_share
+git pull
