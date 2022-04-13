@@ -38,3 +38,9 @@ kinoko0000
 
 cd ドキュメント/lab_share
 git pull
+
+(github ログイン 初回のみ(?))
+JoTsuchi22
+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
+
+git pull
