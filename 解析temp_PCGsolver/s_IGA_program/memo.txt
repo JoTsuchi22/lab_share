@@ -33,7 +33,6 @@ c++ test
 
 VPN on
 ssh tsuchiyama@Prius
-yes
 kinoko0000
 
 screen ls
@@ -41,14 +40,23 @@ screen ls
 cd ドキュメント/lab_share
 git pull
 
-(github ログイン 初回のみ(?))
+screen
+cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/s_IGA_program'
+gcc -o CentOS_IIM_PCG_v2.x IIM_PCG_v2.c -O1 -lm -Wall -Wextra -std=c99
+cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/解析/order3/crac_01/作業'
+mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
+../../../../s_IGA_program/CentOS_IIM_PCG_v2.x ../input_glo_element.txt ../local3_Interaction.txt
+
+git config --global user.email "78190918+JoTsuchi22@users.noreply.github.com"
+git config --global user.name "ssh"
+
+git add .
+git commit -m 'commit'
+git push
+
+(github ログイン)
 JoTsuchi22
 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
 
-
-screen
-cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/解析/order3/crac_01/作業'
-../../../../s_IGA_program/IIM_PCG_v2.x ../input_glo_element.txt ../local3_Interaction.txt
-
-
-git push
+git status
+git diff --staged
