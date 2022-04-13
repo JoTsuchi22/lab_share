@@ -44,7 +44,6 @@ screen
 cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/s_IGA_program'
 gcc -o CentOS_IIM_PCG_v2.x IIM_PCG_v2.c -O1 -lm -Wall -Wextra -std=c99
 cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/解析/order3/crac_01/作業'
-mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
 ../../../../s_IGA_program/CentOS_IIM_PCG_v2.x ../input_glo_element.txt ../local3_Interaction.txt
 
 git config --global user.email "78190918+JoTsuchi22@users.noreply.github.com"
@@ -58,5 +57,17 @@ git push
 JoTsuchi22
 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
 
+デタッチ
+Ctrl + a -> Ctrl + d
+アタッチ
+screen -r
+終了
+screen -wipe
+screen -r -X quit
+exit (?)
+
 git status
 git diff --staged
+
+mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
+../../../../s_IGA_program/CentOS_IIM_PCG_v2.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
