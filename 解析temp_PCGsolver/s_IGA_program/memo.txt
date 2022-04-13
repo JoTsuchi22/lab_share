@@ -36,6 +36,8 @@ ssh tsuchiyama@Prius
 yes
 kinoko0000
 
+screen ls
+
 cd ドキュメント/lab_share
 git pull
 
@@ -43,4 +45,10 @@ git pull
 JoTsuchi22
 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
 
-git pull
+
+screen
+cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/解析/order3/crac_01/作業'
+../../../../s_IGA_program/IIM_PCG_v2.x ../input_glo_element.txt ../local3_Interaction.txt
+
+
+git push
