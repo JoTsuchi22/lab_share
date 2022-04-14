@@ -300,6 +300,8 @@ static double Strain_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_overlay[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_aux_mode1[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_aux_mode2[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
+// static double Strain_aux_mode1_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
+// static double Strain_aux_mode2_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Stress[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_overlay[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
@@ -313,6 +315,8 @@ static double StrainEnergyDensity_aux_mode1[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_mode2[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_only_mode1[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_only_mode2[MAX_N_ELEMENT][POW_Ng_extended];
+// static double StrainEnergyDensity_aux_only_mode1_local[MAX_N_ELEMENT][POW_Ng_extended];
+// static double StrainEnergyDensity_aux_only_mode2_local[MAX_N_ELEMENT][POW_Ng_extended];
 static double Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION]; //Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][0] = 𝜕u1/𝜕x1  Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][1] = 𝜕u1/𝜕x2  Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][2] = 𝜕u2/𝜕x1 Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][3] = 𝜕u2/𝜕x2
 static double Disp_grad_glo[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION];
 static double Disp_grad_overlay[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION];
@@ -2048,7 +2052,7 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 			for(N = 0; N < GP_2D; N++){
 				GXY[N][0] = 0.0; GXY[N][1] = 0.0; qXY[0] = 0.0; qXY[1] = 0.0;
 				for(i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[e]]; i++){
-					double R_shape_func = Shape_func(i, Gxi[N], e);
+					double R_shape_func = Shape_func(i, Gxi[N],e);
 					for(j = 0; j < DIMENSION; j++){
 						GXY[N][j] += R_shape_func * X[i][j];
 						qXY[j] += R_shape_func * Virtual_Crack_Extension_El_Nodes[i * DIMENSION + j];
@@ -2132,6 +2136,20 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 				printf("EMT_aux_mode1[1][1] = %.15e\n",EMT_aux_mode1[1][1]);
 				/* W - s21 * du1/dx2 - s22 * du2/dx2 */
 
+				// //補助場のみでのモードIにおけるEMT（ローカル座標）
+				// EMT_aux_mode1[0][0] =  StrainEnergyDensity_aux_only_mode1_local[e][N] - (Stress_aux_mode1_local[e][N][0] * Disp_grad_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][2] * Disp_grad_aux_mode1_local[e][N][2]);
+				// printf("EMT_aux_mode1[0][0] = %.15e\n",EMT_aux_mode1[0][0]);
+				// /* W - s11 * du1/dx1 - s12 * du2/dx1 */
+				// EMT_aux_mode1[0][1] =                            - (Stress_aux_mode1_local[e][N][0] * Disp_grad_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][2] * Disp_grad_aux_mode1_local[e][N][3]);
+				// printf("EMT_aux_mode1[0][1] = %.15e\n",EMT_aux_mode1[0][1]);
+				// /* - s11 * du1/dx2 - s22 * du2/dx2 */
+				// EMT_aux_mode1[1][0] =                            - (Stress_aux_mode1_local[e][N][2] * Disp_grad_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][1] * Disp_grad_aux_mode1_local[e][N][2]);
+				// printf("EMT_aux_mode1[1][0] = %.15e\n",EMT_aux_mode1[1][0]);
+				// /* - s21 * du1/dx1 - s22 * du2/dx1 */
+				// EMT_aux_mode1[1][1] =  StrainEnergyDensity_aux_only_mode1_local[e][N] - (Stress_aux_mode1_local[e][N][2] * Disp_grad_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][1] * Disp_grad_aux_mode1_local[e][N][3]);
+				// printf("EMT_aux_mode1[1][1] = %.15e\n",EMT_aux_mode1[1][1]);
+				// /* W - s21 * du1/dx2 - s22 * du2/dx2 */
+
 				//補助場のみでのモードIIにおけるEMT
 				EMT_aux_mode2[0][0] =  StrainEnergyDensity_aux_only_mode2[e][N] - (Stress_aux_mode2[e][N][0] * Disp_grad_aux_mode2[e][N][0] + Stress_aux_mode2[e][N][2] * Disp_grad_aux_mode2[e][N][2]);
 				printf("EMT_aux_mode2[0][0] = %.15e\n",EMT_aux_mode2[0][0]);
@@ -2169,10 +2187,8 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 				K_2 -= (EMT_mode2[0][1] * q_func_grad[1][0] + EMT_mode2[1][1] * q_func_grad[1][1]) * w[N] * J; 
 
 				//補助場のモードI
-				// J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][0] * q_func_grad[0][0] + EMT_aux_mode1[1][0] * q_func_grad[0][1]) * w[N] * J;
-				// J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][1] * q_func_grad[1][0] + EMT_aux_mode1[1][1] * q_func_grad[1][1]) * w[N] * J;
-				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][0] * q_func_grad_local[0][0] + EMT_aux_mode1[1][0] * q_func_grad_local[0][1]) * w[N] * J;
-				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][1] * q_func_grad_local[1][0] + EMT_aux_mode1[1][1] * q_func_grad_local[1][1]) * w[N] * J;
+				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][0] * q_func_grad[0][0] + EMT_aux_mode1[1][0] * q_func_grad[0][1]) * w[N] * J;
+				J_integral_value_aux_mode1 -= (EMT_aux_mode1[0][1] * q_func_grad[1][0] + EMT_aux_mode1[1][1] * q_func_grad[1][1]) * w[N] * J;
 
 				//補助場のモードII
 				J_integral_value_aux_mode2 -= (EMT_aux_mode2[0][0] * q_func_grad[0][0] + EMT_aux_mode2[1][0] * q_func_grad[0][1]) * w[N] * J;
@@ -2212,7 +2228,6 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 	}
 	return 0;
 }
-
 
 /*
 double J_Integral_Computation6by6(int Total_Control_Point, int Total_Element,int Location_Crack_Tip_Patch, double Location_Local_Coordinates[DIMENSION], double Virtual_Crack_Extension_Ct_Pt[MAX_N_NODE][DIMENSION], double DeltaA, int El_No, double E, double nu, int DM)
@@ -2404,7 +2419,6 @@ double J_Integral_Computation6by6(int Total_Control_Point, int Total_Element,int
 	return(J_integral_value/DeltaA);
 }
 */
-
 
 //ファイルからデータをもらう
 void Get_InputData(int tm,
@@ -6217,7 +6231,7 @@ void Make_StrainEnergyDensity_2D_overlay()
 	Make_gauss_array(0);
 
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
-		e = real_element[re];
+		e = real_element[re];	
 		for(k = 0; k < GP_2D; k++){
 			StrainEnergyDensity_overlay[e][k] = 0.0;
 		}
@@ -10361,16 +10375,17 @@ void Make_auxiliary_mode1(int e, double E, double nu, int DM, double X[MAX_NO_CC
 	unit_basis_local[1] = crack_front_coordinates_y / r_tip;
 	printf("unit_basis[0] : % 1.8e\n", unit_basis_local[0]);
 	printf("unit_basis[1] : % 1.8e\n", unit_basis_local[1]);
-	crack_front_coordinates_x_local = unit_basis_local[0] * crack_front_coordinates_x + unit_basis_local[1] * crack_front_coordinates_y;
-	crack_front_coordinates_y_local = -unit_basis_local[1] * crack_front_coordinates_x + unit_basis_local[0] * crack_front_coordinates_y;
-	printf("x_crackfront_local : % 1.8e\n", crack_front_coordinates_x_local);
-    printf("y_crackfront_local : % 1.8e\n", crack_front_coordinates_y_local);
 
 	//2 × 2 の行列として局所座標系を登録
 	T[0][0] = unit_basis_local[0];   T[0][1] = unit_basis_local[1];   /*T[0][2] = 0.0;*/
 	T[1][0] = -unit_basis_local[1];  T[1][1] = unit_basis_local[0];   /*T[1][2] = 0.0;*/
 	// T[2][0] = 0.0;  T[2][1] = 0.0;;   T[2][2] = 0.0;
 	printf("T[0][0] = %1.8e\tT[0][1] = %1.8e\tT[1][0] = %1.8e\tT[1][1] = %1.8e\n", T[0][0], T[0][1], T[1][0], T[1][1]);
+
+	crack_front_coordinates_x_local = T[0][0] * crack_front_coordinates_x + T[0][1] * crack_front_coordinates_y;
+	crack_front_coordinates_y_local = T[1][0] * crack_front_coordinates_x + T[1][1] * crack_front_coordinates_y;
+	printf("x_crackfront_local : % 1.8e\n", crack_front_coordinates_x_local);
+    printf("y_crackfront_local : % 1.8e\n", crack_front_coordinates_y_local);
 
 	for(N = 0; N < GP_2D; N++){
 		//各要素でガウス点での物理座標の算出する
@@ -10384,8 +10399,8 @@ void Make_auxiliary_mode1(int e, double E, double nu, int DM, double X[MAX_NO_CC
 		printf("x_gauss : % 1.8e\n", data_result_shape[0]);
 		printf("y_gauss : % 1.8e\n", data_result_shape[1]);
 
-		data_result_shape_local[0] = unit_basis_local[0] * data_result_shape[0] + unit_basis_local[1] * data_result_shape[1];
-		data_result_shape_local[1] = -unit_basis_local[1] * data_result_shape[0] + unit_basis_local[0] * data_result_shape[1];
+		data_result_shape_local[0] = T[0][0] * data_result_shape[0] + T[0][1] * data_result_shape[1];
+		data_result_shape_local[1] = T[1][0] * data_result_shape[0] + T[1][1] * data_result_shape[1];
 		printf("x_gauss_local : % 1.8e\n", data_result_shape_local[0]);
 		printf("y_gauss_local : % 1.8e\n", data_result_shape_local[1]);
 
@@ -10460,8 +10475,10 @@ void Make_auxiliary_mode1(int e, double E, double nu, int DM, double X[MAX_NO_CC
 		for (i = 0; i < D_MATRIX_SIZE; i++){
 			for (j = 0; j < D_MATRIX_SIZE; j++){
 				Strain_aux_mode1[e][N][i] += Dinv[i][j] * Stress_aux_mode1[e][N][j];
+				// Strain_aux_mode1_local[e][N][i] += Dinv[i][j] * Stress_aux_mode1_local[e][N][j];
 			}
 			printf("Strain_aux_mode1[%d][%d][%d] = %1.10e\n", e, N, i, Strain_aux_mode1[e][N][i]);
+			// printf("Strain_aux_mode1_local[%d][%d][%d] = %1.10e\n", e, N, i, Strain_aux_mode1_local[e][N][i]);
 		}
 
 		//相互ポテンシャルエネルギ密度Wを算出する
@@ -10471,6 +10488,10 @@ void Make_auxiliary_mode1(int e, double E, double nu, int DM, double X[MAX_NO_CC
 		//補助場のひずみエネルギ密度を算出する
 		StrainEnergyDensity_aux_only_mode1[e][N] = (Stress_aux_mode1[e][N][0] * Strain_aux_mode1[e][N][0] + Stress_aux_mode1[e][N][1] * Strain_aux_mode1[e][N][1] + Stress_aux_mode1[e][N][2] * Strain_aux_mode1[e][N][2]) / 2.0;
 		printf("StrainEnergyDensity_aux_only_mode1[%d][%d] = %1.10e\n", e, N, StrainEnergyDensity_aux_only_mode1[e][N]);
+
+		// //補助場のローカルでのひずみエネルギ密度を算出する
+		// StrainEnergyDensity_aux_only_mode1_local[e][N] = (Stress_aux_mode1_local[e][N][0] * Strain_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][1] * Strain_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][2] * Strain_aux_mode1_local[e][N][2]) / 2.0;
+		// printf("StrainEnergyDensity_aux_only_mode1_local[%d][%d] = %1.10e\n", e, N, StrainEnergyDensity_aux_only_mode1_local[e][N]);
 	}
 }
 
@@ -10502,16 +10523,17 @@ void Make_auxiliary_mode2(int e, double E, double nu, int DM, double X[MAX_NO_CC
 	unit_basis_local[1] = crack_front_coordinates_y / r_tip;
 	// printf("unit_basis[0] : % 1.8e\n", unit_basis_local[0]);
 	// printf("unit_basis[1] : % 1.8e\n", unit_basis_local[1]);
-	crack_front_coordinates_x_local = unit_basis_local[0] * crack_front_coordinates_x + unit_basis_local[1] * crack_front_coordinates_y;
-	crack_front_coordinates_y_local = -unit_basis_local[1] * crack_front_coordinates_x + unit_basis_local[0] * crack_front_coordinates_y;
-	// printf("x_crackfront_local : % 1.8e\n", crack_front_coordinates_x_local);
-    // printf("y_crackfront_local : % 1.8e\n", crack_front_coordinates_y_local);
 
 	//2 × 2 の行列として局所座標系を登録
 	T[0][0] = unit_basis_local[0];   T[0][1] = unit_basis_local[1];   /*T[0][2] = 0.0;*/
 	T[1][0] = -unit_basis_local[1];  T[1][1] = unit_basis_local[0];   /*T[1][2] = 0.0;*/
 	// T[2][0] = 0.0;  T[2][1] = 0.0;;   T[2][2] = 0.0;
 	printf("T[0][0] = %1.8e\tT[0][1] = %1.8e\tT[1][0] = %1.8e\tT[1][1] = %1.8e\n", T[0][0], T[0][1], T[1][0], T[1][1]);
+	
+	crack_front_coordinates_x_local = T[0][0] * crack_front_coordinates_x + T[0][1] * crack_front_coordinates_y;
+	crack_front_coordinates_y_local = T[1][0] * crack_front_coordinates_x + T[1][1] * crack_front_coordinates_y;
+	printf("x_crackfront_local : % 1.8e\n", crack_front_coordinates_x_local);
+    printf("y_crackfront_local : % 1.8e\n", crack_front_coordinates_y_local);
 
 	for(N = 0; N < GP_2D; N++){
 		//各要素でガウス点での物理座標の算出する
@@ -10519,17 +10541,16 @@ void Make_auxiliary_mode2(int e, double E, double nu, int DM, double X[MAX_NO_CC
 		for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[e]]; i++){
 			double R_shape_func = Shape_func(i, Gxi[N], e);
 			for (j = 0; j < DIMENSION; j++){
-				X[i][j] = Node_Coordinate[Controlpoint_of_Element[e][i]][j];
 				data_result_shape[j] += R_shape_func * X[i][j];
 			}
 		}
-		// printf("x_gauss : % 1.8e\n", data_result_shape[0]);
-		// printf("y_gauss : % 1.8e\n", data_result_shape[1]);
+		printf("x_gauss : % 1.8e\n", data_result_shape[0]);
+		printf("y_gauss : % 1.8e\n", data_result_shape[1]);
 
-		data_result_shape_local[0] = unit_basis_local[0] * data_result_shape[0] + unit_basis_local[1] * data_result_shape[1];
-		data_result_shape_local[1] = -unit_basis_local[1] * data_result_shape[0] + unit_basis_local[0] * data_result_shape[1];
-		// printf("x_gauss_local : % 1.8e\n", data_result_shape_local[0]);
-		// printf("y_gauss_local : % 1.8e\n", data_result_shape_local[1]);
+		data_result_shape_local[0] = T[0][0] * data_result_shape[0] + T[0][1] * data_result_shape[1];
+		data_result_shape_local[1] = T[1][0] * data_result_shape[0] + T[1][1] * data_result_shape[1];
+		printf("x_gauss_local : % 1.8e\n", data_result_shape_local[0]);
+		printf("y_gauss_local : % 1.8e\n", data_result_shape_local[1]);
 
 		//ガウス点での物理座標をき裂先端での円筒座標に変換する
 		r = sqrt((data_result_shape_local[0] - crack_front_coordinates_x_local) * (data_result_shape_local[0] - crack_front_coordinates_x_local) + (data_result_shape_local[1] - crack_front_coordinates_y_local) * (data_result_shape_local[1] - crack_front_coordinates_y_local));

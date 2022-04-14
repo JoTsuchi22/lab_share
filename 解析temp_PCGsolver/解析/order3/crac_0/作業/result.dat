@@ -1,0 +1,2969 @@
+s-IGA carried out.(1 local meshes)
+E:2.060000e+05 nu:3.000000e-01
+No_Patch:1
+Total_Patch_to_mesh[0]=0
+Total_Patch_to_Now=0
+Total_Control_Point:589
+Total_Control_Point_to_mesh[0]=0
+Total_Control_Point_to_mesh[1]=589
+Total_Control_Point_to_Now=0
+Order[0][0]=2
+Order[0][1]=2
+No_knot[0][0]=22
+No_knot[0][1]=34
+No_Control_point[0][0]:19
+No_Control_point[0][1]:31
+No_Controlpoint_in_patch[0]:589	
+Total_Constraint;3
+Total_Constraint_on_mesh[0];3
+Total_Constraint_to_mesh[0];0
+Total_Load;0
+Total_DistributedForce;2
+0.000000e+00	0.000000e+00	0.000000e+00	5.882353e-02	1.176471e-01	1.764706e-01	2.352941e-01	2.941176e-01	3.529412e-01	4.117647e-01	4.705882e-01	5.294118e-01	5.882353e-01	6.470588e-01	7.058824e-01	7.647059e-01	8.235294e-01	8.823529e-01	9.411765e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	3.448276e-02	6.896552e-02	1.034483e-01	1.379310e-01	1.724138e-01	2.068966e-01	2.413793e-01	2.758621e-01	3.103448e-01	3.448276e-01	3.793103e-01	4.137931e-01	4.482759e-01	4.827586e-01	5.172414e-01	5.517241e-01	5.862069e-01	6.206897e-01	6.551724e-01	6.896552e-01	7.241379e-01	7.586207e-01	7.931034e-01	8.275862e-01	8.620690e-01	8.965517e-01	9.310345e-01	9.655172e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+Total_Element=493
+Total_Element_on_mesh[0]=493
+Total_Element_to_Now=0
+No_Control_point_ON_ELEMENT[0]=9
+Node_Coordinate[0][0]=-5.000000e+01
+Node_Coordinate[0][1]=-1.000000e+02
+Node_Coordinate[0][2]=1.000000e+00
+Node_Coordinate[1][0]=-4.705882e+01
+Node_Coordinate[1][1]=-1.000000e+02
+Node_Coordinate[1][2]=1.000000e+00
+Node_Coordinate[2][0]=-4.117647e+01
+Node_Coordinate[2][1]=-1.000000e+02
+Node_Coordinate[2][2]=1.000000e+00
+Node_Coordinate[3][0]=-3.529412e+01
+Node_Coordinate[3][1]=-1.000000e+02
+Node_Coordinate[3][2]=1.000000e+00
+Node_Coordinate[4][0]=-2.941176e+01
+Node_Coordinate[4][1]=-1.000000e+02
+Node_Coordinate[4][2]=1.000000e+00
+Node_Coordinate[5][0]=-2.352941e+01
+Node_Coordinate[5][1]=-1.000000e+02
+Node_Coordinate[5][2]=1.000000e+00
+Node_Coordinate[6][0]=-1.764706e+01
+Node_Coordinate[6][1]=-1.000000e+02
+Node_Coordinate[6][2]=1.000000e+00
+Node_Coordinate[7][0]=-1.176471e+01
+Node_Coordinate[7][1]=-1.000000e+02
+Node_Coordinate[7][2]=1.000000e+00
+Node_Coordinate[8][0]=-5.882353e+00
+Node_Coordinate[8][1]=-1.000000e+02
+Node_Coordinate[8][2]=1.000000e+00
+Node_Coordinate[9][0]=0.000000e+00
+Node_Coordinate[9][1]=-1.000000e+02
+Node_Coordinate[9][2]=1.000000e+00
+Node_Coordinate[10][0]=5.882353e+00
+Node_Coordinate[10][1]=-1.000000e+02
+Node_Coordinate[10][2]=1.000000e+00
+Node_Coordinate[11][0]=1.176471e+01
+Node_Coordinate[11][1]=-1.000000e+02
+Node_Coordinate[11][2]=1.000000e+00
+Node_Coordinate[12][0]=1.764706e+01
+Node_Coordinate[12][1]=-1.000000e+02
+Node_Coordinate[12][2]=1.000000e+00
+Node_Coordinate[13][0]=2.352941e+01
+Node_Coordinate[13][1]=-1.000000e+02
+Node_Coordinate[13][2]=1.000000e+00
+Node_Coordinate[14][0]=2.941176e+01
+Node_Coordinate[14][1]=-1.000000e+02
+Node_Coordinate[14][2]=1.000000e+00
+Node_Coordinate[15][0]=3.529412e+01
+Node_Coordinate[15][1]=-1.000000e+02
+Node_Coordinate[15][2]=1.000000e+00
+Node_Coordinate[16][0]=4.117647e+01
+Node_Coordinate[16][1]=-1.000000e+02
+Node_Coordinate[16][2]=1.000000e+00
+Node_Coordinate[17][0]=4.705882e+01
+Node_Coordinate[17][1]=-1.000000e+02
+Node_Coordinate[17][2]=1.000000e+00
+Node_Coordinate[18][0]=5.000000e+01
+Node_Coordinate[18][1]=-1.000000e+02
+Node_Coordinate[18][2]=1.000000e+00
+Node_Coordinate[19][0]=-5.000000e+01
+Node_Coordinate[19][1]=-9.655172e+01
+Node_Coordinate[19][2]=1.000000e+00
+Node_Coordinate[20][0]=-4.705882e+01
+Node_Coordinate[20][1]=-9.655172e+01
+Node_Coordinate[20][2]=1.000000e+00
+Node_Coordinate[21][0]=-4.117647e+01
+Node_Coordinate[21][1]=-9.655172e+01
+Node_Coordinate[21][2]=1.000000e+00
+Node_Coordinate[22][0]=-3.529412e+01
+Node_Coordinate[22][1]=-9.655172e+01
+Node_Coordinate[22][2]=1.000000e+00
+Node_Coordinate[23][0]=-2.941176e+01
+Node_Coordinate[23][1]=-9.655172e+01
+Node_Coordinate[23][2]=1.000000e+00
+Node_Coordinate[24][0]=-2.352941e+01
+Node_Coordinate[24][1]=-9.655172e+01
+Node_Coordinate[24][2]=1.000000e+00
+Node_Coordinate[25][0]=-1.764706e+01
+Node_Coordinate[25][1]=-9.655172e+01
+Node_Coordinate[25][2]=1.000000e+00
+Node_Coordinate[26][0]=-1.176471e+01
+Node_Coordinate[26][1]=-9.655172e+01
+Node_Coordinate[26][2]=1.000000e+00
+Node_Coordinate[27][0]=-5.882353e+00
+Node_Coordinate[27][1]=-9.655172e+01
+Node_Coordinate[27][2]=1.000000e+00
+Node_Coordinate[28][0]=0.000000e+00
+Node_Coordinate[28][1]=-9.655172e+01
+Node_Coordinate[28][2]=1.000000e+00
+Node_Coordinate[29][0]=5.882353e+00
+Node_Coordinate[29][1]=-9.655172e+01
+Node_Coordinate[29][2]=1.000000e+00
+Node_Coordinate[30][0]=1.176471e+01
+Node_Coordinate[30][1]=-9.655172e+01
+Node_Coordinate[30][2]=1.000000e+00
+Node_Coordinate[31][0]=1.764706e+01
+Node_Coordinate[31][1]=-9.655172e+01
+Node_Coordinate[31][2]=1.000000e+00
+Node_Coordinate[32][0]=2.352941e+01
+Node_Coordinate[32][1]=-9.655172e+01
+Node_Coordinate[32][2]=1.000000e+00
+Node_Coordinate[33][0]=2.941176e+01
+Node_Coordinate[33][1]=-9.655172e+01
+Node_Coordinate[33][2]=1.000000e+00
+Node_Coordinate[34][0]=3.529412e+01
+Node_Coordinate[34][1]=-9.655172e+01
+Node_Coordinate[34][2]=1.000000e+00
+Node_Coordinate[35][0]=4.117647e+01
+Node_Coordinate[35][1]=-9.655172e+01
+Node_Coordinate[35][2]=1.000000e+00
+Node_Coordinate[36][0]=4.705882e+01
+Node_Coordinate[36][1]=-9.655172e+01
+Node_Coordinate[36][2]=1.000000e+00
+Node_Coordinate[37][0]=5.000000e+01
+Node_Coordinate[37][1]=-9.655172e+01
+Node_Coordinate[37][2]=1.000000e+00
+Node_Coordinate[38][0]=-5.000000e+01
+Node_Coordinate[38][1]=-8.965517e+01
+Node_Coordinate[38][2]=1.000000e+00
+Node_Coordinate[39][0]=-4.705882e+01
+Node_Coordinate[39][1]=-8.965517e+01
+Node_Coordinate[39][2]=1.000000e+00
+Node_Coordinate[40][0]=-4.117647e+01
+Node_Coordinate[40][1]=-8.965517e+01
+Node_Coordinate[40][2]=1.000000e+00
+Node_Coordinate[41][0]=-3.529412e+01
+Node_Coordinate[41][1]=-8.965517e+01
+Node_Coordinate[41][2]=1.000000e+00
+Node_Coordinate[42][0]=-2.941176e+01
+Node_Coordinate[42][1]=-8.965517e+01
+Node_Coordinate[42][2]=1.000000e+00
+Node_Coordinate[43][0]=-2.352941e+01
+Node_Coordinate[43][1]=-8.965517e+01
+Node_Coordinate[43][2]=1.000000e+00
+Node_Coordinate[44][0]=-1.764706e+01
+Node_Coordinate[44][1]=-8.965517e+01
+Node_Coordinate[44][2]=1.000000e+00
+Node_Coordinate[45][0]=-1.176471e+01
+Node_Coordinate[45][1]=-8.965517e+01
+Node_Coordinate[45][2]=1.000000e+00
+Node_Coordinate[46][0]=-5.882353e+00
+Node_Coordinate[46][1]=-8.965517e+01
+Node_Coordinate[46][2]=1.000000e+00
+Node_Coordinate[47][0]=0.000000e+00
+Node_Coordinate[47][1]=-8.965517e+01
+Node_Coordinate[47][2]=1.000000e+00
+Node_Coordinate[48][0]=5.882353e+00
+Node_Coordinate[48][1]=-8.965517e+01
+Node_Coordinate[48][2]=1.000000e+00
+Node_Coordinate[49][0]=1.176471e+01
+Node_Coordinate[49][1]=-8.965517e+01
+Node_Coordinate[49][2]=1.000000e+00
+Node_Coordinate[50][0]=1.764706e+01
+Node_Coordinate[50][1]=-8.965517e+01
+Node_Coordinate[50][2]=1.000000e+00
+Node_Coordinate[51][0]=2.352941e+01
+Node_Coordinate[51][1]=-8.965517e+01
+Node_Coordinate[51][2]=1.000000e+00
+Node_Coordinate[52][0]=2.941176e+01
+Node_Coordinate[52][1]=-8.965517e+01
+Node_Coordinate[52][2]=1.000000e+00
+Node_Coordinate[53][0]=3.529412e+01
+Node_Coordinate[53][1]=-8.965517e+01
+Node_Coordinate[53][2]=1.000000e+00
+Node_Coordinate[54][0]=4.117647e+01
+Node_Coordinate[54][1]=-8.965517e+01
+Node_Coordinate[54][2]=1.000000e+00
+Node_Coordinate[55][0]=4.705882e+01
+Node_Coordinate[55][1]=-8.965517e+01
+Node_Coordinate[55][2]=1.000000e+00
+Node_Coordinate[56][0]=5.000000e+01
+Node_Coordinate[56][1]=-8.965517e+01
+Node_Coordinate[56][2]=1.000000e+00
+Node_Coordinate[57][0]=-5.000000e+01
+Node_Coordinate[57][1]=-8.275862e+01
+Node_Coordinate[57][2]=1.000000e+00
+Node_Coordinate[58][0]=-4.705882e+01
+Node_Coordinate[58][1]=-8.275862e+01
+Node_Coordinate[58][2]=1.000000e+00
+Node_Coordinate[59][0]=-4.117647e+01
+Node_Coordinate[59][1]=-8.275862e+01
+Node_Coordinate[59][2]=1.000000e+00
+Node_Coordinate[60][0]=-3.529412e+01
+Node_Coordinate[60][1]=-8.275862e+01
+Node_Coordinate[60][2]=1.000000e+00
+Node_Coordinate[61][0]=-2.941176e+01
+Node_Coordinate[61][1]=-8.275862e+01
+Node_Coordinate[61][2]=1.000000e+00
+Node_Coordinate[62][0]=-2.352941e+01
+Node_Coordinate[62][1]=-8.275862e+01
+Node_Coordinate[62][2]=1.000000e+00
+Node_Coordinate[63][0]=-1.764706e+01
+Node_Coordinate[63][1]=-8.275862e+01
+Node_Coordinate[63][2]=1.000000e+00
+Node_Coordinate[64][0]=-1.176471e+01
+Node_Coordinate[64][1]=-8.275862e+01
+Node_Coordinate[64][2]=1.000000e+00
+Node_Coordinate[65][0]=-5.882353e+00
+Node_Coordinate[65][1]=-8.275862e+01
+Node_Coordinate[65][2]=1.000000e+00
+Node_Coordinate[66][0]=0.000000e+00
+Node_Coordinate[66][1]=-8.275862e+01
+Node_Coordinate[66][2]=1.000000e+00
+Node_Coordinate[67][0]=5.882353e+00
+Node_Coordinate[67][1]=-8.275862e+01
+Node_Coordinate[67][2]=1.000000e+00
+Node_Coordinate[68][0]=1.176471e+01
+Node_Coordinate[68][1]=-8.275862e+01
+Node_Coordinate[68][2]=1.000000e+00
+Node_Coordinate[69][0]=1.764706e+01
+Node_Coordinate[69][1]=-8.275862e+01
+Node_Coordinate[69][2]=1.000000e+00
+Node_Coordinate[70][0]=2.352941e+01
+Node_Coordinate[70][1]=-8.275862e+01
+Node_Coordinate[70][2]=1.000000e+00
+Node_Coordinate[71][0]=2.941176e+01
+Node_Coordinate[71][1]=-8.275862e+01
+Node_Coordinate[71][2]=1.000000e+00
+Node_Coordinate[72][0]=3.529412e+01
+Node_Coordinate[72][1]=-8.275862e+01
+Node_Coordinate[72][2]=1.000000e+00
+Node_Coordinate[73][0]=4.117647e+01
+Node_Coordinate[73][1]=-8.275862e+01
+Node_Coordinate[73][2]=1.000000e+00
+Node_Coordinate[74][0]=4.705882e+01
+Node_Coordinate[74][1]=-8.275862e+01
+Node_Coordinate[74][2]=1.000000e+00
+Node_Coordinate[75][0]=5.000000e+01
+Node_Coordinate[75][1]=-8.275862e+01
+Node_Coordinate[75][2]=1.000000e+00
+Node_Coordinate[76][0]=-5.000000e+01
+Node_Coordinate[76][1]=-7.586207e+01
+Node_Coordinate[76][2]=1.000000e+00
+Node_Coordinate[77][0]=-4.705882e+01
+Node_Coordinate[77][1]=-7.586207e+01
+Node_Coordinate[77][2]=1.000000e+00
+Node_Coordinate[78][0]=-4.117647e+01
+Node_Coordinate[78][1]=-7.586207e+01
+Node_Coordinate[78][2]=1.000000e+00
+Node_Coordinate[79][0]=-3.529412e+01
+Node_Coordinate[79][1]=-7.586207e+01
+Node_Coordinate[79][2]=1.000000e+00
+Node_Coordinate[80][0]=-2.941176e+01
+Node_Coordinate[80][1]=-7.586207e+01
+Node_Coordinate[80][2]=1.000000e+00
+Node_Coordinate[81][0]=-2.352941e+01
+Node_Coordinate[81][1]=-7.586207e+01
+Node_Coordinate[81][2]=1.000000e+00
+Node_Coordinate[82][0]=-1.764706e+01
+Node_Coordinate[82][1]=-7.586207e+01
+Node_Coordinate[82][2]=1.000000e+00
+Node_Coordinate[83][0]=-1.176471e+01
+Node_Coordinate[83][1]=-7.586207e+01
+Node_Coordinate[83][2]=1.000000e+00
+Node_Coordinate[84][0]=-5.882353e+00
+Node_Coordinate[84][1]=-7.586207e+01
+Node_Coordinate[84][2]=1.000000e+00
+Node_Coordinate[85][0]=0.000000e+00
+Node_Coordinate[85][1]=-7.586207e+01
+Node_Coordinate[85][2]=1.000000e+00
+Node_Coordinate[86][0]=5.882353e+00
+Node_Coordinate[86][1]=-7.586207e+01
+Node_Coordinate[86][2]=1.000000e+00
+Node_Coordinate[87][0]=1.176471e+01
+Node_Coordinate[87][1]=-7.586207e+01
+Node_Coordinate[87][2]=1.000000e+00
+Node_Coordinate[88][0]=1.764706e+01
+Node_Coordinate[88][1]=-7.586207e+01
+Node_Coordinate[88][2]=1.000000e+00
+Node_Coordinate[89][0]=2.352941e+01
+Node_Coordinate[89][1]=-7.586207e+01
+Node_Coordinate[89][2]=1.000000e+00
+Node_Coordinate[90][0]=2.941176e+01
+Node_Coordinate[90][1]=-7.586207e+01
+Node_Coordinate[90][2]=1.000000e+00
+Node_Coordinate[91][0]=3.529412e+01
+Node_Coordinate[91][1]=-7.586207e+01
+Node_Coordinate[91][2]=1.000000e+00
+Node_Coordinate[92][0]=4.117647e+01
+Node_Coordinate[92][1]=-7.586207e+01
+Node_Coordinate[92][2]=1.000000e+00
+Node_Coordinate[93][0]=4.705882e+01
+Node_Coordinate[93][1]=-7.586207e+01
+Node_Coordinate[93][2]=1.000000e+00
+Node_Coordinate[94][0]=5.000000e+01
+Node_Coordinate[94][1]=-7.586207e+01
+Node_Coordinate[94][2]=1.000000e+00
+Node_Coordinate[95][0]=-5.000000e+01
+Node_Coordinate[95][1]=-6.896552e+01
+Node_Coordinate[95][2]=1.000000e+00
+Node_Coordinate[96][0]=-4.705882e+01
+Node_Coordinate[96][1]=-6.896552e+01
+Node_Coordinate[96][2]=1.000000e+00
+Node_Coordinate[97][0]=-4.117647e+01
+Node_Coordinate[97][1]=-6.896552e+01
+Node_Coordinate[97][2]=1.000000e+00
+Node_Coordinate[98][0]=-3.529412e+01
+Node_Coordinate[98][1]=-6.896552e+01
+Node_Coordinate[98][2]=1.000000e+00
+Node_Coordinate[99][0]=-2.941176e+01
+Node_Coordinate[99][1]=-6.896552e+01
+Node_Coordinate[99][2]=1.000000e+00
+Node_Coordinate[100][0]=-2.352941e+01
+Node_Coordinate[100][1]=-6.896552e+01
+Node_Coordinate[100][2]=1.000000e+00
+Node_Coordinate[101][0]=-1.764706e+01
+Node_Coordinate[101][1]=-6.896552e+01
+Node_Coordinate[101][2]=1.000000e+00
+Node_Coordinate[102][0]=-1.176471e+01
+Node_Coordinate[102][1]=-6.896552e+01
+Node_Coordinate[102][2]=1.000000e+00
+Node_Coordinate[103][0]=-5.882353e+00
+Node_Coordinate[103][1]=-6.896552e+01
+Node_Coordinate[103][2]=1.000000e+00
+Node_Coordinate[104][0]=0.000000e+00
+Node_Coordinate[104][1]=-6.896552e+01
+Node_Coordinate[104][2]=1.000000e+00
+Node_Coordinate[105][0]=5.882353e+00
+Node_Coordinate[105][1]=-6.896552e+01
+Node_Coordinate[105][2]=1.000000e+00
+Node_Coordinate[106][0]=1.176471e+01
+Node_Coordinate[106][1]=-6.896552e+01
+Node_Coordinate[106][2]=1.000000e+00
+Node_Coordinate[107][0]=1.764706e+01
+Node_Coordinate[107][1]=-6.896552e+01
+Node_Coordinate[107][2]=1.000000e+00
+Node_Coordinate[108][0]=2.352941e+01
+Node_Coordinate[108][1]=-6.896552e+01
+Node_Coordinate[108][2]=1.000000e+00
+Node_Coordinate[109][0]=2.941176e+01
+Node_Coordinate[109][1]=-6.896552e+01
+Node_Coordinate[109][2]=1.000000e+00
+Node_Coordinate[110][0]=3.529412e+01
+Node_Coordinate[110][1]=-6.896552e+01
+Node_Coordinate[110][2]=1.000000e+00
+Node_Coordinate[111][0]=4.117647e+01
+Node_Coordinate[111][1]=-6.896552e+01
+Node_Coordinate[111][2]=1.000000e+00
+Node_Coordinate[112][0]=4.705882e+01
+Node_Coordinate[112][1]=-6.896552e+01
+Node_Coordinate[112][2]=1.000000e+00
+Node_Coordinate[113][0]=5.000000e+01
+Node_Coordinate[113][1]=-6.896552e+01
+Node_Coordinate[113][2]=1.000000e+00
+Node_Coordinate[114][0]=-5.000000e+01
+Node_Coordinate[114][1]=-6.206897e+01
+Node_Coordinate[114][2]=1.000000e+00
+Node_Coordinate[115][0]=-4.705882e+01
+Node_Coordinate[115][1]=-6.206897e+01
+Node_Coordinate[115][2]=1.000000e+00
+Node_Coordinate[116][0]=-4.117647e+01
+Node_Coordinate[116][1]=-6.206897e+01
+Node_Coordinate[116][2]=1.000000e+00
+Node_Coordinate[117][0]=-3.529412e+01
+Node_Coordinate[117][1]=-6.206897e+01
+Node_Coordinate[117][2]=1.000000e+00
+Node_Coordinate[118][0]=-2.941176e+01
+Node_Coordinate[118][1]=-6.206897e+01
+Node_Coordinate[118][2]=1.000000e+00
+Node_Coordinate[119][0]=-2.352941e+01
+Node_Coordinate[119][1]=-6.206897e+01
+Node_Coordinate[119][2]=1.000000e+00
+Node_Coordinate[120][0]=-1.764706e+01
+Node_Coordinate[120][1]=-6.206897e+01
+Node_Coordinate[120][2]=1.000000e+00
+Node_Coordinate[121][0]=-1.176471e+01
+Node_Coordinate[121][1]=-6.206897e+01
+Node_Coordinate[121][2]=1.000000e+00
+Node_Coordinate[122][0]=-5.882353e+00
+Node_Coordinate[122][1]=-6.206897e+01
+Node_Coordinate[122][2]=1.000000e+00
+Node_Coordinate[123][0]=0.000000e+00
+Node_Coordinate[123][1]=-6.206897e+01
+Node_Coordinate[123][2]=1.000000e+00
+Node_Coordinate[124][0]=5.882353e+00
+Node_Coordinate[124][1]=-6.206897e+01
+Node_Coordinate[124][2]=1.000000e+00
+Node_Coordinate[125][0]=1.176471e+01
+Node_Coordinate[125][1]=-6.206897e+01
+Node_Coordinate[125][2]=1.000000e+00
+Node_Coordinate[126][0]=1.764706e+01
+Node_Coordinate[126][1]=-6.206897e+01
+Node_Coordinate[126][2]=1.000000e+00
+Node_Coordinate[127][0]=2.352941e+01
+Node_Coordinate[127][1]=-6.206897e+01
+Node_Coordinate[127][2]=1.000000e+00
+Node_Coordinate[128][0]=2.941176e+01
+Node_Coordinate[128][1]=-6.206897e+01
+Node_Coordinate[128][2]=1.000000e+00
+Node_Coordinate[129][0]=3.529412e+01
+Node_Coordinate[129][1]=-6.206897e+01
+Node_Coordinate[129][2]=1.000000e+00
+Node_Coordinate[130][0]=4.117647e+01
+Node_Coordinate[130][1]=-6.206897e+01
+Node_Coordinate[130][2]=1.000000e+00
+Node_Coordinate[131][0]=4.705882e+01
+Node_Coordinate[131][1]=-6.206897e+01
+Node_Coordinate[131][2]=1.000000e+00
+Node_Coordinate[132][0]=5.000000e+01
+Node_Coordinate[132][1]=-6.206897e+01
+Node_Coordinate[132][2]=1.000000e+00
+Node_Coordinate[133][0]=-5.000000e+01
+Node_Coordinate[133][1]=-5.517241e+01
+Node_Coordinate[133][2]=1.000000e+00
+Node_Coordinate[134][0]=-4.705882e+01
+Node_Coordinate[134][1]=-5.517241e+01
+Node_Coordinate[134][2]=1.000000e+00
+Node_Coordinate[135][0]=-4.117647e+01
+Node_Coordinate[135][1]=-5.517241e+01
+Node_Coordinate[135][2]=1.000000e+00
+Node_Coordinate[136][0]=-3.529412e+01
+Node_Coordinate[136][1]=-5.517241e+01
+Node_Coordinate[136][2]=1.000000e+00
+Node_Coordinate[137][0]=-2.941176e+01
+Node_Coordinate[137][1]=-5.517241e+01
+Node_Coordinate[137][2]=1.000000e+00
+Node_Coordinate[138][0]=-2.352941e+01
+Node_Coordinate[138][1]=-5.517241e+01
+Node_Coordinate[138][2]=1.000000e+00
+Node_Coordinate[139][0]=-1.764706e+01
+Node_Coordinate[139][1]=-5.517241e+01
+Node_Coordinate[139][2]=1.000000e+00
+Node_Coordinate[140][0]=-1.176471e+01
+Node_Coordinate[140][1]=-5.517241e+01
+Node_Coordinate[140][2]=1.000000e+00
+Node_Coordinate[141][0]=-5.882353e+00
+Node_Coordinate[141][1]=-5.517241e+01
+Node_Coordinate[141][2]=1.000000e+00
+Node_Coordinate[142][0]=0.000000e+00
+Node_Coordinate[142][1]=-5.517241e+01
+Node_Coordinate[142][2]=1.000000e+00
+Node_Coordinate[143][0]=5.882353e+00
+Node_Coordinate[143][1]=-5.517241e+01
+Node_Coordinate[143][2]=1.000000e+00
+Node_Coordinate[144][0]=1.176471e+01
+Node_Coordinate[144][1]=-5.517241e+01
+Node_Coordinate[144][2]=1.000000e+00
+Node_Coordinate[145][0]=1.764706e+01
+Node_Coordinate[145][1]=-5.517241e+01
+Node_Coordinate[145][2]=1.000000e+00
+Node_Coordinate[146][0]=2.352941e+01
+Node_Coordinate[146][1]=-5.517241e+01
+Node_Coordinate[146][2]=1.000000e+00
+Node_Coordinate[147][0]=2.941176e+01
+Node_Coordinate[147][1]=-5.517241e+01
+Node_Coordinate[147][2]=1.000000e+00
+Node_Coordinate[148][0]=3.529412e+01
+Node_Coordinate[148][1]=-5.517241e+01
+Node_Coordinate[148][2]=1.000000e+00
+Node_Coordinate[149][0]=4.117647e+01
+Node_Coordinate[149][1]=-5.517241e+01
+Node_Coordinate[149][2]=1.000000e+00
+Node_Coordinate[150][0]=4.705882e+01
+Node_Coordinate[150][1]=-5.517241e+01
+Node_Coordinate[150][2]=1.000000e+00
+Node_Coordinate[151][0]=5.000000e+01
+Node_Coordinate[151][1]=-5.517241e+01
+Node_Coordinate[151][2]=1.000000e+00
+Node_Coordinate[152][0]=-5.000000e+01
+Node_Coordinate[152][1]=-4.827586e+01
+Node_Coordinate[152][2]=1.000000e+00
+Node_Coordinate[153][0]=-4.705882e+01
+Node_Coordinate[153][1]=-4.827586e+01
+Node_Coordinate[153][2]=1.000000e+00
+Node_Coordinate[154][0]=-4.117647e+01
+Node_Coordinate[154][1]=-4.827586e+01
+Node_Coordinate[154][2]=1.000000e+00
+Node_Coordinate[155][0]=-3.529412e+01
+Node_Coordinate[155][1]=-4.827586e+01
+Node_Coordinate[155][2]=1.000000e+00
+Node_Coordinate[156][0]=-2.941176e+01
+Node_Coordinate[156][1]=-4.827586e+01
+Node_Coordinate[156][2]=1.000000e+00
+Node_Coordinate[157][0]=-2.352941e+01
+Node_Coordinate[157][1]=-4.827586e+01
+Node_Coordinate[157][2]=1.000000e+00
+Node_Coordinate[158][0]=-1.764706e+01
+Node_Coordinate[158][1]=-4.827586e+01
+Node_Coordinate[158][2]=1.000000e+00
+Node_Coordinate[159][0]=-1.176471e+01
+Node_Coordinate[159][1]=-4.827586e+01
+Node_Coordinate[159][2]=1.000000e+00
+Node_Coordinate[160][0]=-5.882353e+00
+Node_Coordinate[160][1]=-4.827586e+01
+Node_Coordinate[160][2]=1.000000e+00
+Node_Coordinate[161][0]=0.000000e+00
+Node_Coordinate[161][1]=-4.827586e+01
+Node_Coordinate[161][2]=1.000000e+00
+Node_Coordinate[162][0]=5.882353e+00
+Node_Coordinate[162][1]=-4.827586e+01
+Node_Coordinate[162][2]=1.000000e+00
+Node_Coordinate[163][0]=1.176471e+01
+Node_Coordinate[163][1]=-4.827586e+01
+Node_Coordinate[163][2]=1.000000e+00
+Node_Coordinate[164][0]=1.764706e+01
+Node_Coordinate[164][1]=-4.827586e+01
+Node_Coordinate[164][2]=1.000000e+00
+Node_Coordinate[165][0]=2.352941e+01
+Node_Coordinate[165][1]=-4.827586e+01
+Node_Coordinate[165][2]=1.000000e+00
+Node_Coordinate[166][0]=2.941176e+01
+Node_Coordinate[166][1]=-4.827586e+01
+Node_Coordinate[166][2]=1.000000e+00
+Node_Coordinate[167][0]=3.529412e+01
+Node_Coordinate[167][1]=-4.827586e+01
+Node_Coordinate[167][2]=1.000000e+00
+Node_Coordinate[168][0]=4.117647e+01
+Node_Coordinate[168][1]=-4.827586e+01
+Node_Coordinate[168][2]=1.000000e+00
+Node_Coordinate[169][0]=4.705882e+01
+Node_Coordinate[169][1]=-4.827586e+01
+Node_Coordinate[169][2]=1.000000e+00
+Node_Coordinate[170][0]=5.000000e+01
+Node_Coordinate[170][1]=-4.827586e+01
+Node_Coordinate[170][2]=1.000000e+00
+Node_Coordinate[171][0]=-5.000000e+01
+Node_Coordinate[171][1]=-4.137931e+01
+Node_Coordinate[171][2]=1.000000e+00
+Node_Coordinate[172][0]=-4.705882e+01
+Node_Coordinate[172][1]=-4.137931e+01
+Node_Coordinate[172][2]=1.000000e+00
+Node_Coordinate[173][0]=-4.117647e+01
+Node_Coordinate[173][1]=-4.137931e+01
+Node_Coordinate[173][2]=1.000000e+00
+Node_Coordinate[174][0]=-3.529412e+01
+Node_Coordinate[174][1]=-4.137931e+01
+Node_Coordinate[174][2]=1.000000e+00
+Node_Coordinate[175][0]=-2.941176e+01
+Node_Coordinate[175][1]=-4.137931e+01
+Node_Coordinate[175][2]=1.000000e+00
+Node_Coordinate[176][0]=-2.352941e+01
+Node_Coordinate[176][1]=-4.137931e+01
+Node_Coordinate[176][2]=1.000000e+00
+Node_Coordinate[177][0]=-1.764706e+01
+Node_Coordinate[177][1]=-4.137931e+01
+Node_Coordinate[177][2]=1.000000e+00
+Node_Coordinate[178][0]=-1.176471e+01
+Node_Coordinate[178][1]=-4.137931e+01
+Node_Coordinate[178][2]=1.000000e+00
+Node_Coordinate[179][0]=-5.882353e+00
+Node_Coordinate[179][1]=-4.137931e+01
+Node_Coordinate[179][2]=1.000000e+00
+Node_Coordinate[180][0]=0.000000e+00
+Node_Coordinate[180][1]=-4.137931e+01
+Node_Coordinate[180][2]=1.000000e+00
+Node_Coordinate[181][0]=5.882353e+00
+Node_Coordinate[181][1]=-4.137931e+01
+Node_Coordinate[181][2]=1.000000e+00
+Node_Coordinate[182][0]=1.176471e+01
+Node_Coordinate[182][1]=-4.137931e+01
+Node_Coordinate[182][2]=1.000000e+00
+Node_Coordinate[183][0]=1.764706e+01
+Node_Coordinate[183][1]=-4.137931e+01
+Node_Coordinate[183][2]=1.000000e+00
+Node_Coordinate[184][0]=2.352941e+01
+Node_Coordinate[184][1]=-4.137931e+01
+Node_Coordinate[184][2]=1.000000e+00
+Node_Coordinate[185][0]=2.941176e+01
+Node_Coordinate[185][1]=-4.137931e+01
+Node_Coordinate[185][2]=1.000000e+00
+Node_Coordinate[186][0]=3.529412e+01
+Node_Coordinate[186][1]=-4.137931e+01
+Node_Coordinate[186][2]=1.000000e+00
+Node_Coordinate[187][0]=4.117647e+01
+Node_Coordinate[187][1]=-4.137931e+01
+Node_Coordinate[187][2]=1.000000e+00
+Node_Coordinate[188][0]=4.705882e+01
+Node_Coordinate[188][1]=-4.137931e+01
+Node_Coordinate[188][2]=1.000000e+00
+Node_Coordinate[189][0]=5.000000e+01
+Node_Coordinate[189][1]=-4.137931e+01
+Node_Coordinate[189][2]=1.000000e+00
+Node_Coordinate[190][0]=-5.000000e+01
+Node_Coordinate[190][1]=-3.448276e+01
+Node_Coordinate[190][2]=1.000000e+00
+Node_Coordinate[191][0]=-4.705882e+01
+Node_Coordinate[191][1]=-3.448276e+01
+Node_Coordinate[191][2]=1.000000e+00
+Node_Coordinate[192][0]=-4.117647e+01
+Node_Coordinate[192][1]=-3.448276e+01
+Node_Coordinate[192][2]=1.000000e+00
+Node_Coordinate[193][0]=-3.529412e+01
+Node_Coordinate[193][1]=-3.448276e+01
+Node_Coordinate[193][2]=1.000000e+00
+Node_Coordinate[194][0]=-2.941176e+01
+Node_Coordinate[194][1]=-3.448276e+01
+Node_Coordinate[194][2]=1.000000e+00
+Node_Coordinate[195][0]=-2.352941e+01
+Node_Coordinate[195][1]=-3.448276e+01
+Node_Coordinate[195][2]=1.000000e+00
+Node_Coordinate[196][0]=-1.764706e+01
+Node_Coordinate[196][1]=-3.448276e+01
+Node_Coordinate[196][2]=1.000000e+00
+Node_Coordinate[197][0]=-1.176471e+01
+Node_Coordinate[197][1]=-3.448276e+01
+Node_Coordinate[197][2]=1.000000e+00
+Node_Coordinate[198][0]=-5.882353e+00
+Node_Coordinate[198][1]=-3.448276e+01
+Node_Coordinate[198][2]=1.000000e+00
+Node_Coordinate[199][0]=0.000000e+00
+Node_Coordinate[199][1]=-3.448276e+01
+Node_Coordinate[199][2]=1.000000e+00
+Node_Coordinate[200][0]=5.882353e+00
+Node_Coordinate[200][1]=-3.448276e+01
+Node_Coordinate[200][2]=1.000000e+00
+Node_Coordinate[201][0]=1.176471e+01
+Node_Coordinate[201][1]=-3.448276e+01
+Node_Coordinate[201][2]=1.000000e+00
+Node_Coordinate[202][0]=1.764706e+01
+Node_Coordinate[202][1]=-3.448276e+01
+Node_Coordinate[202][2]=1.000000e+00
+Node_Coordinate[203][0]=2.352941e+01
+Node_Coordinate[203][1]=-3.448276e+01
+Node_Coordinate[203][2]=1.000000e+00
+Node_Coordinate[204][0]=2.941176e+01
+Node_Coordinate[204][1]=-3.448276e+01
+Node_Coordinate[204][2]=1.000000e+00
+Node_Coordinate[205][0]=3.529412e+01
+Node_Coordinate[205][1]=-3.448276e+01
+Node_Coordinate[205][2]=1.000000e+00
+Node_Coordinate[206][0]=4.117647e+01
+Node_Coordinate[206][1]=-3.448276e+01
+Node_Coordinate[206][2]=1.000000e+00
+Node_Coordinate[207][0]=4.705882e+01
+Node_Coordinate[207][1]=-3.448276e+01
+Node_Coordinate[207][2]=1.000000e+00
+Node_Coordinate[208][0]=5.000000e+01
+Node_Coordinate[208][1]=-3.448276e+01
+Node_Coordinate[208][2]=1.000000e+00
+Node_Coordinate[209][0]=-5.000000e+01
+Node_Coordinate[209][1]=-2.758621e+01
+Node_Coordinate[209][2]=1.000000e+00
+Node_Coordinate[210][0]=-4.705882e+01
+Node_Coordinate[210][1]=-2.758621e+01
+Node_Coordinate[210][2]=1.000000e+00
+Node_Coordinate[211][0]=-4.117647e+01
+Node_Coordinate[211][1]=-2.758621e+01
+Node_Coordinate[211][2]=1.000000e+00
+Node_Coordinate[212][0]=-3.529412e+01
+Node_Coordinate[212][1]=-2.758621e+01
+Node_Coordinate[212][2]=1.000000e+00
+Node_Coordinate[213][0]=-2.941176e+01
+Node_Coordinate[213][1]=-2.758621e+01
+Node_Coordinate[213][2]=1.000000e+00
+Node_Coordinate[214][0]=-2.352941e+01
+Node_Coordinate[214][1]=-2.758621e+01
+Node_Coordinate[214][2]=1.000000e+00
+Node_Coordinate[215][0]=-1.764706e+01
+Node_Coordinate[215][1]=-2.758621e+01
+Node_Coordinate[215][2]=1.000000e+00
+Node_Coordinate[216][0]=-1.176471e+01
+Node_Coordinate[216][1]=-2.758621e+01
+Node_Coordinate[216][2]=1.000000e+00
+Node_Coordinate[217][0]=-5.882353e+00
+Node_Coordinate[217][1]=-2.758621e+01
+Node_Coordinate[217][2]=1.000000e+00
+Node_Coordinate[218][0]=0.000000e+00
+Node_Coordinate[218][1]=-2.758621e+01
+Node_Coordinate[218][2]=1.000000e+00
+Node_Coordinate[219][0]=5.882353e+00
+Node_Coordinate[219][1]=-2.758621e+01
+Node_Coordinate[219][2]=1.000000e+00
+Node_Coordinate[220][0]=1.176471e+01
+Node_Coordinate[220][1]=-2.758621e+01
+Node_Coordinate[220][2]=1.000000e+00
+Node_Coordinate[221][0]=1.764706e+01
+Node_Coordinate[221][1]=-2.758621e+01
+Node_Coordinate[221][2]=1.000000e+00
+Node_Coordinate[222][0]=2.352941e+01
+Node_Coordinate[222][1]=-2.758621e+01
+Node_Coordinate[222][2]=1.000000e+00
+Node_Coordinate[223][0]=2.941176e+01
+Node_Coordinate[223][1]=-2.758621e+01
+Node_Coordinate[223][2]=1.000000e+00
+Node_Coordinate[224][0]=3.529412e+01
+Node_Coordinate[224][1]=-2.758621e+01
+Node_Coordinate[224][2]=1.000000e+00
+Node_Coordinate[225][0]=4.117647e+01
+Node_Coordinate[225][1]=-2.758621e+01
+Node_Coordinate[225][2]=1.000000e+00
+Node_Coordinate[226][0]=4.705882e+01
+Node_Coordinate[226][1]=-2.758621e+01
+Node_Coordinate[226][2]=1.000000e+00
+Node_Coordinate[227][0]=5.000000e+01
+Node_Coordinate[227][1]=-2.758621e+01
+Node_Coordinate[227][2]=1.000000e+00
+Node_Coordinate[228][0]=-5.000000e+01
+Node_Coordinate[228][1]=-2.068966e+01
+Node_Coordinate[228][2]=1.000000e+00
+Node_Coordinate[229][0]=-4.705882e+01
+Node_Coordinate[229][1]=-2.068966e+01
+Node_Coordinate[229][2]=1.000000e+00
+Node_Coordinate[230][0]=-4.117647e+01
+Node_Coordinate[230][1]=-2.068966e+01
+Node_Coordinate[230][2]=1.000000e+00
+Node_Coordinate[231][0]=-3.529412e+01
+Node_Coordinate[231][1]=-2.068966e+01
+Node_Coordinate[231][2]=1.000000e+00
+Node_Coordinate[232][0]=-2.941176e+01
+Node_Coordinate[232][1]=-2.068966e+01
+Node_Coordinate[232][2]=1.000000e+00
+Node_Coordinate[233][0]=-2.352941e+01
+Node_Coordinate[233][1]=-2.068966e+01
+Node_Coordinate[233][2]=1.000000e+00
+Node_Coordinate[234][0]=-1.764706e+01
+Node_Coordinate[234][1]=-2.068966e+01
+Node_Coordinate[234][2]=1.000000e+00
+Node_Coordinate[235][0]=-1.176471e+01
+Node_Coordinate[235][1]=-2.068966e+01
+Node_Coordinate[235][2]=1.000000e+00
+Node_Coordinate[236][0]=-5.882353e+00
+Node_Coordinate[236][1]=-2.068966e+01
+Node_Coordinate[236][2]=1.000000e+00
+Node_Coordinate[237][0]=0.000000e+00
+Node_Coordinate[237][1]=-2.068966e+01
+Node_Coordinate[237][2]=1.000000e+00
+Node_Coordinate[238][0]=5.882353e+00
+Node_Coordinate[238][1]=-2.068966e+01
+Node_Coordinate[238][2]=1.000000e+00
+Node_Coordinate[239][0]=1.176471e+01
+Node_Coordinate[239][1]=-2.068966e+01
+Node_Coordinate[239][2]=1.000000e+00
+Node_Coordinate[240][0]=1.764706e+01
+Node_Coordinate[240][1]=-2.068966e+01
+Node_Coordinate[240][2]=1.000000e+00
+Node_Coordinate[241][0]=2.352941e+01
+Node_Coordinate[241][1]=-2.068966e+01
+Node_Coordinate[241][2]=1.000000e+00
+Node_Coordinate[242][0]=2.941176e+01
+Node_Coordinate[242][1]=-2.068966e+01
+Node_Coordinate[242][2]=1.000000e+00
+Node_Coordinate[243][0]=3.529412e+01
+Node_Coordinate[243][1]=-2.068966e+01
+Node_Coordinate[243][2]=1.000000e+00
+Node_Coordinate[244][0]=4.117647e+01
+Node_Coordinate[244][1]=-2.068966e+01
+Node_Coordinate[244][2]=1.000000e+00
+Node_Coordinate[245][0]=4.705882e+01
+Node_Coordinate[245][1]=-2.068966e+01
+Node_Coordinate[245][2]=1.000000e+00
+Node_Coordinate[246][0]=5.000000e+01
+Node_Coordinate[246][1]=-2.068966e+01
+Node_Coordinate[246][2]=1.000000e+00
+Node_Coordinate[247][0]=-5.000000e+01
+Node_Coordinate[247][1]=-1.379310e+01
+Node_Coordinate[247][2]=1.000000e+00
+Node_Coordinate[248][0]=-4.705882e+01
+Node_Coordinate[248][1]=-1.379310e+01
+Node_Coordinate[248][2]=1.000000e+00
+Node_Coordinate[249][0]=-4.117647e+01
+Node_Coordinate[249][1]=-1.379310e+01
+Node_Coordinate[249][2]=1.000000e+00
+Node_Coordinate[250][0]=-3.529412e+01
+Node_Coordinate[250][1]=-1.379310e+01
+Node_Coordinate[250][2]=1.000000e+00
+Node_Coordinate[251][0]=-2.941176e+01
+Node_Coordinate[251][1]=-1.379310e+01
+Node_Coordinate[251][2]=1.000000e+00
+Node_Coordinate[252][0]=-2.352941e+01
+Node_Coordinate[252][1]=-1.379310e+01
+Node_Coordinate[252][2]=1.000000e+00
+Node_Coordinate[253][0]=-1.764706e+01
+Node_Coordinate[253][1]=-1.379310e+01
+Node_Coordinate[253][2]=1.000000e+00
+Node_Coordinate[254][0]=-1.176471e+01
+Node_Coordinate[254][1]=-1.379310e+01
+Node_Coordinate[254][2]=1.000000e+00
+Node_Coordinate[255][0]=-5.882353e+00
+Node_Coordinate[255][1]=-1.379310e+01
+Node_Coordinate[255][2]=1.000000e+00
+Node_Coordinate[256][0]=0.000000e+00
+Node_Coordinate[256][1]=-1.379310e+01
+Node_Coordinate[256][2]=1.000000e+00
+Node_Coordinate[257][0]=5.882353e+00
+Node_Coordinate[257][1]=-1.379310e+01
+Node_Coordinate[257][2]=1.000000e+00
+Node_Coordinate[258][0]=1.176471e+01
+Node_Coordinate[258][1]=-1.379310e+01
+Node_Coordinate[258][2]=1.000000e+00
+Node_Coordinate[259][0]=1.764706e+01
+Node_Coordinate[259][1]=-1.379310e+01
+Node_Coordinate[259][2]=1.000000e+00
+Node_Coordinate[260][0]=2.352941e+01
+Node_Coordinate[260][1]=-1.379310e+01
+Node_Coordinate[260][2]=1.000000e+00
+Node_Coordinate[261][0]=2.941176e+01
+Node_Coordinate[261][1]=-1.379310e+01
+Node_Coordinate[261][2]=1.000000e+00
+Node_Coordinate[262][0]=3.529412e+01
+Node_Coordinate[262][1]=-1.379310e+01
+Node_Coordinate[262][2]=1.000000e+00
+Node_Coordinate[263][0]=4.117647e+01
+Node_Coordinate[263][1]=-1.379310e+01
+Node_Coordinate[263][2]=1.000000e+00
+Node_Coordinate[264][0]=4.705882e+01
+Node_Coordinate[264][1]=-1.379310e+01
+Node_Coordinate[264][2]=1.000000e+00
+Node_Coordinate[265][0]=5.000000e+01
+Node_Coordinate[265][1]=-1.379310e+01
+Node_Coordinate[265][2]=1.000000e+00
+Node_Coordinate[266][0]=-5.000000e+01
+Node_Coordinate[266][1]=-6.896552e+00
+Node_Coordinate[266][2]=1.000000e+00
+Node_Coordinate[267][0]=-4.705882e+01
+Node_Coordinate[267][1]=-6.896552e+00
+Node_Coordinate[267][2]=1.000000e+00
+Node_Coordinate[268][0]=-4.117647e+01
+Node_Coordinate[268][1]=-6.896552e+00
+Node_Coordinate[268][2]=1.000000e+00
+Node_Coordinate[269][0]=-3.529412e+01
+Node_Coordinate[269][1]=-6.896552e+00
+Node_Coordinate[269][2]=1.000000e+00
+Node_Coordinate[270][0]=-2.941176e+01
+Node_Coordinate[270][1]=-6.896552e+00
+Node_Coordinate[270][2]=1.000000e+00
+Node_Coordinate[271][0]=-2.352941e+01
+Node_Coordinate[271][1]=-6.896552e+00
+Node_Coordinate[271][2]=1.000000e+00
+Node_Coordinate[272][0]=-1.764706e+01
+Node_Coordinate[272][1]=-6.896552e+00
+Node_Coordinate[272][2]=1.000000e+00
+Node_Coordinate[273][0]=-1.176471e+01
+Node_Coordinate[273][1]=-6.896552e+00
+Node_Coordinate[273][2]=1.000000e+00
+Node_Coordinate[274][0]=-5.882353e+00
+Node_Coordinate[274][1]=-6.896552e+00
+Node_Coordinate[274][2]=1.000000e+00
+Node_Coordinate[275][0]=0.000000e+00
+Node_Coordinate[275][1]=-6.896552e+00
+Node_Coordinate[275][2]=1.000000e+00
+Node_Coordinate[276][0]=5.882353e+00
+Node_Coordinate[276][1]=-6.896552e+00
+Node_Coordinate[276][2]=1.000000e+00
+Node_Coordinate[277][0]=1.176471e+01
+Node_Coordinate[277][1]=-6.896552e+00
+Node_Coordinate[277][2]=1.000000e+00
+Node_Coordinate[278][0]=1.764706e+01
+Node_Coordinate[278][1]=-6.896552e+00
+Node_Coordinate[278][2]=1.000000e+00
+Node_Coordinate[279][0]=2.352941e+01
+Node_Coordinate[279][1]=-6.896552e+00
+Node_Coordinate[279][2]=1.000000e+00
+Node_Coordinate[280][0]=2.941176e+01
+Node_Coordinate[280][1]=-6.896552e+00
+Node_Coordinate[280][2]=1.000000e+00
+Node_Coordinate[281][0]=3.529412e+01
+Node_Coordinate[281][1]=-6.896552e+00
+Node_Coordinate[281][2]=1.000000e+00
+Node_Coordinate[282][0]=4.117647e+01
+Node_Coordinate[282][1]=-6.896552e+00
+Node_Coordinate[282][2]=1.000000e+00
+Node_Coordinate[283][0]=4.705882e+01
+Node_Coordinate[283][1]=-6.896552e+00
+Node_Coordinate[283][2]=1.000000e+00
+Node_Coordinate[284][0]=5.000000e+01
+Node_Coordinate[284][1]=-6.896552e+00
+Node_Coordinate[284][2]=1.000000e+00
+Node_Coordinate[285][0]=-5.000000e+01
+Node_Coordinate[285][1]=0.000000e+00
+Node_Coordinate[285][2]=1.000000e+00
+Node_Coordinate[286][0]=-4.705882e+01
+Node_Coordinate[286][1]=0.000000e+00
+Node_Coordinate[286][2]=1.000000e+00
+Node_Coordinate[287][0]=-4.117647e+01
+Node_Coordinate[287][1]=0.000000e+00
+Node_Coordinate[287][2]=1.000000e+00
+Node_Coordinate[288][0]=-3.529412e+01
+Node_Coordinate[288][1]=0.000000e+00
+Node_Coordinate[288][2]=1.000000e+00
+Node_Coordinate[289][0]=-2.941176e+01
+Node_Coordinate[289][1]=0.000000e+00
+Node_Coordinate[289][2]=1.000000e+00
+Node_Coordinate[290][0]=-2.352941e+01
+Node_Coordinate[290][1]=0.000000e+00
+Node_Coordinate[290][2]=1.000000e+00
+Node_Coordinate[291][0]=-1.764706e+01
+Node_Coordinate[291][1]=0.000000e+00
+Node_Coordinate[291][2]=1.000000e+00
+Node_Coordinate[292][0]=-1.176471e+01
+Node_Coordinate[292][1]=0.000000e+00
+Node_Coordinate[292][2]=1.000000e+00
+Node_Coordinate[293][0]=-5.882353e+00
+Node_Coordinate[293][1]=0.000000e+00
+Node_Coordinate[293][2]=1.000000e+00
+Node_Coordinate[294][0]=0.000000e+00
+Node_Coordinate[294][1]=0.000000e+00
+Node_Coordinate[294][2]=1.000000e+00
+Node_Coordinate[295][0]=5.882353e+00
+Node_Coordinate[295][1]=0.000000e+00
+Node_Coordinate[295][2]=1.000000e+00
+Node_Coordinate[296][0]=1.176471e+01
+Node_Coordinate[296][1]=0.000000e+00
+Node_Coordinate[296][2]=1.000000e+00
+Node_Coordinate[297][0]=1.764706e+01
+Node_Coordinate[297][1]=0.000000e+00
+Node_Coordinate[297][2]=1.000000e+00
+Node_Coordinate[298][0]=2.352941e+01
+Node_Coordinate[298][1]=0.000000e+00
+Node_Coordinate[298][2]=1.000000e+00
+Node_Coordinate[299][0]=2.941176e+01
+Node_Coordinate[299][1]=0.000000e+00
+Node_Coordinate[299][2]=1.000000e+00
+Node_Coordinate[300][0]=3.529412e+01
+Node_Coordinate[300][1]=0.000000e+00
+Node_Coordinate[300][2]=1.000000e+00
+Node_Coordinate[301][0]=4.117647e+01
+Node_Coordinate[301][1]=0.000000e+00
+Node_Coordinate[301][2]=1.000000e+00
+Node_Coordinate[302][0]=4.705882e+01
+Node_Coordinate[302][1]=0.000000e+00
+Node_Coordinate[302][2]=1.000000e+00
+Node_Coordinate[303][0]=5.000000e+01
+Node_Coordinate[303][1]=0.000000e+00
+Node_Coordinate[303][2]=1.000000e+00
+Node_Coordinate[304][0]=-5.000000e+01
+Node_Coordinate[304][1]=6.896552e+00
+Node_Coordinate[304][2]=1.000000e+00
+Node_Coordinate[305][0]=-4.705882e+01
+Node_Coordinate[305][1]=6.896552e+00
+Node_Coordinate[305][2]=1.000000e+00
+Node_Coordinate[306][0]=-4.117647e+01
+Node_Coordinate[306][1]=6.896552e+00
+Node_Coordinate[306][2]=1.000000e+00
+Node_Coordinate[307][0]=-3.529412e+01
+Node_Coordinate[307][1]=6.896552e+00
+Node_Coordinate[307][2]=1.000000e+00
+Node_Coordinate[308][0]=-2.941176e+01
+Node_Coordinate[308][1]=6.896552e+00
+Node_Coordinate[308][2]=1.000000e+00
+Node_Coordinate[309][0]=-2.352941e+01
+Node_Coordinate[309][1]=6.896552e+00
+Node_Coordinate[309][2]=1.000000e+00
+Node_Coordinate[310][0]=-1.764706e+01
+Node_Coordinate[310][1]=6.896552e+00
+Node_Coordinate[310][2]=1.000000e+00
+Node_Coordinate[311][0]=-1.176471e+01
+Node_Coordinate[311][1]=6.896552e+00
+Node_Coordinate[311][2]=1.000000e+00
+Node_Coordinate[312][0]=-5.882353e+00
+Node_Coordinate[312][1]=6.896552e+00
+Node_Coordinate[312][2]=1.000000e+00
+Node_Coordinate[313][0]=0.000000e+00
+Node_Coordinate[313][1]=6.896552e+00
+Node_Coordinate[313][2]=1.000000e+00
+Node_Coordinate[314][0]=5.882353e+00
+Node_Coordinate[314][1]=6.896552e+00
+Node_Coordinate[314][2]=1.000000e+00
+Node_Coordinate[315][0]=1.176471e+01
+Node_Coordinate[315][1]=6.896552e+00
+Node_Coordinate[315][2]=1.000000e+00
+Node_Coordinate[316][0]=1.764706e+01
+Node_Coordinate[316][1]=6.896552e+00
+Node_Coordinate[316][2]=1.000000e+00
+Node_Coordinate[317][0]=2.352941e+01
+Node_Coordinate[317][1]=6.896552e+00
+Node_Coordinate[317][2]=1.000000e+00
+Node_Coordinate[318][0]=2.941176e+01
+Node_Coordinate[318][1]=6.896552e+00
+Node_Coordinate[318][2]=1.000000e+00
+Node_Coordinate[319][0]=3.529412e+01
+Node_Coordinate[319][1]=6.896552e+00
+Node_Coordinate[319][2]=1.000000e+00
+Node_Coordinate[320][0]=4.117647e+01
+Node_Coordinate[320][1]=6.896552e+00
+Node_Coordinate[320][2]=1.000000e+00
+Node_Coordinate[321][0]=4.705882e+01
+Node_Coordinate[321][1]=6.896552e+00
+Node_Coordinate[321][2]=1.000000e+00
+Node_Coordinate[322][0]=5.000000e+01
+Node_Coordinate[322][1]=6.896552e+00
+Node_Coordinate[322][2]=1.000000e+00
+Node_Coordinate[323][0]=-5.000000e+01
+Node_Coordinate[323][1]=1.379310e+01
+Node_Coordinate[323][2]=1.000000e+00
+Node_Coordinate[324][0]=-4.705882e+01
+Node_Coordinate[324][1]=1.379310e+01
+Node_Coordinate[324][2]=1.000000e+00
+Node_Coordinate[325][0]=-4.117647e+01
+Node_Coordinate[325][1]=1.379310e+01
+Node_Coordinate[325][2]=1.000000e+00
+Node_Coordinate[326][0]=-3.529412e+01
+Node_Coordinate[326][1]=1.379310e+01
+Node_Coordinate[326][2]=1.000000e+00
+Node_Coordinate[327][0]=-2.941176e+01
+Node_Coordinate[327][1]=1.379310e+01
+Node_Coordinate[327][2]=1.000000e+00
+Node_Coordinate[328][0]=-2.352941e+01
+Node_Coordinate[328][1]=1.379310e+01
+Node_Coordinate[328][2]=1.000000e+00
+Node_Coordinate[329][0]=-1.764706e+01
+Node_Coordinate[329][1]=1.379310e+01
+Node_Coordinate[329][2]=1.000000e+00
+Node_Coordinate[330][0]=-1.176471e+01
+Node_Coordinate[330][1]=1.379310e+01
+Node_Coordinate[330][2]=1.000000e+00
+Node_Coordinate[331][0]=-5.882353e+00
+Node_Coordinate[331][1]=1.379310e+01
+Node_Coordinate[331][2]=1.000000e+00
+Node_Coordinate[332][0]=0.000000e+00
+Node_Coordinate[332][1]=1.379310e+01
+Node_Coordinate[332][2]=1.000000e+00
+Node_Coordinate[333][0]=5.882353e+00
+Node_Coordinate[333][1]=1.379310e+01
+Node_Coordinate[333][2]=1.000000e+00
+Node_Coordinate[334][0]=1.176471e+01
+Node_Coordinate[334][1]=1.379310e+01
+Node_Coordinate[334][2]=1.000000e+00
+Node_Coordinate[335][0]=1.764706e+01
+Node_Coordinate[335][1]=1.379310e+01
+Node_Coordinate[335][2]=1.000000e+00
+Node_Coordinate[336][0]=2.352941e+01
+Node_Coordinate[336][1]=1.379310e+01
+Node_Coordinate[336][2]=1.000000e+00
+Node_Coordinate[337][0]=2.941176e+01
+Node_Coordinate[337][1]=1.379310e+01
+Node_Coordinate[337][2]=1.000000e+00
+Node_Coordinate[338][0]=3.529412e+01
+Node_Coordinate[338][1]=1.379310e+01
+Node_Coordinate[338][2]=1.000000e+00
+Node_Coordinate[339][0]=4.117647e+01
+Node_Coordinate[339][1]=1.379310e+01
+Node_Coordinate[339][2]=1.000000e+00
+Node_Coordinate[340][0]=4.705882e+01
+Node_Coordinate[340][1]=1.379310e+01
+Node_Coordinate[340][2]=1.000000e+00
+Node_Coordinate[341][0]=5.000000e+01
+Node_Coordinate[341][1]=1.379310e+01
+Node_Coordinate[341][2]=1.000000e+00
+Node_Coordinate[342][0]=-5.000000e+01
+Node_Coordinate[342][1]=2.068966e+01
+Node_Coordinate[342][2]=1.000000e+00
+Node_Coordinate[343][0]=-4.705882e+01
+Node_Coordinate[343][1]=2.068966e+01
+Node_Coordinate[343][2]=1.000000e+00
+Node_Coordinate[344][0]=-4.117647e+01
+Node_Coordinate[344][1]=2.068966e+01
+Node_Coordinate[344][2]=1.000000e+00
+Node_Coordinate[345][0]=-3.529412e+01
+Node_Coordinate[345][1]=2.068966e+01
+Node_Coordinate[345][2]=1.000000e+00
+Node_Coordinate[346][0]=-2.941176e+01
+Node_Coordinate[346][1]=2.068966e+01
+Node_Coordinate[346][2]=1.000000e+00
+Node_Coordinate[347][0]=-2.352941e+01
+Node_Coordinate[347][1]=2.068966e+01
+Node_Coordinate[347][2]=1.000000e+00
+Node_Coordinate[348][0]=-1.764706e+01
+Node_Coordinate[348][1]=2.068966e+01
+Node_Coordinate[348][2]=1.000000e+00
+Node_Coordinate[349][0]=-1.176471e+01
+Node_Coordinate[349][1]=2.068966e+01
+Node_Coordinate[349][2]=1.000000e+00
+Node_Coordinate[350][0]=-5.882353e+00
+Node_Coordinate[350][1]=2.068966e+01
+Node_Coordinate[350][2]=1.000000e+00
+Node_Coordinate[351][0]=0.000000e+00
+Node_Coordinate[351][1]=2.068966e+01
+Node_Coordinate[351][2]=1.000000e+00
+Node_Coordinate[352][0]=5.882353e+00
+Node_Coordinate[352][1]=2.068966e+01
+Node_Coordinate[352][2]=1.000000e+00
+Node_Coordinate[353][0]=1.176471e+01
+Node_Coordinate[353][1]=2.068966e+01
+Node_Coordinate[353][2]=1.000000e+00
+Node_Coordinate[354][0]=1.764706e+01
+Node_Coordinate[354][1]=2.068966e+01
+Node_Coordinate[354][2]=1.000000e+00
+Node_Coordinate[355][0]=2.352941e+01
+Node_Coordinate[355][1]=2.068966e+01
+Node_Coordinate[355][2]=1.000000e+00
+Node_Coordinate[356][0]=2.941176e+01
+Node_Coordinate[356][1]=2.068966e+01
+Node_Coordinate[356][2]=1.000000e+00
+Node_Coordinate[357][0]=3.529412e+01
+Node_Coordinate[357][1]=2.068966e+01
+Node_Coordinate[357][2]=1.000000e+00
+Node_Coordinate[358][0]=4.117647e+01
+Node_Coordinate[358][1]=2.068966e+01
+Node_Coordinate[358][2]=1.000000e+00
+Node_Coordinate[359][0]=4.705882e+01
+Node_Coordinate[359][1]=2.068966e+01
+Node_Coordinate[359][2]=1.000000e+00
+Node_Coordinate[360][0]=5.000000e+01
+Node_Coordinate[360][1]=2.068966e+01
+Node_Coordinate[360][2]=1.000000e+00
+Node_Coordinate[361][0]=-5.000000e+01
+Node_Coordinate[361][1]=2.758621e+01
+Node_Coordinate[361][2]=1.000000e+00
+Node_Coordinate[362][0]=-4.705882e+01
+Node_Coordinate[362][1]=2.758621e+01
+Node_Coordinate[362][2]=1.000000e+00
+Node_Coordinate[363][0]=-4.117647e+01
+Node_Coordinate[363][1]=2.758621e+01
+Node_Coordinate[363][2]=1.000000e+00
+Node_Coordinate[364][0]=-3.529412e+01
+Node_Coordinate[364][1]=2.758621e+01
+Node_Coordinate[364][2]=1.000000e+00
+Node_Coordinate[365][0]=-2.941176e+01
+Node_Coordinate[365][1]=2.758621e+01
+Node_Coordinate[365][2]=1.000000e+00
+Node_Coordinate[366][0]=-2.352941e+01
+Node_Coordinate[366][1]=2.758621e+01
+Node_Coordinate[366][2]=1.000000e+00
+Node_Coordinate[367][0]=-1.764706e+01
+Node_Coordinate[367][1]=2.758621e+01
+Node_Coordinate[367][2]=1.000000e+00
+Node_Coordinate[368][0]=-1.176471e+01
+Node_Coordinate[368][1]=2.758621e+01
+Node_Coordinate[368][2]=1.000000e+00
+Node_Coordinate[369][0]=-5.882353e+00
+Node_Coordinate[369][1]=2.758621e+01
+Node_Coordinate[369][2]=1.000000e+00
+Node_Coordinate[370][0]=0.000000e+00
+Node_Coordinate[370][1]=2.758621e+01
+Node_Coordinate[370][2]=1.000000e+00
+Node_Coordinate[371][0]=5.882353e+00
+Node_Coordinate[371][1]=2.758621e+01
+Node_Coordinate[371][2]=1.000000e+00
+Node_Coordinate[372][0]=1.176471e+01
+Node_Coordinate[372][1]=2.758621e+01
+Node_Coordinate[372][2]=1.000000e+00
+Node_Coordinate[373][0]=1.764706e+01
+Node_Coordinate[373][1]=2.758621e+01
+Node_Coordinate[373][2]=1.000000e+00
+Node_Coordinate[374][0]=2.352941e+01
+Node_Coordinate[374][1]=2.758621e+01
+Node_Coordinate[374][2]=1.000000e+00
+Node_Coordinate[375][0]=2.941176e+01
+Node_Coordinate[375][1]=2.758621e+01
+Node_Coordinate[375][2]=1.000000e+00
+Node_Coordinate[376][0]=3.529412e+01
+Node_Coordinate[376][1]=2.758621e+01
+Node_Coordinate[376][2]=1.000000e+00
+Node_Coordinate[377][0]=4.117647e+01
+Node_Coordinate[377][1]=2.758621e+01
+Node_Coordinate[377][2]=1.000000e+00
+Node_Coordinate[378][0]=4.705882e+01
+Node_Coordinate[378][1]=2.758621e+01
+Node_Coordinate[378][2]=1.000000e+00
+Node_Coordinate[379][0]=5.000000e+01
+Node_Coordinate[379][1]=2.758621e+01
+Node_Coordinate[379][2]=1.000000e+00
+Node_Coordinate[380][0]=-5.000000e+01
+Node_Coordinate[380][1]=3.448276e+01
+Node_Coordinate[380][2]=1.000000e+00
+Node_Coordinate[381][0]=-4.705882e+01
+Node_Coordinate[381][1]=3.448276e+01
+Node_Coordinate[381][2]=1.000000e+00
+Node_Coordinate[382][0]=-4.117647e+01
+Node_Coordinate[382][1]=3.448276e+01
+Node_Coordinate[382][2]=1.000000e+00
+Node_Coordinate[383][0]=-3.529412e+01
+Node_Coordinate[383][1]=3.448276e+01
+Node_Coordinate[383][2]=1.000000e+00
+Node_Coordinate[384][0]=-2.941176e+01
+Node_Coordinate[384][1]=3.448276e+01
+Node_Coordinate[384][2]=1.000000e+00
+Node_Coordinate[385][0]=-2.352941e+01
+Node_Coordinate[385][1]=3.448276e+01
+Node_Coordinate[385][2]=1.000000e+00
+Node_Coordinate[386][0]=-1.764706e+01
+Node_Coordinate[386][1]=3.448276e+01
+Node_Coordinate[386][2]=1.000000e+00
+Node_Coordinate[387][0]=-1.176471e+01
+Node_Coordinate[387][1]=3.448276e+01
+Node_Coordinate[387][2]=1.000000e+00
+Node_Coordinate[388][0]=-5.882353e+00
+Node_Coordinate[388][1]=3.448276e+01
+Node_Coordinate[388][2]=1.000000e+00
+Node_Coordinate[389][0]=0.000000e+00
+Node_Coordinate[389][1]=3.448276e+01
+Node_Coordinate[389][2]=1.000000e+00
+Node_Coordinate[390][0]=5.882353e+00
+Node_Coordinate[390][1]=3.448276e+01
+Node_Coordinate[390][2]=1.000000e+00
+Node_Coordinate[391][0]=1.176471e+01
+Node_Coordinate[391][1]=3.448276e+01
+Node_Coordinate[391][2]=1.000000e+00
+Node_Coordinate[392][0]=1.764706e+01
+Node_Coordinate[392][1]=3.448276e+01
+Node_Coordinate[392][2]=1.000000e+00
+Node_Coordinate[393][0]=2.352941e+01
+Node_Coordinate[393][1]=3.448276e+01
+Node_Coordinate[393][2]=1.000000e+00
+Node_Coordinate[394][0]=2.941176e+01
+Node_Coordinate[394][1]=3.448276e+01
+Node_Coordinate[394][2]=1.000000e+00
+Node_Coordinate[395][0]=3.529412e+01
+Node_Coordinate[395][1]=3.448276e+01
+Node_Coordinate[395][2]=1.000000e+00
+Node_Coordinate[396][0]=4.117647e+01
+Node_Coordinate[396][1]=3.448276e+01
+Node_Coordinate[396][2]=1.000000e+00
+Node_Coordinate[397][0]=4.705882e+01
+Node_Coordinate[397][1]=3.448276e+01
+Node_Coordinate[397][2]=1.000000e+00
+Node_Coordinate[398][0]=5.000000e+01
+Node_Coordinate[398][1]=3.448276e+01
+Node_Coordinate[398][2]=1.000000e+00
+Node_Coordinate[399][0]=-5.000000e+01
+Node_Coordinate[399][1]=4.137931e+01
+Node_Coordinate[399][2]=1.000000e+00
+Node_Coordinate[400][0]=-4.705882e+01
+Node_Coordinate[400][1]=4.137931e+01
+Node_Coordinate[400][2]=1.000000e+00
+Node_Coordinate[401][0]=-4.117647e+01
+Node_Coordinate[401][1]=4.137931e+01
+Node_Coordinate[401][2]=1.000000e+00
+Node_Coordinate[402][0]=-3.529412e+01
+Node_Coordinate[402][1]=4.137931e+01
+Node_Coordinate[402][2]=1.000000e+00
+Node_Coordinate[403][0]=-2.941176e+01
+Node_Coordinate[403][1]=4.137931e+01
+Node_Coordinate[403][2]=1.000000e+00
+Node_Coordinate[404][0]=-2.352941e+01
+Node_Coordinate[404][1]=4.137931e+01
+Node_Coordinate[404][2]=1.000000e+00
+Node_Coordinate[405][0]=-1.764706e+01
+Node_Coordinate[405][1]=4.137931e+01
+Node_Coordinate[405][2]=1.000000e+00
+Node_Coordinate[406][0]=-1.176471e+01
+Node_Coordinate[406][1]=4.137931e+01
+Node_Coordinate[406][2]=1.000000e+00
+Node_Coordinate[407][0]=-5.882353e+00
+Node_Coordinate[407][1]=4.137931e+01
+Node_Coordinate[407][2]=1.000000e+00
+Node_Coordinate[408][0]=0.000000e+00
+Node_Coordinate[408][1]=4.137931e+01
+Node_Coordinate[408][2]=1.000000e+00
+Node_Coordinate[409][0]=5.882353e+00
+Node_Coordinate[409][1]=4.137931e+01
+Node_Coordinate[409][2]=1.000000e+00
+Node_Coordinate[410][0]=1.176471e+01
+Node_Coordinate[410][1]=4.137931e+01
+Node_Coordinate[410][2]=1.000000e+00
+Node_Coordinate[411][0]=1.764706e+01
+Node_Coordinate[411][1]=4.137931e+01
+Node_Coordinate[411][2]=1.000000e+00
+Node_Coordinate[412][0]=2.352941e+01
+Node_Coordinate[412][1]=4.137931e+01
+Node_Coordinate[412][2]=1.000000e+00
+Node_Coordinate[413][0]=2.941176e+01
+Node_Coordinate[413][1]=4.137931e+01
+Node_Coordinate[413][2]=1.000000e+00
+Node_Coordinate[414][0]=3.529412e+01
+Node_Coordinate[414][1]=4.137931e+01
+Node_Coordinate[414][2]=1.000000e+00
+Node_Coordinate[415][0]=4.117647e+01
+Node_Coordinate[415][1]=4.137931e+01
+Node_Coordinate[415][2]=1.000000e+00
+Node_Coordinate[416][0]=4.705882e+01
+Node_Coordinate[416][1]=4.137931e+01
+Node_Coordinate[416][2]=1.000000e+00
+Node_Coordinate[417][0]=5.000000e+01
+Node_Coordinate[417][1]=4.137931e+01
+Node_Coordinate[417][2]=1.000000e+00
+Node_Coordinate[418][0]=-5.000000e+01
+Node_Coordinate[418][1]=4.827586e+01
+Node_Coordinate[418][2]=1.000000e+00
+Node_Coordinate[419][0]=-4.705882e+01
+Node_Coordinate[419][1]=4.827586e+01
+Node_Coordinate[419][2]=1.000000e+00
+Node_Coordinate[420][0]=-4.117647e+01
+Node_Coordinate[420][1]=4.827586e+01
+Node_Coordinate[420][2]=1.000000e+00
+Node_Coordinate[421][0]=-3.529412e+01
+Node_Coordinate[421][1]=4.827586e+01
+Node_Coordinate[421][2]=1.000000e+00
+Node_Coordinate[422][0]=-2.941176e+01
+Node_Coordinate[422][1]=4.827586e+01
+Node_Coordinate[422][2]=1.000000e+00
+Node_Coordinate[423][0]=-2.352941e+01
+Node_Coordinate[423][1]=4.827586e+01
+Node_Coordinate[423][2]=1.000000e+00
+Node_Coordinate[424][0]=-1.764706e+01
+Node_Coordinate[424][1]=4.827586e+01
+Node_Coordinate[424][2]=1.000000e+00
+Node_Coordinate[425][0]=-1.176471e+01
+Node_Coordinate[425][1]=4.827586e+01
+Node_Coordinate[425][2]=1.000000e+00
+Node_Coordinate[426][0]=-5.882353e+00
+Node_Coordinate[426][1]=4.827586e+01
+Node_Coordinate[426][2]=1.000000e+00
+Node_Coordinate[427][0]=0.000000e+00
+Node_Coordinate[427][1]=4.827586e+01
+Node_Coordinate[427][2]=1.000000e+00
+Node_Coordinate[428][0]=5.882353e+00
+Node_Coordinate[428][1]=4.827586e+01
+Node_Coordinate[428][2]=1.000000e+00
+Node_Coordinate[429][0]=1.176471e+01
+Node_Coordinate[429][1]=4.827586e+01
+Node_Coordinate[429][2]=1.000000e+00
+Node_Coordinate[430][0]=1.764706e+01
+Node_Coordinate[430][1]=4.827586e+01
+Node_Coordinate[430][2]=1.000000e+00
+Node_Coordinate[431][0]=2.352941e+01
+Node_Coordinate[431][1]=4.827586e+01
+Node_Coordinate[431][2]=1.000000e+00
+Node_Coordinate[432][0]=2.941176e+01
+Node_Coordinate[432][1]=4.827586e+01
+Node_Coordinate[432][2]=1.000000e+00
+Node_Coordinate[433][0]=3.529412e+01
+Node_Coordinate[433][1]=4.827586e+01
+Node_Coordinate[433][2]=1.000000e+00
+Node_Coordinate[434][0]=4.117647e+01
+Node_Coordinate[434][1]=4.827586e+01
+Node_Coordinate[434][2]=1.000000e+00
+Node_Coordinate[435][0]=4.705882e+01
+Node_Coordinate[435][1]=4.827586e+01
+Node_Coordinate[435][2]=1.000000e+00
+Node_Coordinate[436][0]=5.000000e+01
+Node_Coordinate[436][1]=4.827586e+01
+Node_Coordinate[436][2]=1.000000e+00
+Node_Coordinate[437][0]=-5.000000e+01
+Node_Coordinate[437][1]=5.517241e+01
+Node_Coordinate[437][2]=1.000000e+00
+Node_Coordinate[438][0]=-4.705882e+01
+Node_Coordinate[438][1]=5.517241e+01
+Node_Coordinate[438][2]=1.000000e+00
+Node_Coordinate[439][0]=-4.117647e+01
+Node_Coordinate[439][1]=5.517241e+01
+Node_Coordinate[439][2]=1.000000e+00
+Node_Coordinate[440][0]=-3.529412e+01
+Node_Coordinate[440][1]=5.517241e+01
+Node_Coordinate[440][2]=1.000000e+00
+Node_Coordinate[441][0]=-2.941176e+01
+Node_Coordinate[441][1]=5.517241e+01
+Node_Coordinate[441][2]=1.000000e+00
+Node_Coordinate[442][0]=-2.352941e+01
+Node_Coordinate[442][1]=5.517241e+01
+Node_Coordinate[442][2]=1.000000e+00
+Node_Coordinate[443][0]=-1.764706e+01
+Node_Coordinate[443][1]=5.517241e+01
+Node_Coordinate[443][2]=1.000000e+00
+Node_Coordinate[444][0]=-1.176471e+01
+Node_Coordinate[444][1]=5.517241e+01
+Node_Coordinate[444][2]=1.000000e+00
+Node_Coordinate[445][0]=-5.882353e+00
+Node_Coordinate[445][1]=5.517241e+01
+Node_Coordinate[445][2]=1.000000e+00
+Node_Coordinate[446][0]=0.000000e+00
+Node_Coordinate[446][1]=5.517241e+01
+Node_Coordinate[446][2]=1.000000e+00
+Node_Coordinate[447][0]=5.882353e+00
+Node_Coordinate[447][1]=5.517241e+01
+Node_Coordinate[447][2]=1.000000e+00
+Node_Coordinate[448][0]=1.176471e+01
+Node_Coordinate[448][1]=5.517241e+01
+Node_Coordinate[448][2]=1.000000e+00
+Node_Coordinate[449][0]=1.764706e+01
+Node_Coordinate[449][1]=5.517241e+01
+Node_Coordinate[449][2]=1.000000e+00
+Node_Coordinate[450][0]=2.352941e+01
+Node_Coordinate[450][1]=5.517241e+01
+Node_Coordinate[450][2]=1.000000e+00
+Node_Coordinate[451][0]=2.941176e+01
+Node_Coordinate[451][1]=5.517241e+01
+Node_Coordinate[451][2]=1.000000e+00
+Node_Coordinate[452][0]=3.529412e+01
+Node_Coordinate[452][1]=5.517241e+01
+Node_Coordinate[452][2]=1.000000e+00
+Node_Coordinate[453][0]=4.117647e+01
+Node_Coordinate[453][1]=5.517241e+01
+Node_Coordinate[453][2]=1.000000e+00
+Node_Coordinate[454][0]=4.705882e+01
+Node_Coordinate[454][1]=5.517241e+01
+Node_Coordinate[454][2]=1.000000e+00
+Node_Coordinate[455][0]=5.000000e+01
+Node_Coordinate[455][1]=5.517241e+01
+Node_Coordinate[455][2]=1.000000e+00
+Node_Coordinate[456][0]=-5.000000e+01
+Node_Coordinate[456][1]=6.206897e+01
+Node_Coordinate[456][2]=1.000000e+00
+Node_Coordinate[457][0]=-4.705882e+01
+Node_Coordinate[457][1]=6.206897e+01
+Node_Coordinate[457][2]=1.000000e+00
+Node_Coordinate[458][0]=-4.117647e+01
+Node_Coordinate[458][1]=6.206897e+01
+Node_Coordinate[458][2]=1.000000e+00
+Node_Coordinate[459][0]=-3.529412e+01
+Node_Coordinate[459][1]=6.206897e+01
+Node_Coordinate[459][2]=1.000000e+00
+Node_Coordinate[460][0]=-2.941176e+01
+Node_Coordinate[460][1]=6.206897e+01
+Node_Coordinate[460][2]=1.000000e+00
+Node_Coordinate[461][0]=-2.352941e+01
+Node_Coordinate[461][1]=6.206897e+01
+Node_Coordinate[461][2]=1.000000e+00
+Node_Coordinate[462][0]=-1.764706e+01
+Node_Coordinate[462][1]=6.206897e+01
+Node_Coordinate[462][2]=1.000000e+00
+Node_Coordinate[463][0]=-1.176471e+01
+Node_Coordinate[463][1]=6.206897e+01
+Node_Coordinate[463][2]=1.000000e+00
+Node_Coordinate[464][0]=-5.882353e+00
+Node_Coordinate[464][1]=6.206897e+01
+Node_Coordinate[464][2]=1.000000e+00
+Node_Coordinate[465][0]=0.000000e+00
+Node_Coordinate[465][1]=6.206897e+01
+Node_Coordinate[465][2]=1.000000e+00
+Node_Coordinate[466][0]=5.882353e+00
+Node_Coordinate[466][1]=6.206897e+01
+Node_Coordinate[466][2]=1.000000e+00
+Node_Coordinate[467][0]=1.176471e+01
+Node_Coordinate[467][1]=6.206897e+01
+Node_Coordinate[467][2]=1.000000e+00
+Node_Coordinate[468][0]=1.764706e+01
+Node_Coordinate[468][1]=6.206897e+01
+Node_Coordinate[468][2]=1.000000e+00
+Node_Coordinate[469][0]=2.352941e+01
+Node_Coordinate[469][1]=6.206897e+01
+Node_Coordinate[469][2]=1.000000e+00
+Node_Coordinate[470][0]=2.941176e+01
+Node_Coordinate[470][1]=6.206897e+01
+Node_Coordinate[470][2]=1.000000e+00
+Node_Coordinate[471][0]=3.529412e+01
+Node_Coordinate[471][1]=6.206897e+01
+Node_Coordinate[471][2]=1.000000e+00
+Node_Coordinate[472][0]=4.117647e+01
+Node_Coordinate[472][1]=6.206897e+01
+Node_Coordinate[472][2]=1.000000e+00
+Node_Coordinate[473][0]=4.705882e+01
+Node_Coordinate[473][1]=6.206897e+01
+Node_Coordinate[473][2]=1.000000e+00
+Node_Coordinate[474][0]=5.000000e+01
+Node_Coordinate[474][1]=6.206897e+01
+Node_Coordinate[474][2]=1.000000e+00
+Node_Coordinate[475][0]=-5.000000e+01
+Node_Coordinate[475][1]=6.896552e+01
+Node_Coordinate[475][2]=1.000000e+00
+Node_Coordinate[476][0]=-4.705882e+01
+Node_Coordinate[476][1]=6.896552e+01
+Node_Coordinate[476][2]=1.000000e+00
+Node_Coordinate[477][0]=-4.117647e+01
+Node_Coordinate[477][1]=6.896552e+01
+Node_Coordinate[477][2]=1.000000e+00
+Node_Coordinate[478][0]=-3.529412e+01
+Node_Coordinate[478][1]=6.896552e+01
+Node_Coordinate[478][2]=1.000000e+00
+Node_Coordinate[479][0]=-2.941176e+01
+Node_Coordinate[479][1]=6.896552e+01
+Node_Coordinate[479][2]=1.000000e+00
+Node_Coordinate[480][0]=-2.352941e+01
+Node_Coordinate[480][1]=6.896552e+01
+Node_Coordinate[480][2]=1.000000e+00
+Node_Coordinate[481][0]=-1.764706e+01
+Node_Coordinate[481][1]=6.896552e+01
+Node_Coordinate[481][2]=1.000000e+00
+Node_Coordinate[482][0]=-1.176471e+01
+Node_Coordinate[482][1]=6.896552e+01
+Node_Coordinate[482][2]=1.000000e+00
+Node_Coordinate[483][0]=-5.882353e+00
+Node_Coordinate[483][1]=6.896552e+01
+Node_Coordinate[483][2]=1.000000e+00
+Node_Coordinate[484][0]=0.000000e+00
+Node_Coordinate[484][1]=6.896552e+01
+Node_Coordinate[484][2]=1.000000e+00
+Node_Coordinate[485][0]=5.882353e+00
+Node_Coordinate[485][1]=6.896552e+01
+Node_Coordinate[485][2]=1.000000e+00
+Node_Coordinate[486][0]=1.176471e+01
+Node_Coordinate[486][1]=6.896552e+01
+Node_Coordinate[486][2]=1.000000e+00
+Node_Coordinate[487][0]=1.764706e+01
+Node_Coordinate[487][1]=6.896552e+01
+Node_Coordinate[487][2]=1.000000e+00
+Node_Coordinate[488][0]=2.352941e+01
+Node_Coordinate[488][1]=6.896552e+01
+Node_Coordinate[488][2]=1.000000e+00
+Node_Coordinate[489][0]=2.941176e+01
+Node_Coordinate[489][1]=6.896552e+01
+Node_Coordinate[489][2]=1.000000e+00
+Node_Coordinate[490][0]=3.529412e+01
+Node_Coordinate[490][1]=6.896552e+01
+Node_Coordinate[490][2]=1.000000e+00
+Node_Coordinate[491][0]=4.117647e+01
+Node_Coordinate[491][1]=6.896552e+01
+Node_Coordinate[491][2]=1.000000e+00
+Node_Coordinate[492][0]=4.705882e+01
+Node_Coordinate[492][1]=6.896552e+01
+Node_Coordinate[492][2]=1.000000e+00
+Node_Coordinate[493][0]=5.000000e+01
+Node_Coordinate[493][1]=6.896552e+01
+Node_Coordinate[493][2]=1.000000e+00
+Node_Coordinate[494][0]=-5.000000e+01
+Node_Coordinate[494][1]=7.586207e+01
+Node_Coordinate[494][2]=1.000000e+00
+Node_Coordinate[495][0]=-4.705882e+01
+Node_Coordinate[495][1]=7.586207e+01
+Node_Coordinate[495][2]=1.000000e+00
+Node_Coordinate[496][0]=-4.117647e+01
+Node_Coordinate[496][1]=7.586207e+01
+Node_Coordinate[496][2]=1.000000e+00
+Node_Coordinate[497][0]=-3.529412e+01
+Node_Coordinate[497][1]=7.586207e+01
+Node_Coordinate[497][2]=1.000000e+00
+Node_Coordinate[498][0]=-2.941176e+01
+Node_Coordinate[498][1]=7.586207e+01
+Node_Coordinate[498][2]=1.000000e+00
+Node_Coordinate[499][0]=-2.352941e+01
+Node_Coordinate[499][1]=7.586207e+01
+Node_Coordinate[499][2]=1.000000e+00
+Node_Coordinate[500][0]=-1.764706e+01
+Node_Coordinate[500][1]=7.586207e+01
+Node_Coordinate[500][2]=1.000000e+00
+Node_Coordinate[501][0]=-1.176471e+01
+Node_Coordinate[501][1]=7.586207e+01
+Node_Coordinate[501][2]=1.000000e+00
+Node_Coordinate[502][0]=-5.882353e+00
+Node_Coordinate[502][1]=7.586207e+01
+Node_Coordinate[502][2]=1.000000e+00
+Node_Coordinate[503][0]=0.000000e+00
+Node_Coordinate[503][1]=7.586207e+01
+Node_Coordinate[503][2]=1.000000e+00
+Node_Coordinate[504][0]=5.882353e+00
+Node_Coordinate[504][1]=7.586207e+01
+Node_Coordinate[504][2]=1.000000e+00
+Node_Coordinate[505][0]=1.176471e+01
+Node_Coordinate[505][1]=7.586207e+01
+Node_Coordinate[505][2]=1.000000e+00
+Node_Coordinate[506][0]=1.764706e+01
+Node_Coordinate[506][1]=7.586207e+01
+Node_Coordinate[506][2]=1.000000e+00
+Node_Coordinate[507][0]=2.352941e+01
+Node_Coordinate[507][1]=7.586207e+01
+Node_Coordinate[507][2]=1.000000e+00
+Node_Coordinate[508][0]=2.941176e+01
+Node_Coordinate[508][1]=7.586207e+01
+Node_Coordinate[508][2]=1.000000e+00
+Node_Coordinate[509][0]=3.529412e+01
+Node_Coordinate[509][1]=7.586207e+01
+Node_Coordinate[509][2]=1.000000e+00
+Node_Coordinate[510][0]=4.117647e+01
+Node_Coordinate[510][1]=7.586207e+01
+Node_Coordinate[510][2]=1.000000e+00
+Node_Coordinate[511][0]=4.705882e+01
+Node_Coordinate[511][1]=7.586207e+01
+Node_Coordinate[511][2]=1.000000e+00
+Node_Coordinate[512][0]=5.000000e+01
+Node_Coordinate[512][1]=7.586207e+01
+Node_Coordinate[512][2]=1.000000e+00
+Node_Coordinate[513][0]=-5.000000e+01
+Node_Coordinate[513][1]=8.275862e+01
+Node_Coordinate[513][2]=1.000000e+00
+Node_Coordinate[514][0]=-4.705882e+01
+Node_Coordinate[514][1]=8.275862e+01
+Node_Coordinate[514][2]=1.000000e+00
+Node_Coordinate[515][0]=-4.117647e+01
+Node_Coordinate[515][1]=8.275862e+01
+Node_Coordinate[515][2]=1.000000e+00
+Node_Coordinate[516][0]=-3.529412e+01
+Node_Coordinate[516][1]=8.275862e+01
+Node_Coordinate[516][2]=1.000000e+00
+Node_Coordinate[517][0]=-2.941176e+01
+Node_Coordinate[517][1]=8.275862e+01
+Node_Coordinate[517][2]=1.000000e+00
+Node_Coordinate[518][0]=-2.352941e+01
+Node_Coordinate[518][1]=8.275862e+01
+Node_Coordinate[518][2]=1.000000e+00
+Node_Coordinate[519][0]=-1.764706e+01
+Node_Coordinate[519][1]=8.275862e+01
+Node_Coordinate[519][2]=1.000000e+00
+Node_Coordinate[520][0]=-1.176471e+01
+Node_Coordinate[520][1]=8.275862e+01
+Node_Coordinate[520][2]=1.000000e+00
+Node_Coordinate[521][0]=-5.882353e+00
+Node_Coordinate[521][1]=8.275862e+01
+Node_Coordinate[521][2]=1.000000e+00
+Node_Coordinate[522][0]=0.000000e+00
+Node_Coordinate[522][1]=8.275862e+01
+Node_Coordinate[522][2]=1.000000e+00
+Node_Coordinate[523][0]=5.882353e+00
+Node_Coordinate[523][1]=8.275862e+01
+Node_Coordinate[523][2]=1.000000e+00
+Node_Coordinate[524][0]=1.176471e+01
+Node_Coordinate[524][1]=8.275862e+01
+Node_Coordinate[524][2]=1.000000e+00
+Node_Coordinate[525][0]=1.764706e+01
+Node_Coordinate[525][1]=8.275862e+01
+Node_Coordinate[525][2]=1.000000e+00
+Node_Coordinate[526][0]=2.352941e+01
+Node_Coordinate[526][1]=8.275862e+01
+Node_Coordinate[526][2]=1.000000e+00
+Node_Coordinate[527][0]=2.941176e+01
+Node_Coordinate[527][1]=8.275862e+01
+Node_Coordinate[527][2]=1.000000e+00
+Node_Coordinate[528][0]=3.529412e+01
+Node_Coordinate[528][1]=8.275862e+01
+Node_Coordinate[528][2]=1.000000e+00
+Node_Coordinate[529][0]=4.117647e+01
+Node_Coordinate[529][1]=8.275862e+01
+Node_Coordinate[529][2]=1.000000e+00
+Node_Coordinate[530][0]=4.705882e+01
+Node_Coordinate[530][1]=8.275862e+01
+Node_Coordinate[530][2]=1.000000e+00
+Node_Coordinate[531][0]=5.000000e+01
+Node_Coordinate[531][1]=8.275862e+01
+Node_Coordinate[531][2]=1.000000e+00
+Node_Coordinate[532][0]=-5.000000e+01
+Node_Coordinate[532][1]=8.965517e+01
+Node_Coordinate[532][2]=1.000000e+00
+Node_Coordinate[533][0]=-4.705882e+01
+Node_Coordinate[533][1]=8.965517e+01
+Node_Coordinate[533][2]=1.000000e+00
+Node_Coordinate[534][0]=-4.117647e+01
+Node_Coordinate[534][1]=8.965517e+01
+Node_Coordinate[534][2]=1.000000e+00
+Node_Coordinate[535][0]=-3.529412e+01
+Node_Coordinate[535][1]=8.965517e+01
+Node_Coordinate[535][2]=1.000000e+00
+Node_Coordinate[536][0]=-2.941176e+01
+Node_Coordinate[536][1]=8.965517e+01
+Node_Coordinate[536][2]=1.000000e+00
+Node_Coordinate[537][0]=-2.352941e+01
+Node_Coordinate[537][1]=8.965517e+01
+Node_Coordinate[537][2]=1.000000e+00
+Node_Coordinate[538][0]=-1.764706e+01
+Node_Coordinate[538][1]=8.965517e+01
+Node_Coordinate[538][2]=1.000000e+00
+Node_Coordinate[539][0]=-1.176471e+01
+Node_Coordinate[539][1]=8.965517e+01
+Node_Coordinate[539][2]=1.000000e+00
+Node_Coordinate[540][0]=-5.882353e+00
+Node_Coordinate[540][1]=8.965517e+01
+Node_Coordinate[540][2]=1.000000e+00
+Node_Coordinate[541][0]=0.000000e+00
+Node_Coordinate[541][1]=8.965517e+01
+Node_Coordinate[541][2]=1.000000e+00
+Node_Coordinate[542][0]=5.882353e+00
+Node_Coordinate[542][1]=8.965517e+01
+Node_Coordinate[542][2]=1.000000e+00
+Node_Coordinate[543][0]=1.176471e+01
+Node_Coordinate[543][1]=8.965517e+01
+Node_Coordinate[543][2]=1.000000e+00
+Node_Coordinate[544][0]=1.764706e+01
+Node_Coordinate[544][1]=8.965517e+01
+Node_Coordinate[544][2]=1.000000e+00
+Node_Coordinate[545][0]=2.352941e+01
+Node_Coordinate[545][1]=8.965517e+01
+Node_Coordinate[545][2]=1.000000e+00
+Node_Coordinate[546][0]=2.941176e+01
+Node_Coordinate[546][1]=8.965517e+01
+Node_Coordinate[546][2]=1.000000e+00
+Node_Coordinate[547][0]=3.529412e+01
+Node_Coordinate[547][1]=8.965517e+01
+Node_Coordinate[547][2]=1.000000e+00
+Node_Coordinate[548][0]=4.117647e+01
+Node_Coordinate[548][1]=8.965517e+01
+Node_Coordinate[548][2]=1.000000e+00
+Node_Coordinate[549][0]=4.705882e+01
+Node_Coordinate[549][1]=8.965517e+01
+Node_Coordinate[549][2]=1.000000e+00
+Node_Coordinate[550][0]=5.000000e+01
+Node_Coordinate[550][1]=8.965517e+01
+Node_Coordinate[550][2]=1.000000e+00
+Node_Coordinate[551][0]=-5.000000e+01
+Node_Coordinate[551][1]=9.655172e+01
+Node_Coordinate[551][2]=1.000000e+00
+Node_Coordinate[552][0]=-4.705882e+01
+Node_Coordinate[552][1]=9.655172e+01
+Node_Coordinate[552][2]=1.000000e+00
+Node_Coordinate[553][0]=-4.117647e+01
+Node_Coordinate[553][1]=9.655172e+01
+Node_Coordinate[553][2]=1.000000e+00
+Node_Coordinate[554][0]=-3.529412e+01
+Node_Coordinate[554][1]=9.655172e+01
+Node_Coordinate[554][2]=1.000000e+00
+Node_Coordinate[555][0]=-2.941176e+01
+Node_Coordinate[555][1]=9.655172e+01
+Node_Coordinate[555][2]=1.000000e+00
+Node_Coordinate[556][0]=-2.352941e+01
+Node_Coordinate[556][1]=9.655172e+01
+Node_Coordinate[556][2]=1.000000e+00
+Node_Coordinate[557][0]=-1.764706e+01
+Node_Coordinate[557][1]=9.655172e+01
+Node_Coordinate[557][2]=1.000000e+00
+Node_Coordinate[558][0]=-1.176471e+01
+Node_Coordinate[558][1]=9.655172e+01
+Node_Coordinate[558][2]=1.000000e+00
+Node_Coordinate[559][0]=-5.882353e+00
+Node_Coordinate[559][1]=9.655172e+01
+Node_Coordinate[559][2]=1.000000e+00
+Node_Coordinate[560][0]=0.000000e+00
+Node_Coordinate[560][1]=9.655172e+01
+Node_Coordinate[560][2]=1.000000e+00
+Node_Coordinate[561][0]=5.882353e+00
+Node_Coordinate[561][1]=9.655172e+01
+Node_Coordinate[561][2]=1.000000e+00
+Node_Coordinate[562][0]=1.176471e+01
+Node_Coordinate[562][1]=9.655172e+01
+Node_Coordinate[562][2]=1.000000e+00
+Node_Coordinate[563][0]=1.764706e+01
+Node_Coordinate[563][1]=9.655172e+01
+Node_Coordinate[563][2]=1.000000e+00
+Node_Coordinate[564][0]=2.352941e+01
+Node_Coordinate[564][1]=9.655172e+01
+Node_Coordinate[564][2]=1.000000e+00
+Node_Coordinate[565][0]=2.941176e+01
+Node_Coordinate[565][1]=9.655172e+01
+Node_Coordinate[565][2]=1.000000e+00
+Node_Coordinate[566][0]=3.529412e+01
+Node_Coordinate[566][1]=9.655172e+01
+Node_Coordinate[566][2]=1.000000e+00
+Node_Coordinate[567][0]=4.117647e+01
+Node_Coordinate[567][1]=9.655172e+01
+Node_Coordinate[567][2]=1.000000e+00
+Node_Coordinate[568][0]=4.705882e+01
+Node_Coordinate[568][1]=9.655172e+01
+Node_Coordinate[568][2]=1.000000e+00
+Node_Coordinate[569][0]=5.000000e+01
+Node_Coordinate[569][1]=9.655172e+01
+Node_Coordinate[569][2]=1.000000e+00
+Node_Coordinate[570][0]=-5.000000e+01
+Node_Coordinate[570][1]=1.000000e+02
+Node_Coordinate[570][2]=1.000000e+00
+Node_Coordinate[571][0]=-4.705882e+01
+Node_Coordinate[571][1]=1.000000e+02
+Node_Coordinate[571][2]=1.000000e+00
+Node_Coordinate[572][0]=-4.117647e+01
+Node_Coordinate[572][1]=1.000000e+02
+Node_Coordinate[572][2]=1.000000e+00
+Node_Coordinate[573][0]=-3.529412e+01
+Node_Coordinate[573][1]=1.000000e+02
+Node_Coordinate[573][2]=1.000000e+00
+Node_Coordinate[574][0]=-2.941176e+01
+Node_Coordinate[574][1]=1.000000e+02
+Node_Coordinate[574][2]=1.000000e+00
+Node_Coordinate[575][0]=-2.352941e+01
+Node_Coordinate[575][1]=1.000000e+02
+Node_Coordinate[575][2]=1.000000e+00
+Node_Coordinate[576][0]=-1.764706e+01
+Node_Coordinate[576][1]=1.000000e+02
+Node_Coordinate[576][2]=1.000000e+00
+Node_Coordinate[577][0]=-1.176471e+01
+Node_Coordinate[577][1]=1.000000e+02
+Node_Coordinate[577][2]=1.000000e+00
+Node_Coordinate[578][0]=-5.882353e+00
+Node_Coordinate[578][1]=1.000000e+02
+Node_Coordinate[578][2]=1.000000e+00
+Node_Coordinate[579][0]=0.000000e+00
+Node_Coordinate[579][1]=1.000000e+02
+Node_Coordinate[579][2]=1.000000e+00
+Node_Coordinate[580][0]=5.882353e+00
+Node_Coordinate[580][1]=1.000000e+02
+Node_Coordinate[580][2]=1.000000e+00
+Node_Coordinate[581][0]=1.176471e+01
+Node_Coordinate[581][1]=1.000000e+02
+Node_Coordinate[581][2]=1.000000e+00
+Node_Coordinate[582][0]=1.764706e+01
+Node_Coordinate[582][1]=1.000000e+02
+Node_Coordinate[582][2]=1.000000e+00
+Node_Coordinate[583][0]=2.352941e+01
+Node_Coordinate[583][1]=1.000000e+02
+Node_Coordinate[583][2]=1.000000e+00
+Node_Coordinate[584][0]=2.941176e+01
+Node_Coordinate[584][1]=1.000000e+02
+Node_Coordinate[584][2]=1.000000e+00
+Node_Coordinate[585][0]=3.529412e+01
+Node_Coordinate[585][1]=1.000000e+02
+Node_Coordinate[585][2]=1.000000e+00
+Node_Coordinate[586][0]=4.117647e+01
+Node_Coordinate[586][1]=1.000000e+02
+Node_Coordinate[586][2]=1.000000e+00
+Node_Coordinate[587][0]=4.705882e+01
+Node_Coordinate[587][1]=1.000000e+02
+Node_Coordinate[587][2]=1.000000e+00
+Node_Coordinate[588][0]=5.000000e+01
+Node_Coordinate[588][1]=1.000000e+02
+Node_Coordinate[588][2]=1.000000e+00
+Constraint_Node_Dir[0][0]= 285 Constraint_Node_Dir[0][1]=1 Value_of_Constraint[0]= 0.000000e+00 
+Constraint_Node_Dir[1][0]= 294 Constraint_Node_Dir[1][1]=0 Value_of_Constraint[1]= 0.000000e+00 
+Constraint_Node_Dir[2][0]= 294 Constraint_Node_Dir[2][1]=1 Value_of_Constraint[2]= 0.000000e+00 
+Distibuted load nober: 0
+type_load: 1  iPatch: 0 iCoord: 0  val_Coord: 1.000000000000000e+00  Range_Coord: 0.000000000000000e+00  1.000000000000000e+00
+ Coef_Dist_Load: 1.000000000000000e+00 0.000000000000000e+00 0.000000000000000e+00
+Distibuted load nober: 1
+type_load: 1  iPatch: 0 iCoord: 0  val_Coord: 0.000000000000000e+00  Range_Coord: 0.000000000000000e+00  1.000000000000000e+00
+ Coef_Dist_Load: -1.000000000000000e+00 0.000000000000000e+00 0.000000000000000e+00
+type_load:1	iPatch:0	iCoord:0	val_coord:1.000000	Range0:0.000000	Range1:1.000000	Coeff0:1.000000
+Check1 iii = 2
+Check2 Position_Knots[iCoord][iii]= 0.000000  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.058824
+Check1 iii = 3
+Check2 Position_Knots[iCoord][iii]= 0.058824  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.117647
+Check1 iii = 4
+Check2 Position_Knots[iCoord][iii]= 0.117647  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.176471
+Check1 iii = 5
+Check2 Position_Knots[iCoord][iii]= 0.176471  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.235294
+Check1 iii = 6
+Check2 Position_Knots[iCoord][iii]= 0.235294  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.294118
+Check1 iii = 7
+Check2 Position_Knots[iCoord][iii]= 0.294118  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.352941
+Check1 iii = 8
+Check2 Position_Knots[iCoord][iii]= 0.352941  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.411765
+Check1 iii = 9
+Check2 Position_Knots[iCoord][iii]= 0.411765  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.470588
+Check1 iii = 10
+Check2 Position_Knots[iCoord][iii]= 0.470588  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.529412
+Check1 iii = 11
+Check2 Position_Knots[iCoord][iii]= 0.529412  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.588235
+Check1 iii = 12
+Check2 Position_Knots[iCoord][iii]= 0.588235  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.647059
+Check1 iii = 13
+Check2 Position_Knots[iCoord][iii]= 0.647059  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.705882
+Check1 iii = 14
+Check2 Position_Knots[iCoord][iii]= 0.705882  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.764706
+Check1 iii = 15
+Check2 Position_Knots[iCoord][iii]= 0.764706  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.823529
+Check1 iii = 16
+Check2 Position_Knots[iCoord][iii]= 0.823529  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.882353
+Check1 iii = 17
+Check2 Position_Knots[iCoord][iii]= 0.882353  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.941176
+Check1 iii = 18
+Check2 Position_Knots[iCoord][iii]= 0.941176  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 1.000000
+iPos[0] = 2 iPos[1] = 19
+iRange_ele[0] = 0  iRange_ele[1] = 16
+iii0
+Total_Element493
+Check No_Element_for_Integration[0] = 476
+iii0
+Total_Element493
+Check No_Element_for_Integration[1] = 477
+iii0
+Total_Element493
+Check No_Element_for_Integration[2] = 478
+iii0
+Total_Element493
+Check No_Element_for_Integration[3] = 479
+iii0
+Total_Element493
+Check No_Element_for_Integration[4] = 480
+iii0
+Total_Element493
+Check No_Element_for_Integration[5] = 481
+iii0
+Total_Element493
+Check No_Element_for_Integration[6] = 482
+iii0
+Total_Element493
+Check No_Element_for_Integration[7] = 483
+iii0
+Total_Element493
+Check No_Element_for_Integration[8] = 484
+iii0
+Total_Element493
+Check No_Element_for_Integration[9] = 485
+iii0
+Total_Element493
+Check No_Element_for_Integration[10] = 486
+iii0
+Total_Element493
+Check No_Element_for_Integration[11] = 487
+iii0
+Total_Element493
+Check No_Element_for_Integration[12] = 488
+iii0
+Total_Element493
+Check No_Element_for_Integration[13] = 489
+iii0
+Total_Element493
+Check No_Element_for_Integration[14] = 490
+iii0
+Total_Element493
+Check No_Element_for_Integration[15] = 491
+iii0
+Total_Element493
+Check No_Element_for_Integration[16] = 492
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.006630
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.029412
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.052194
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.065453
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.088235
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.111018
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.124277
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.147059
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.169841
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.183100
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.205882
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.228665
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.241924
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.264706
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.287488
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.300747
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.323529
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.346312
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.359571
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.382353
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.405135
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.418394
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.441176
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.463959
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.477218
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.500000
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.522782
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.536041
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.558824
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.581606
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.594865
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.617647
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.640429
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.653688
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.676471
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.699253
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.712512
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.735294
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.758076
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.771335
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.794118
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.816900
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.830159
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.852941
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.875723
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.888982
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.911765
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.934547
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.947806
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.970588
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = 1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = 1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.993370
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+type_load:1	iPatch:0	iCoord:0	val_coord:0.000000	Range0:0.000000	Range1:1.000000	Coeff0:-1.000000
+Check1 iii = 2
+Check2 Position_Knots[iCoord][iii]= 0.000000  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.058824
+Check1 iii = 3
+Check2 Position_Knots[iCoord][iii]= 0.058824  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.117647
+Check1 iii = 4
+Check2 Position_Knots[iCoord][iii]= 0.117647  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.176471
+Check1 iii = 5
+Check2 Position_Knots[iCoord][iii]= 0.176471  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.235294
+Check1 iii = 6
+Check2 Position_Knots[iCoord][iii]= 0.235294  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.294118
+Check1 iii = 7
+Check2 Position_Knots[iCoord][iii]= 0.294118  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.352941
+Check1 iii = 8
+Check2 Position_Knots[iCoord][iii]= 0.352941  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.411765
+Check1 iii = 9
+Check2 Position_Knots[iCoord][iii]= 0.411765  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.470588
+Check1 iii = 10
+Check2 Position_Knots[iCoord][iii]= 0.470588  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.529412
+Check1 iii = 11
+Check2 Position_Knots[iCoord][iii]= 0.529412  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.588235
+Check1 iii = 12
+Check2 Position_Knots[iCoord][iii]= 0.588235  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.647059
+Check1 iii = 13
+Check2 Position_Knots[iCoord][iii]= 0.647059  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.705882
+Check1 iii = 14
+Check2 Position_Knots[iCoord][iii]= 0.705882  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.764706
+Check1 iii = 15
+Check2 Position_Knots[iCoord][iii]= 0.764706  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.823529
+Check1 iii = 16
+Check2 Position_Knots[iCoord][iii]= 0.823529  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.882353
+Check1 iii = 17
+Check2 Position_Knots[iCoord][iii]= 0.882353  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 0.941176
+Check1 iii = 18
+Check2 Position_Knots[iCoord][iii]= 0.941176  Range_Coord[0] =0.000000 Position_Knots[iCoord][iii+1] = 1.000000
+iPos[0] = 2 iPos[1] = 19
+iRange_ele[0] = 0  iRange_ele[1] = 16
+iii0
+Total_Element493
+Check No_Element_for_Integration[0] = 0
+iii0
+Total_Element493
+Check No_Element_for_Integration[1] = 1
+iii0
+Total_Element493
+Check No_Element_for_Integration[2] = 2
+iii0
+Total_Element493
+Check No_Element_for_Integration[3] = 3
+iii0
+Total_Element493
+Check No_Element_for_Integration[4] = 4
+iii0
+Total_Element493
+Check No_Element_for_Integration[5] = 5
+iii0
+Total_Element493
+Check No_Element_for_Integration[6] = 6
+iii0
+Total_Element493
+Check No_Element_for_Integration[7] = 7
+iii0
+Total_Element493
+Check No_Element_for_Integration[8] = 8
+iii0
+Total_Element493
+Check No_Element_for_Integration[9] = 9
+iii0
+Total_Element493
+Check No_Element_for_Integration[10] = 10
+iii0
+Total_Element493
+Check No_Element_for_Integration[11] = 11
+iii0
+Total_Element493
+Check No_Element_for_Integration[12] = 12
+iii0
+Total_Element493
+Check No_Element_for_Integration[13] = 13
+iii0
+Total_Element493
+Check No_Element_for_Integration[14] = 14
+iii0
+Total_Element493
+Check No_Element_for_Integration[15] = 15
+iii0
+Total_Element493
+Check No_Element_for_Integration[16] = 16
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.006630
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.029412
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.052194
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.065453
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.088235
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.111018
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.124277
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.147059
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.169841
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.183100
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.205882
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.228665
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.241924
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.264706
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.287488
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.300747
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.323529
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.346312
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.359571
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.382353
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.405135
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.418394
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.441176
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.463959
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.477218
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.500000
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.522782
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.536041
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.558824
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.581606
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.594865
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.617647
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.640429
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.653688
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.676471
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.699253
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.712512
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.735294
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.758076
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.771335
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.794118
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.816900
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = -0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.830159
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.852941
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.875723
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.888982
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.911765
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.934547
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 0   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = -0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.947806
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 1   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.000000
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.970588
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+ig = 2   Local_Coord[jCoord] = -1.000000 Local_Coord[iCoord] = 0.774597
+Check  Coeff_Dist_Load[0] = -1.000000 Coeff_Dist_Load[1] = 0.000000  Coeff_Dist_Load[2] = 0.000000  Position_Data_param[iCoord] = 0.993370
+Check the value of detJ etc: detJ = 2.941176 dxyzdge[0] = 2.941176 dxyzdge[1] = 0.000000
+Finish Get_InputData(Global mesh:../input_glo_element.txt)
+Total Element=493 Node=589 Constraint=3 Load=0
+E;2.060000e+05 nu;3.000000e-01
+E:2.060000e+05 nu:3.000000e-01
+No_Patch:40
+Total_Patch_to_mesh[1]=1
+Total_Patch_to_Now=1
+Total_Control_Point:320
+Total_Control_Point_to_mesh[1]=589
+Total_Control_Point_to_mesh[2]=909
+Total_Control_Point_to_Now=589
+Order[1][0]=2
+Order[1][1]=2
+Order[2][0]=2
+Order[2][1]=2
+Order[3][0]=2
+Order[3][1]=2
+Order[4][0]=2
+Order[4][1]=2
+Order[5][0]=2
+Order[5][1]=2
+Order[6][0]=2
+Order[6][1]=2
+Order[7][0]=2
+Order[7][1]=2
+Order[8][0]=2
+Order[8][1]=2
+Order[9][0]=2
+Order[9][1]=2
+Order[10][0]=2
+Order[10][1]=2
+Order[11][0]=2
+Order[11][1]=2
+Order[12][0]=2
+Order[12][1]=2
+Order[13][0]=2
+Order[13][1]=2
+Order[14][0]=2
+Order[14][1]=2
+Order[15][0]=2
+Order[15][1]=2
+Order[16][0]=2
+Order[16][1]=2
+Order[17][0]=2
+Order[17][1]=2
+Order[18][0]=2
+Order[18][1]=2
+Order[19][0]=2
+Order[19][1]=2
+Order[20][0]=2
+Order[20][1]=2
+Order[21][0]=2
+Order[21][1]=2
+Order[22][0]=2
+Order[22][1]=2
+Order[23][0]=2
+Order[23][1]=2
+Order[24][0]=2
+Order[24][1]=2
+Order[25][0]=2
+Order[25][1]=2
+Order[26][0]=2
+Order[26][1]=2
+Order[27][0]=2
+Order[27][1]=2
+Order[28][0]=2
+Order[28][1]=2
+Order[29][0]=2
+Order[29][1]=2
+Order[30][0]=2
+Order[30][1]=2
+Order[31][0]=2
+Order[31][1]=2
+Order[32][0]=2
+Order[32][1]=2
+Order[33][0]=2
+Order[33][1]=2
+Order[34][0]=2
+Order[34][1]=2
+Order[35][0]=2
+Order[35][1]=2
+Order[36][0]=2
+Order[36][1]=2
+Order[37][0]=2
+Order[37][1]=2
+Order[38][0]=2
+Order[38][1]=2
+Order[39][0]=2
+Order[39][1]=2
+Order[40][0]=2
+Order[40][1]=2
+No_knot[1][0]=7
+No_knot[1][1]=6
+No_knot[2][0]=7
+No_knot[2][1]=6
+No_knot[3][0]=7
+No_knot[3][1]=6
+No_knot[4][0]=7
+No_knot[4][1]=6
+No_knot[5][0]=7
+No_knot[5][1]=6
+No_knot[6][0]=7
+No_knot[6][1]=6
+No_knot[7][0]=7
+No_knot[7][1]=7
+No_knot[8][0]=6
+No_knot[8][1]=7
+No_knot[9][0]=6
+No_knot[9][1]=7
+No_knot[10][0]=7
+No_knot[10][1]=7
+No_knot[11][0]=7
+No_knot[11][1]=6
+No_knot[12][0]=7
+No_knot[12][1]=6
+No_knot[13][0]=7
+No_knot[13][1]=6
+No_knot[14][0]=7
+No_knot[14][1]=6
+No_knot[15][0]=7
+No_knot[15][1]=6
+No_knot[16][0]=7
+No_knot[16][1]=6
+No_knot[17][0]=7
+No_knot[17][1]=7
+No_knot[18][0]=6
+No_knot[18][1]=7
+No_knot[19][0]=6
+No_knot[19][1]=7
+No_knot[20][0]=7
+No_knot[20][1]=7
+No_knot[21][0]=7
+No_knot[21][1]=6
+No_knot[22][0]=7
+No_knot[22][1]=6
+No_knot[23][0]=7
+No_knot[23][1]=6
+No_knot[24][0]=7
+No_knot[24][1]=6
+No_knot[25][0]=7
+No_knot[25][1]=6
+No_knot[26][0]=7
+No_knot[26][1]=6
+No_knot[27][0]=7
+No_knot[27][1]=7
+No_knot[28][0]=6
+No_knot[28][1]=7
+No_knot[29][0]=6
+No_knot[29][1]=7
+No_knot[30][0]=7
+No_knot[30][1]=7
+No_knot[31][0]=7
+No_knot[31][1]=6
+No_knot[32][0]=7
+No_knot[32][1]=6
+No_knot[33][0]=7
+No_knot[33][1]=6
+No_knot[34][0]=7
+No_knot[34][1]=6
+No_knot[35][0]=7
+No_knot[35][1]=6
+No_knot[36][0]=7
+No_knot[36][1]=6
+No_knot[37][0]=7
+No_knot[37][1]=7
+No_knot[38][0]=6
+No_knot[38][1]=7
+No_knot[39][0]=6
+No_knot[39][1]=7
+No_knot[40][0]=7
+No_knot[40][1]=7
+No_Control_point[1][0]:4
+No_Control_point[1][1]:3
+No_Control_point[2][0]:4
+No_Control_point[2][1]:3
+No_Control_point[3][0]:4
+No_Control_point[3][1]:3
+No_Control_point[4][0]:4
+No_Control_point[4][1]:3
+No_Control_point[5][0]:4
+No_Control_point[5][1]:3
+No_Control_point[6][0]:4
+No_Control_point[6][1]:3
+No_Control_point[7][0]:4
+No_Control_point[7][1]:4
+No_Control_point[8][0]:3
+No_Control_point[8][1]:4
+No_Control_point[9][0]:3
+No_Control_point[9][1]:4
+No_Control_point[10][0]:4
+No_Control_point[10][1]:4
+No_Control_point[11][0]:4
+No_Control_point[11][1]:3
+No_Control_point[12][0]:4
+No_Control_point[12][1]:3
+No_Control_point[13][0]:4
+No_Control_point[13][1]:3
+No_Control_point[14][0]:4
+No_Control_point[14][1]:3
+No_Control_point[15][0]:4
+No_Control_point[15][1]:3
+No_Control_point[16][0]:4
+No_Control_point[16][1]:3
+No_Control_point[17][0]:4
+No_Control_point[17][1]:4
+No_Control_point[18][0]:3
+No_Control_point[18][1]:4
+No_Control_point[19][0]:3
+No_Control_point[19][1]:4
+No_Control_point[20][0]:4
+No_Control_point[20][1]:4
+No_Control_point[21][0]:4
+No_Control_point[21][1]:3
+No_Control_point[22][0]:4
+No_Control_point[22][1]:3
+No_Control_point[23][0]:4
+No_Control_point[23][1]:3
+No_Control_point[24][0]:4
+No_Control_point[24][1]:3
+No_Control_point[25][0]:4
+No_Control_point[25][1]:3
+No_Control_point[26][0]:4
+No_Control_point[26][1]:3
+No_Control_point[27][0]:4
+No_Control_point[27][1]:4
+No_Control_point[28][0]:3
+No_Control_point[28][1]:4
+No_Control_point[29][0]:3
+No_Control_point[29][1]:4
+No_Control_point[30][0]:4
+No_Control_point[30][1]:4
+No_Control_point[31][0]:4
+No_Control_point[31][1]:3
+No_Control_point[32][0]:4
+No_Control_point[32][1]:3
+No_Control_point[33][0]:4
+No_Control_point[33][1]:3
+No_Control_point[34][0]:4
+No_Control_point[34][1]:3
+No_Control_point[35][0]:4
+No_Control_point[35][1]:3
+No_Control_point[36][0]:4
+No_Control_point[36][1]:3
+No_Control_point[37][0]:4
+No_Control_point[37][1]:4
+No_Control_point[38][0]:3
+No_Control_point[38][1]:4
+No_Control_point[39][0]:3
+No_Control_point[39][1]:4
+No_Control_point[40][0]:4
+No_Control_point[40][1]:4
+No_Controlpoint_in_patch[1]:12	No_Controlpoint_in_patch[2]:12	No_Controlpoint_in_patch[3]:12	No_Controlpoint_in_patch[4]:12	No_Controlpoint_in_patch[5]:12	No_Controlpoint_in_patch[6]:12	No_Controlpoint_in_patch[7]:16	No_Controlpoint_in_patch[8]:12	No_Controlpoint_in_patch[9]:12	No_Controlpoint_in_patch[10]:16	No_Controlpoint_in_patch[11]:12	No_Controlpoint_in_patch[12]:12	No_Controlpoint_in_patch[13]:12	No_Controlpoint_in_patch[14]:12	No_Controlpoint_in_patch[15]:12	No_Controlpoint_in_patch[16]:12	No_Controlpoint_in_patch[17]:16	No_Controlpoint_in_patch[18]:12	No_Controlpoint_in_patch[19]:12	No_Controlpoint_in_patch[20]:16	No_Controlpoint_in_patch[21]:12	No_Controlpoint_in_patch[22]:12	No_Controlpoint_in_patch[23]:12	No_Controlpoint_in_patch[24]:12	No_Controlpoint_in_patch[25]:12	No_Controlpoint_in_patch[26]:12	No_Controlpoint_in_patch[27]:16	No_Controlpoint_in_patch[28]:12	No_Controlpoint_in_patch[29]:12	No_Controlpoint_in_patch[30]:16	No_Controlpoint_in_patch[31]:12	No_Controlpoint_in_patch[32]:12	No_Controlpoint_in_patch[33]:12	No_Controlpoint_in_patch[34]:12	No_Controlpoint_in_patch[35]:12	No_Controlpoint_in_patch[36]:12	No_Controlpoint_in_patch[37]:16	No_Controlpoint_in_patch[38]:12	No_Controlpoint_in_patch[39]:12	No_Controlpoint_in_patch[40]:16	
+Total_Constraint_all_mesh;123
+Total_Constraint;120
+Total_Constraint_on_mesh[1];120
+Total_Constraint_to_mesh[1];3
+Total_Load;0
+Total_DistributedForce;0
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+0.000000e+00	0.000000e+00	0.000000e+00	5.000000e-01	1.000000e+00	1.000000e+00	1.000000e+00	
+Total_Element=96
+Total_Element_on_mesh[1]=96
+Total_Element_to_Now=493
+No_Control_point_ON_ELEMENT[1]=9
+No_Control_point_ON_ELEMENT[2]=9
+No_Control_point_ON_ELEMENT[3]=9
+No_Control_point_ON_ELEMENT[4]=9
+No_Control_point_ON_ELEMENT[5]=9
+No_Control_point_ON_ELEMENT[6]=9
+No_Control_point_ON_ELEMENT[7]=9
+No_Control_point_ON_ELEMENT[8]=9
+No_Control_point_ON_ELEMENT[9]=9
+No_Control_point_ON_ELEMENT[10]=9
+No_Control_point_ON_ELEMENT[11]=9
+No_Control_point_ON_ELEMENT[12]=9
+No_Control_point_ON_ELEMENT[13]=9
+No_Control_point_ON_ELEMENT[14]=9
+No_Control_point_ON_ELEMENT[15]=9
+No_Control_point_ON_ELEMENT[16]=9
+No_Control_point_ON_ELEMENT[17]=9
+No_Control_point_ON_ELEMENT[18]=9
+No_Control_point_ON_ELEMENT[19]=9
+No_Control_point_ON_ELEMENT[20]=9
+No_Control_point_ON_ELEMENT[21]=9
+No_Control_point_ON_ELEMENT[22]=9
+No_Control_point_ON_ELEMENT[23]=9
+No_Control_point_ON_ELEMENT[24]=9
+No_Control_point_ON_ELEMENT[25]=9
+No_Control_point_ON_ELEMENT[26]=9
+No_Control_point_ON_ELEMENT[27]=9
+No_Control_point_ON_ELEMENT[28]=9
+No_Control_point_ON_ELEMENT[29]=9
+No_Control_point_ON_ELEMENT[30]=9
+No_Control_point_ON_ELEMENT[31]=9
+No_Control_point_ON_ELEMENT[32]=9
+No_Control_point_ON_ELEMENT[33]=9
+No_Control_point_ON_ELEMENT[34]=9
+No_Control_point_ON_ELEMENT[35]=9
+No_Control_point_ON_ELEMENT[36]=9
+No_Control_point_ON_ELEMENT[37]=9
+No_Control_point_ON_ELEMENT[38]=9
+No_Control_point_ON_ELEMENT[39]=9
+No_Control_point_ON_ELEMENT[40]=9
+Node_Coordinate[589][0]=7.071068e+00
+Node_Coordinate[589][1]=7.071068e+00
+Node_Coordinate[589][2]=1.000000e+00
+Node_Coordinate[590][0]=7.071068e+00
+Node_Coordinate[590][1]=7.071068e+00
+Node_Coordinate[590][2]=1.000000e+00
+Node_Coordinate[591][0]=7.778175e+00
+Node_Coordinate[591][1]=7.778175e+00
+Node_Coordinate[591][2]=1.000000e+00
+Node_Coordinate[592][0]=8.485281e+00
+Node_Coordinate[592][1]=8.485281e+00
+Node_Coordinate[592][2]=1.000000e+00
+Node_Coordinate[593][0]=7.071068e+00
+Node_Coordinate[593][1]=7.071068e+00
+Node_Coordinate[593][2]=1.000000e+00
+Node_Coordinate[594][0]=7.071068e+00
+Node_Coordinate[594][1]=7.071068e+00
+Node_Coordinate[594][2]=1.000000e+00
+Node_Coordinate[595][0]=7.424621e+00
+Node_Coordinate[595][1]=8.131728e+00
+Node_Coordinate[595][2]=1.000000e+00
+Node_Coordinate[596][0]=7.778175e+00
+Node_Coordinate[596][1]=9.192388e+00
+Node_Coordinate[596][2]=1.000000e+00
+Node_Coordinate[597][0]=7.071068e+00
+Node_Coordinate[597][1]=7.071068e+00
+Node_Coordinate[597][2]=1.000000e+00
+Node_Coordinate[598][0]=7.071068e+00
+Node_Coordinate[598][1]=7.071068e+00
+Node_Coordinate[598][2]=1.000000e+00
+Node_Coordinate[599][0]=7.071068e+00
+Node_Coordinate[599][1]=8.485281e+00
+Node_Coordinate[599][2]=1.000000e+00
+Node_Coordinate[600][0]=7.071068e+00
+Node_Coordinate[600][1]=9.899495e+00
+Node_Coordinate[600][2]=1.000000e+00
+Node_Coordinate[601][0]=7.071068e+00
+Node_Coordinate[601][1]=7.071068e+00
+Node_Coordinate[601][2]=1.000000e+00
+Node_Coordinate[602][0]=7.071068e+00
+Node_Coordinate[602][1]=7.071068e+00
+Node_Coordinate[602][2]=1.000000e+00
+Node_Coordinate[603][0]=6.717514e+00
+Node_Coordinate[603][1]=8.131728e+00
+Node_Coordinate[603][2]=1.000000e+00
+Node_Coordinate[604][0]=6.363961e+00
+Node_Coordinate[604][1]=9.192388e+00
+Node_Coordinate[604][2]=1.000000e+00
+Node_Coordinate[605][0]=7.071068e+00
+Node_Coordinate[605][1]=7.071068e+00
+Node_Coordinate[605][2]=1.000000e+00
+Node_Coordinate[606][0]=7.071068e+00
+Node_Coordinate[606][1]=7.071068e+00
+Node_Coordinate[606][2]=1.000000e+00
+Node_Coordinate[607][0]=6.363961e+00
+Node_Coordinate[607][1]=7.778175e+00
+Node_Coordinate[607][2]=1.000000e+00
+Node_Coordinate[608][0]=5.656854e+00
+Node_Coordinate[608][1]=8.485281e+00
+Node_Coordinate[608][2]=1.000000e+00
+Node_Coordinate[609][0]=7.071068e+00
+Node_Coordinate[609][1]=7.071068e+00
+Node_Coordinate[609][2]=1.000000e+00
+Node_Coordinate[610][0]=7.071068e+00
+Node_Coordinate[610][1]=7.071068e+00
+Node_Coordinate[610][2]=1.000000e+00
+Node_Coordinate[611][0]=6.010408e+00
+Node_Coordinate[611][1]=7.424621e+00
+Node_Coordinate[611][2]=1.000000e+00
+Node_Coordinate[612][0]=4.949747e+00
+Node_Coordinate[612][1]=7.778175e+00
+Node_Coordinate[612][2]=1.000000e+00
+Node_Coordinate[613][0]=7.071068e+00
+Node_Coordinate[613][1]=7.071068e+00
+Node_Coordinate[613][2]=1.000000e+00
+Node_Coordinate[614][0]=7.071068e+00
+Node_Coordinate[614][1]=7.071068e+00
+Node_Coordinate[614][2]=1.000000e+00
+Node_Coordinate[615][0]=5.656854e+00
+Node_Coordinate[615][1]=7.071068e+00
+Node_Coordinate[615][2]=1.000000e+00
+Node_Coordinate[616][0]=4.242641e+00
+Node_Coordinate[616][1]=7.071068e+00
+Node_Coordinate[616][2]=1.000000e+00
+Node_Coordinate[617][0]=7.071068e+00
+Node_Coordinate[617][1]=7.071068e+00
+Node_Coordinate[617][2]=1.000000e+00
+Node_Coordinate[618][0]=7.071068e+00
+Node_Coordinate[618][1]=7.071068e+00
+Node_Coordinate[618][2]=1.000000e+00
+Node_Coordinate[619][0]=6.010408e+00
+Node_Coordinate[619][1]=6.717514e+00
+Node_Coordinate[619][2]=1.000000e+00
+Node_Coordinate[620][0]=4.949747e+00
+Node_Coordinate[620][1]=6.363961e+00
+Node_Coordinate[620][2]=1.000000e+00
+Node_Coordinate[621][0]=7.071068e+00
+Node_Coordinate[621][1]=7.071068e+00
+Node_Coordinate[621][2]=1.000000e+00
+Node_Coordinate[622][0]=7.071068e+00
+Node_Coordinate[622][1]=7.071068e+00
+Node_Coordinate[622][2]=1.000000e+00
+Node_Coordinate[623][0]=6.363961e+00
+Node_Coordinate[623][1]=6.363961e+00
+Node_Coordinate[623][2]=1.000000e+00
+Node_Coordinate[624][0]=5.656854e+00
+Node_Coordinate[624][1]=5.656854e+00
+Node_Coordinate[624][2]=1.000000e+00
+Node_Coordinate[625][0]=0.000000e+00
+Node_Coordinate[625][1]=0.000000e+00
+Node_Coordinate[625][2]=1.000000e+00
+Node_Coordinate[626][0]=1.414214e+00
+Node_Coordinate[626][1]=1.414214e+00
+Node_Coordinate[626][2]=1.000000e+00
+Node_Coordinate[627][0]=4.242641e+00
+Node_Coordinate[627][1]=4.242641e+00
+Node_Coordinate[627][2]=1.000000e+00
+Node_Coordinate[628][0]=-7.071068e-01
+Node_Coordinate[628][1]=7.071068e-01
+Node_Coordinate[628][2]=1.000000e+00
+Node_Coordinate[629][0]=7.071068e-01
+Node_Coordinate[629][1]=2.121320e+00
+Node_Coordinate[629][2]=1.000000e+00
+Node_Coordinate[630][0]=3.535534e+00
+Node_Coordinate[630][1]=4.949747e+00
+Node_Coordinate[630][2]=1.000000e+00
+Node_Coordinate[631][0]=-1.414214e+00
+Node_Coordinate[631][1]=1.414214e+00
+Node_Coordinate[631][2]=1.000000e+00
+Node_Coordinate[632][0]=0.000000e+00
+Node_Coordinate[632][1]=2.828427e+00
+Node_Coordinate[632][2]=1.000000e+00
+Node_Coordinate[633][0]=2.828427e+00
+Node_Coordinate[633][1]=5.656854e+00
+Node_Coordinate[633][2]=1.000000e+00
+Node_Coordinate[634][0]=9.899495e+00
+Node_Coordinate[634][1]=9.899495e+00
+Node_Coordinate[634][2]=1.000000e+00
+Node_Coordinate[635][0]=1.272792e+01
+Node_Coordinate[635][1]=1.272792e+01
+Node_Coordinate[635][2]=1.000000e+00
+Node_Coordinate[636][0]=1.414214e+01
+Node_Coordinate[636][1]=1.414214e+01
+Node_Coordinate[636][2]=1.000000e+00
+Node_Coordinate[637][0]=9.192388e+00
+Node_Coordinate[637][1]=1.060660e+01
+Node_Coordinate[637][2]=1.000000e+00
+Node_Coordinate[638][0]=1.202082e+01
+Node_Coordinate[638][1]=1.343503e+01
+Node_Coordinate[638][2]=1.000000e+00
+Node_Coordinate[639][0]=1.343503e+01
+Node_Coordinate[639][1]=1.484924e+01
+Node_Coordinate[639][2]=1.000000e+00
+Node_Coordinate[640][0]=8.485281e+00
+Node_Coordinate[640][1]=1.131371e+01
+Node_Coordinate[640][2]=1.000000e+00
+Node_Coordinate[641][0]=1.131371e+01
+Node_Coordinate[641][1]=1.414214e+01
+Node_Coordinate[641][2]=1.000000e+00
+Node_Coordinate[642][0]=1.272792e+01
+Node_Coordinate[642][1]=1.555635e+01
+Node_Coordinate[642][2]=1.000000e+00
+Node_Coordinate[643][0]=-4.596194e+00
+Node_Coordinate[643][1]=4.596194e+00
+Node_Coordinate[643][2]=1.000000e+00
+Node_Coordinate[644][0]=-3.181981e+00
+Node_Coordinate[644][1]=6.010408e+00
+Node_Coordinate[644][2]=1.000000e+00
+Node_Coordinate[645][0]=-3.535534e-01
+Node_Coordinate[645][1]=8.838835e+00
+Node_Coordinate[645][2]=1.000000e+00
+Node_Coordinate[646][0]=1.060660e+00
+Node_Coordinate[646][1]=1.025305e+01
+Node_Coordinate[646][2]=1.000000e+00
+Node_Coordinate[647][0]=-1.096016e+01
+Node_Coordinate[647][1]=1.096016e+01
+Node_Coordinate[647][2]=1.000000e+00
+Node_Coordinate[648][0]=-9.545942e+00
+Node_Coordinate[648][1]=1.237437e+01
+Node_Coordinate[648][2]=1.000000e+00
+Node_Coordinate[649][0]=-6.717514e+00
+Node_Coordinate[649][1]=1.520280e+01
+Node_Coordinate[649][2]=1.000000e+00
+Node_Coordinate[650][0]=-5.303301e+00
+Node_Coordinate[650][1]=1.661701e+01
+Node_Coordinate[650][2]=1.000000e+00
+Node_Coordinate[651][0]=-1.414214e+01
+Node_Coordinate[651][1]=1.414214e+01
+Node_Coordinate[651][2]=1.000000e+00
+Node_Coordinate[652][0]=-1.272792e+01
+Node_Coordinate[652][1]=1.555635e+01
+Node_Coordinate[652][2]=1.000000e+00
+Node_Coordinate[653][0]=-9.899495e+00
+Node_Coordinate[653][1]=1.838478e+01
+Node_Coordinate[653][2]=1.000000e+00
+Node_Coordinate[654][0]=-8.485281e+00
+Node_Coordinate[654][1]=1.979899e+01
+Node_Coordinate[654][2]=1.000000e+00
+Node_Coordinate[655][0]=1.767767e+00
+Node_Coordinate[655][1]=1.096016e+01
+Node_Coordinate[655][2]=1.000000e+00
+Node_Coordinate[656][0]=2.474874e+00
+Node_Coordinate[656][1]=1.166726e+01
+Node_Coordinate[656][2]=1.000000e+00
+Node_Coordinate[657][0]=-4.596194e+00
+Node_Coordinate[657][1]=1.732412e+01
+Node_Coordinate[657][2]=1.000000e+00
+Node_Coordinate[658][0]=-3.889087e+00
+Node_Coordinate[658][1]=1.803122e+01
+Node_Coordinate[658][2]=1.000000e+00
+Node_Coordinate[659][0]=-7.778175e+00
+Node_Coordinate[659][1]=2.050610e+01
+Node_Coordinate[659][2]=1.000000e+00
+Node_Coordinate[660][0]=-7.071068e+00
+Node_Coordinate[660][1]=2.121320e+01
+Node_Coordinate[660][2]=1.000000e+00
+Node_Coordinate[661][0]=3.181981e+00
+Node_Coordinate[661][1]=1.237437e+01
+Node_Coordinate[661][2]=1.000000e+00
+Node_Coordinate[662][0]=3.889087e+00
+Node_Coordinate[662][1]=1.308148e+01
+Node_Coordinate[662][2]=1.000000e+00
+Node_Coordinate[663][0]=-3.181981e+00
+Node_Coordinate[663][1]=1.873833e+01
+Node_Coordinate[663][2]=1.000000e+00
+Node_Coordinate[664][0]=-2.474874e+00
+Node_Coordinate[664][1]=1.944544e+01
+Node_Coordinate[664][2]=1.000000e+00
+Node_Coordinate[665][0]=-6.363961e+00
+Node_Coordinate[665][1]=2.192031e+01
+Node_Coordinate[665][2]=1.000000e+00
+Node_Coordinate[666][0]=-5.656854e+00
+Node_Coordinate[666][1]=2.262742e+01
+Node_Coordinate[666][2]=1.000000e+00
+Node_Coordinate[667][0]=5.303301e+00
+Node_Coordinate[667][1]=1.449569e+01
+Node_Coordinate[667][2]=1.000000e+00
+Node_Coordinate[668][0]=8.131728e+00
+Node_Coordinate[668][1]=1.732412e+01
+Node_Coordinate[668][2]=1.000000e+00
+Node_Coordinate[669][0]=9.545942e+00
+Node_Coordinate[669][1]=1.873833e+01
+Node_Coordinate[669][2]=1.000000e+00
+Node_Coordinate[670][0]=-1.060660e+00
+Node_Coordinate[670][1]=2.085965e+01
+Node_Coordinate[670][2]=1.000000e+00
+Node_Coordinate[671][0]=1.767767e+00
+Node_Coordinate[671][1]=2.368808e+01
+Node_Coordinate[671][2]=1.000000e+00
+Node_Coordinate[672][0]=3.181981e+00
+Node_Coordinate[672][1]=2.510229e+01
+Node_Coordinate[672][2]=1.000000e+00
+Node_Coordinate[673][0]=-4.242641e+00
+Node_Coordinate[673][1]=2.404163e+01
+Node_Coordinate[673][2]=1.000000e+00
+Node_Coordinate[674][0]=-1.414214e+00
+Node_Coordinate[674][1]=2.687006e+01
+Node_Coordinate[674][2]=1.000000e+00
+Node_Coordinate[675][0]=0.000000e+00
+Node_Coordinate[675][1]=2.828427e+01
+Node_Coordinate[675][2]=1.000000e+00
+Node_Coordinate[676][0]=-7.071068e+00
+Node_Coordinate[676][1]=-7.071068e+00
+Node_Coordinate[676][2]=1.000000e+00
+Node_Coordinate[677][0]=-7.071068e+00
+Node_Coordinate[677][1]=-7.071068e+00
+Node_Coordinate[677][2]=1.000000e+00
+Node_Coordinate[678][0]=-7.778175e+00
+Node_Coordinate[678][1]=-7.778175e+00
+Node_Coordinate[678][2]=1.000000e+00
+Node_Coordinate[679][0]=-8.485281e+00
+Node_Coordinate[679][1]=-8.485281e+00
+Node_Coordinate[679][2]=1.000000e+00
+Node_Coordinate[680][0]=-7.071068e+00
+Node_Coordinate[680][1]=-7.071068e+00
+Node_Coordinate[680][2]=1.000000e+00
+Node_Coordinate[681][0]=-7.071068e+00
+Node_Coordinate[681][1]=-7.071068e+00
+Node_Coordinate[681][2]=1.000000e+00
+Node_Coordinate[682][0]=-8.131728e+00
+Node_Coordinate[682][1]=-7.424621e+00
+Node_Coordinate[682][2]=1.000000e+00
+Node_Coordinate[683][0]=-9.192388e+00
+Node_Coordinate[683][1]=-7.778175e+00
+Node_Coordinate[683][2]=1.000000e+00
+Node_Coordinate[684][0]=-7.071068e+00
+Node_Coordinate[684][1]=-7.071068e+00
+Node_Coordinate[684][2]=1.000000e+00
+Node_Coordinate[685][0]=-7.071068e+00
+Node_Coordinate[685][1]=-7.071068e+00
+Node_Coordinate[685][2]=1.000000e+00
+Node_Coordinate[686][0]=-8.485281e+00
+Node_Coordinate[686][1]=-7.071068e+00
+Node_Coordinate[686][2]=1.000000e+00
+Node_Coordinate[687][0]=-9.899495e+00
+Node_Coordinate[687][1]=-7.071068e+00
+Node_Coordinate[687][2]=1.000000e+00
+Node_Coordinate[688][0]=-7.071068e+00
+Node_Coordinate[688][1]=-7.071068e+00
+Node_Coordinate[688][2]=1.000000e+00
+Node_Coordinate[689][0]=-7.071068e+00
+Node_Coordinate[689][1]=-7.071068e+00
+Node_Coordinate[689][2]=
