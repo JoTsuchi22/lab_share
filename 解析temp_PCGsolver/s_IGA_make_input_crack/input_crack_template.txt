@@ -2,27 +2,25 @@
 
 206000  0.3     // Young's modulus, Poisson's ratio
 
-0               // Select analysis model. 1/4 model -> 0, full model -> 1
+0               // Select analysis model mode. 1/4 model -> 0, full model -> 1
 
 0               // Select auto making mode. only local patch -> 0, global patch (only 1 rectangle patch) + local patch -> 1
 
-10.0    0.0     // tip crack coordinate [mm] (x > 0, y = 0), (crack origin = (0.0, 0.0))
-
 2               // Select singular patch mode. 1 element -> 1, 2 element -> 2
+
+10.0    0.0     // tip crack coordinate [mm] (x > 0, y = 0), (crack origin = (0.0, 0.0))
 
 2.5             // singular width [mm]
 
-5.0             // outer side length from tip crack [mm]
+5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side)
 
-5.0             // inner side length from tip crack [mm]
+4   4   4       // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side)
 
-5.0             // upper side hight from tip crack [mm]
+2   2           // global parch order (xi, eta), (if (auto making mode == 1))
 
-2   2           // global parch order (xi, eta)
+200.0   200.0   // global patch size [mm] (d, h), (if (auto making mode == 1))
 
-200.0   200.0   // global patch size [mm] (if (auto making mode == 1)), (d, h)
-
-20  20          // global patch control point after Order Elevation and Knot Insertion (xi, eta)
+20  20          // global patch control point after Order Elevation and Knot Insertion (xi, eta), (if (auto making mode == 1))
 
 
 /*****************************************************************************
@@ -38,7 +36,8 @@
  * その後にアフィン変換を行います．
  * 
  * 
- * 
+ * ローカルパッチは2次の基底関数で固定です．
+ * 変更したい場合はプログラムを修正してください．
  * 
  * 
  * アフィン変換は平行移動->回転の順で行います．
