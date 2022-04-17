@@ -4,30 +4,21 @@
 
 0               // Select analysis model mode. 1/4 model -> 0, full model -> 1
 
-0               // Select auto making mode. only local patch -> 0, global patch (only 1 rectangle patch) + local patch -> 1
-
 2               // Select singular patch mode. 1 element -> 1, 2 element -> 2
 
 10.0    0.0     // tip crack coordinate [mm] (x > 0, y = 0), (crack origin = (0.0, 0.0))
 
 2.5             // singular width [mm]
 
-5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side)
+5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, upper side must match tip crack coordinate x)
 
 4   4   4       // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side)
 
-2   2           // global parch order (xi, eta), (if (auto making mode == 1))
-
-200.0   200.0   // global patch size [mm] (d, h), (if (auto making mode == 1))
-
-20  20          // global patch control point after Order Elevation and Knot Insertion (xi, eta), (if (auto making mode == 1))
+// afin transformation;
 
 
 /*****************************************************************************
- * インプットデータの自動生成モードが1の時は，
- * グローバルパッチとして原点を中心とした簡単な長方形を1パッチ作成します．
- * 境界条件は原点でu_x = u_y = 0.0，右辺の中点でu_y = 0.0とする．
- * 複雑な形状や複数のパッチのグローバルパッチを作成したい場合は，
+ * グローバルパッチは，
  * s_IGA_make_input.x と s_IGA_make_connection.x を用いて，
  * 本プログラムとは別に作成してください．
  * 
