@@ -10,12 +10,11 @@
 
 2.5             // singular width [mm]
 
-5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, upper side must match tip crack coordinate x)
+5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, inner side must match tip crack coordinate x)
 
 4   4   4       // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side)
 
 // afin transformation;
-
 
 /*****************************************************************************
  * グローバルパッチは，

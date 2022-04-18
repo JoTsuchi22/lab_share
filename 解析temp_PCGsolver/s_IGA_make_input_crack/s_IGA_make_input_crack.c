@@ -3,7 +3,7 @@
  *****************************************************************************
  * s_IGAにおける，き裂の特異パッチのインプットデータを作成するためのプログラムです
  * このプログラムのインプットデータについてはREADMEを読んでください :)
- * 
+ *
  * 2022.4.14
  *****************************************************************************/
 
@@ -13,27 +13,41 @@
 
 #define DIMENSION 2                 // 2次元
 #define MERGE_DISTANCE 1.0e-13      // コントロールポイントが同じ点と判定する距離
-// #define MAX_DISP_CONSTRAINT 10      // 変位指定する変位量の最大個数
-// #define MAX_DISP_CONSTRAINT_EDGE 10 // 変位指定する辺の最大個数
-// #define MAX_DISTRIBUTED_LOAD 5      // 分布荷重の最大個数
 
 FILE *fp;
 
 static double E_and_nu[2];
-static int mode[2];                 // 0: analysis model mode, 1: making mode, 2: sigular patch mode
+static int mode[2];                 // 0: analysis model mode, 1: sigular patch mode
 static double crack_tip[DIMENSION];
 static double singular_width;
 static double length_each_side[3];  // (outer side, inner side, upper side)
 static int cp_after_each_side[3];   // (outer side, inner side, upper side)
-
+static int counter;
+static int CP_result_to_here;
+static int CP_to_here_counter;
 
 void Get_input_a(char *filename);
 void Get_input_b(char *filename, int num, double *temp_CP, double *temp_KV, int *temp_CP_info, int *temp_KV_info);
 void Make_patch_file(int num);
 void Make_model(char **temp_argv);
 void Make_CP_KV_quarter_model(double *temp_CP, double *temp_KV, int *temp_CP_info, int *temp_KV_info, char **temp_argv);
-void Make_CP_KV_full_model(double *temp_CP, double *temp_KV, int *temp_CP_info, int *temp_KV_info);
-
+void Make_CP_KV_full_model(double *temp_CP, double *temp_KV, int *temp_CP_info, int *temp_KV_info, char **temp_argv);
+void Make_B(int num, double *temp_B, int *temp_CP_info, double *temp_CP);
+void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num);
+void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result);
+void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
+                      int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n);
+void Output_SVG(double *temp_B, double *temp_CP_result);
+void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after);
+void swap(int *a, int *b);
+int  getLeft(int parent);
+int  getRight(int parent);
+int  getParent(int child);
+void addHeap(int *a, int size);
+void removeHeap(int *a, int size);
+void makeHeap(int *a, int num);
+void heapSort(int *a, int num);
+void Dedupe(int *a, int *num, int *a_new, int *num_new, int n);
 
 int main(int argc, char **argv)
 {
@@ -50,9 +64,9 @@ int main(int argc, char **argv)
             printf("Error analysis model mode must be 0 or 1\n");
             exit(1);
         }
-        if (mode[0] == 1 && fabs(crack_tip[0] - length_each_side[2]) >= MERGE_DISTANCE)
+        if (mode[0] == 1 && fabs(crack_tip[0] - length_each_side[1]) >= MERGE_DISTANCE)
         {
-            printf("Error\nif auto making mode == 1, upper side must match tip crack coordinate x\n");
+            printf("Error\nif auto making mode == 1, inner side must match tip crack coordinate x\n");
             exit(1);
         }
 
@@ -181,7 +195,7 @@ void Get_input_b(char *filename, int num, double *temp_CP, double *temp_KV, int 
     int temp_i;
     double temp_d;
 
-    int singular_patch_n;
+    int singular_patch_n = 0;
     if (mode[0] == 0)
     {
         singular_patch_n = 4;
@@ -288,7 +302,7 @@ void Make_patch_file(int num)
     str[counter + 2] = 'x';
     str[counter + 3] = 't';
     str[counter + 4] = '\0';
-    
+
     fp = fopen(str, "w");
 
     // DIMENSION
@@ -356,7 +370,7 @@ void Make_patch_file(int num)
             fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width, crack_tip[1] + singular_width, 1.0);
         }
     }
-    else if (mode[1] == 1)
+    else if (mode[0] == 1)
     {
         if (num == 16)
         {
@@ -444,87 +458,87 @@ void Make_patch_file(int num)
         }
         else if (num == 28)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
         }
         else if (num == 29)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
         }
         else if (num == 30)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
         }
         else if (num == 31)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
         }
         else if (num == 32)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] + length_each_side[2], 1.0);
         }
         else if (num == 33)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] + singular_width, 1.0);
         }
         else if (num == 34)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
         }
         else if (num == 35)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[1] - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - length_each_side[0] - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
         }
         else if (num == 36)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - singular_width - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - singular_width - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
         }
         else if (num == 37)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
         }
         else if (num == 38)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1] - length_each_side[2], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1] - length_each_side[2], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
         }
         else if (num == 39)
         {
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1] - singular_width, 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * singular_width), crack_tip[1], 1.0);
-            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[0] - (2.0 * singular_width), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 0, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 1, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1] - singular_width, 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n", 2, crack_tip[0] + singular_width - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
+            fprintf(fp, "%d   %.17e   %.17e   %.17e\n\n", 3, crack_tip[0] + length_each_side[1] - (2.0 * crack_tip[0]), crack_tip[1], 1.0);
         }
     }
 
@@ -570,7 +584,7 @@ void Make_patch_file(int num)
         {
             fprintf(fp, "%d   ", 3);
         }
-        else if (num == 20 || num == 21 || num == 22 || num == 23 || num == 28 || num == 29 || num == 38 || num == 29)
+        else if (num == 20 || num == 21 || num == 22 || num == 23 || num == 28 || num == 29 || num == 38 || num == 39)
         {
             fprintf(fp, "%d   ", cp_after_each_side[1]);
         }
@@ -593,7 +607,7 @@ void Make_patch_file(int num)
 
 void Make_model(char **temp_argv)
 {
-    int i, j;
+    int i, j, k;
     int Total_patch_loc = 0;
     int singular_patch_n = 0;
 
@@ -691,7 +705,7 @@ void Make_model(char **temp_argv)
             {
                 CP_info[i * DIMENSION + 0] = 3;
             }
-            else if (i == 20 || i == 21 || i == 22 || i == 23 || i == 28 || i == 29 || i == 38 || i == 29)
+            else if (i == 20 || i == 21 || i == 22 || i == 23 || i == 28 || i == 29 || i == 38 || i == 39)
             {
                 CP_info[i * DIMENSION + 0] = cp_after_each_side[1];
             }
@@ -741,7 +755,14 @@ void Make_model(char **temp_argv)
     }
 
     // 特異パッチのコントロールポイントとノットベクトルを作成
-    Make_CP_KV_quarter_model(CP, KV, CP_info, KV_info, temp_argv);
+    if (mode[0] == 0)
+    {
+        Make_CP_KV_quarter_model(CP, KV, CP_info, KV_info, temp_argv);
+    }
+    else if (mode[0] == 1)
+    {
+        Make_CP_KV_full_model(CP, KV, CP_info, KV_info, temp_argv);
+    }
 
     // 動的メモリ確保
     int *Edge_info = (int *)malloc(sizeof(int) * Total_patch_loc * 32);         // int Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
@@ -758,11 +779,183 @@ void Make_model(char **temp_argv)
         Edge_info[i] = 0;
     }
 
+    // パッチコネクティビティの作成
+    for (i = 0; i < Total_patch_loc; i++)
+    {
+        Make_B(i, B, CP_info, CP);
+    }
+
+    counter = 0, CP_to_here_counter = 0;
+    for (i = 0; i < Total_patch_loc; i++)
+    {
+        for (j = 0; j < i; j++)
+        {
+            Check_B(i, j, B, Edge_info, Opponent_patch_num);
+        }
+        Make_connectivity(i, CP_info, Edge_info, Opponent_patch_num, Connectivity, A, CP, CP_result);
+    }
+
+    // 動的メモリ確保
+    int temp4 = 0, temp5 = 0;
+
+    int disp_constraint_n[2] = {1, 1};
+    int disp_constraint_edge_n[2][1];
+    int disp_constraint[2][1][30][3];
+
+    if (mode[0] == 0 && (length_each_side[1] - crack_tip[0]) >= MERGE_DISTANCE)
+    {
+        disp_constraint_edge_n[0][0] = 8; // x方向の固定する辺
+        disp_constraint_edge_n[1][0] = 10; // y方向の固定する辺
+
+        // x方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[0][0][0][0] = 4; disp_constraint[0][0][0][1] = 0; disp_constraint[0][0][0][2] = 1;
+        disp_constraint[0][0][1][0] = 5; disp_constraint[0][0][1][1] = 0; disp_constraint[0][0][1][2] = 1;
+        disp_constraint[0][0][2][0] = 5; disp_constraint[0][0][2][1] = 1; disp_constraint[0][0][2][2] = 1;
+        disp_constraint[0][0][3][0] = 6; disp_constraint[0][0][3][1] = 1; disp_constraint[0][0][3][2] = 1;
+        disp_constraint[0][0][4][0] = 7; disp_constraint[0][0][4][1] = 1; disp_constraint[0][0][4][2] = 1;
+        disp_constraint[0][0][5][0] = 8; disp_constraint[0][0][5][1] = 1; disp_constraint[0][0][5][2] = 1;
+        disp_constraint[0][0][6][0] = 8; disp_constraint[0][0][6][1] = 0; disp_constraint[0][0][6][2] = 0;
+        disp_constraint[0][0][7][0] = 9; disp_constraint[0][0][7][1] = 0; disp_constraint[0][0][7][2] = 0;
+
+        // y方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[1][0][0][0] = 0; disp_constraint[1][0][0][1] = 1; disp_constraint[1][0][0][2] = 0;
+        disp_constraint[1][0][1][0] = 4; disp_constraint[1][0][1][1] = 1; disp_constraint[1][0][1][2] = 0;
+        disp_constraint[1][0][2][0] = 4; disp_constraint[1][0][2][1] = 0; disp_constraint[1][0][2][2] = 1;
+        disp_constraint[1][0][3][0] = 5; disp_constraint[1][0][3][1] = 0; disp_constraint[1][0][3][2] = 1;
+        disp_constraint[1][0][4][0] = 5; disp_constraint[1][0][4][1] = 1; disp_constraint[1][0][4][2] = 1;
+        disp_constraint[1][0][5][0] = 6; disp_constraint[1][0][5][1] = 1; disp_constraint[1][0][5][2] = 1;
+        disp_constraint[1][0][6][0] = 7; disp_constraint[1][0][6][1] = 1; disp_constraint[1][0][6][2] = 1;
+        disp_constraint[1][0][7][0] = 8; disp_constraint[1][0][7][1] = 1; disp_constraint[1][0][7][2] = 1;
+        disp_constraint[1][0][8][0] = 8; disp_constraint[1][0][8][1] = 0; disp_constraint[1][0][8][2] = 0;
+        disp_constraint[1][0][9][0] = 8; disp_constraint[1][0][9][1] = 0; disp_constraint[1][0][9][2] = 0;
+    }
+    else if (mode[0] == 0 && (length_each_side[1] - crack_tip[0]) <= MERGE_DISTANCE)
+    {
+        disp_constraint_edge_n[0][0] = 8; // x方向の固定する辺
+        disp_constraint_edge_n[1][0] = 8; // y方向の固定する辺
+
+        // x方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[0][0][0][0] = 4; disp_constraint[0][0][0][1] = 0; disp_constraint[0][0][0][2] = 1;
+        disp_constraint[0][0][1][0] = 5; disp_constraint[0][0][1][1] = 0; disp_constraint[0][0][1][2] = 1;
+        disp_constraint[0][0][2][0] = 5; disp_constraint[0][0][2][1] = 1; disp_constraint[0][0][2][2] = 1;
+        disp_constraint[0][0][3][0] = 6; disp_constraint[0][0][3][1] = 1; disp_constraint[0][0][3][2] = 1;
+        disp_constraint[0][0][4][0] = 7; disp_constraint[0][0][4][1] = 1; disp_constraint[0][0][4][2] = 1;
+        disp_constraint[0][0][5][0] = 8; disp_constraint[0][0][5][1] = 1; disp_constraint[0][0][5][2] = 1;
+        disp_constraint[0][0][6][0] = 8; disp_constraint[0][0][6][1] = 0; disp_constraint[0][0][6][2] = 0;
+        disp_constraint[0][0][7][0] = 9; disp_constraint[0][0][7][1] = 0; disp_constraint[0][0][7][2] = 0;
+
+        // y方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[1][0][0][0] = 0; disp_constraint[1][0][0][1] = 1; disp_constraint[1][0][0][2] = 0;
+        disp_constraint[1][0][1][0] = 4; disp_constraint[1][0][1][1] = 1; disp_constraint[1][0][1][2] = 0;
+        disp_constraint[1][0][2][0] = 4; disp_constraint[1][0][2][1] = 0; disp_constraint[1][0][2][2] = 1;
+        disp_constraint[1][0][3][0] = 5; disp_constraint[1][0][3][1] = 0; disp_constraint[1][0][3][2] = 1;
+        disp_constraint[1][0][4][0] = 5; disp_constraint[1][0][4][1] = 1; disp_constraint[1][0][4][2] = 1;
+        disp_constraint[1][0][5][0] = 6; disp_constraint[1][0][5][1] = 1; disp_constraint[1][0][5][2] = 1;
+        disp_constraint[1][0][6][0] = 7; disp_constraint[1][0][6][1] = 1; disp_constraint[1][0][6][2] = 1;
+        disp_constraint[1][0][7][0] = 8; disp_constraint[1][0][7][1] = 1; disp_constraint[1][0][7][2] = 1;
+    }
+    else if (mode[0] == 1)
+    {
+        disp_constraint_edge_n[0][0] = 24; // x方向の固定する辺
+        disp_constraint_edge_n[1][0] = 24; // y方向の固定する辺
+
+        // x方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[0][0][0][0] = 16; disp_constraint[0][0][0][1] = 0; disp_constraint[0][0][0][2] = 1;
+        disp_constraint[0][0][1][0] = 17; disp_constraint[0][0][1][1] = 0; disp_constraint[0][0][1][2] = 1;
+        disp_constraint[0][0][2][0] = 17; disp_constraint[0][0][2][1] = 1; disp_constraint[0][0][2][2] = 1;
+        disp_constraint[0][0][3][0] = 18; disp_constraint[0][0][3][1] = 1; disp_constraint[0][0][3][2] = 1;
+        disp_constraint[0][0][4][0] = 19; disp_constraint[0][0][4][1] = 1; disp_constraint[0][0][4][2] = 1;
+        disp_constraint[0][0][5][0] = 20; disp_constraint[0][0][5][1] = 1; disp_constraint[0][0][5][2] = 1;
+        disp_constraint[0][0][6][0] = 23; disp_constraint[0][0][6][1] = 1; disp_constraint[0][0][6][2] = 0;
+        disp_constraint[0][0][7][0] = 24; disp_constraint[0][0][7][1] = 1; disp_constraint[0][0][7][2] = 0;
+        disp_constraint[0][0][8][0] = 25; disp_constraint[0][0][8][1] = 1; disp_constraint[0][0][8][2] = 0;
+        disp_constraint[0][0][9][0] = 26; disp_constraint[0][0][9][1] = 1; disp_constraint[0][0][9][2] = 0;
+        disp_constraint[0][0][10][0] = 26; disp_constraint[0][0][10][1] = 0; disp_constraint[0][0][10][2] = 1;
+        disp_constraint[0][0][11][0] = 27; disp_constraint[0][0][11][1] = 0; disp_constraint[0][0][11][2] = 1;
+        disp_constraint[0][0][12][0] = 29; disp_constraint[0][0][12][1] = 1; disp_constraint[0][0][12][2] = 1;
+        disp_constraint[0][0][13][0] = 30; disp_constraint[0][0][13][1] = 1; disp_constraint[0][0][13][2] = 1;
+        disp_constraint[0][0][14][0] = 31; disp_constraint[0][0][14][1] = 1; disp_constraint[0][0][14][2] = 1;
+        disp_constraint[0][0][15][0] = 32; disp_constraint[0][0][15][1] = 1; disp_constraint[0][0][15][2] = 1;
+        disp_constraint[0][0][16][0] = 32; disp_constraint[0][0][16][1] = 0; disp_constraint[0][0][16][2] = 0;
+        disp_constraint[0][0][17][0] = 33; disp_constraint[0][0][17][1] = 0; disp_constraint[0][0][17][2] = 0;
+        disp_constraint[0][0][18][0] = 34; disp_constraint[0][0][18][1] = 0; disp_constraint[0][0][18][2] = 0;
+        disp_constraint[0][0][19][0] = 35; disp_constraint[0][0][19][1] = 0; disp_constraint[0][0][19][2] = 0;
+        disp_constraint[0][0][20][0] = 35; disp_constraint[0][0][20][1] = 1; disp_constraint[0][0][20][2] = 0;
+        disp_constraint[0][0][21][0] = 36; disp_constraint[0][0][21][1] = 1; disp_constraint[0][0][21][2] = 0;
+        disp_constraint[0][0][22][0] = 37; disp_constraint[0][0][22][1] = 1; disp_constraint[0][0][22][2] = 0;
+        disp_constraint[0][0][23][0] = 38; disp_constraint[0][0][23][1] = 1; disp_constraint[0][0][23][2] = 0;
+
+        // y方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[1][0][0][0] = 16; disp_constraint[1][0][0][1] = 0; disp_constraint[1][0][0][2] = 1;
+        disp_constraint[1][0][1][0] = 17; disp_constraint[1][0][1][1] = 0; disp_constraint[1][0][1][2] = 1;
+        disp_constraint[1][0][2][0] = 17; disp_constraint[1][0][2][1] = 1; disp_constraint[1][0][2][2] = 1;
+        disp_constraint[1][0][3][0] = 18; disp_constraint[1][0][3][1] = 1; disp_constraint[1][0][3][2] = 1;
+        disp_constraint[1][0][4][0] = 19; disp_constraint[1][0][4][1] = 1; disp_constraint[1][0][4][2] = 1;
+        disp_constraint[1][0][5][0] = 20; disp_constraint[1][0][5][1] = 1; disp_constraint[1][0][5][2] = 1;
+        disp_constraint[1][0][6][0] = 23; disp_constraint[1][0][6][1] = 1; disp_constraint[1][0][6][2] = 0;
+        disp_constraint[1][0][7][0] = 24; disp_constraint[1][0][7][1] = 1; disp_constraint[1][0][7][2] = 0;
+        disp_constraint[1][0][8][0] = 25; disp_constraint[1][0][8][1] = 1; disp_constraint[1][0][8][2] = 0;
+        disp_constraint[1][0][9][0] = 26; disp_constraint[1][0][9][1] = 1; disp_constraint[1][0][9][2] = 0;
+        disp_constraint[1][0][10][0] = 26; disp_constraint[1][0][10][1] = 0; disp_constraint[1][0][10][2] = 1;
+        disp_constraint[1][0][11][0] = 27; disp_constraint[1][0][11][1] = 0; disp_constraint[1][0][11][2] = 1;
+        disp_constraint[1][0][12][0] = 29; disp_constraint[1][0][12][1] = 1; disp_constraint[1][0][12][2] = 1;
+        disp_constraint[1][0][13][0] = 30; disp_constraint[1][0][13][1] = 1; disp_constraint[1][0][13][2] = 1;
+        disp_constraint[1][0][14][0] = 31; disp_constraint[1][0][14][1] = 1; disp_constraint[1][0][14][2] = 1;
+        disp_constraint[1][0][15][0] = 32; disp_constraint[1][0][15][1] = 1; disp_constraint[1][0][15][2] = 1;
+        disp_constraint[1][0][16][0] = 32; disp_constraint[1][0][16][1] = 0; disp_constraint[1][0][16][2] = 0;
+        disp_constraint[1][0][17][0] = 33; disp_constraint[1][0][17][1] = 0; disp_constraint[1][0][17][2] = 0;
+        disp_constraint[1][0][18][0] = 34; disp_constraint[1][0][18][1] = 0; disp_constraint[1][0][18][2] = 0;
+        disp_constraint[1][0][19][0] = 35; disp_constraint[1][0][19][1] = 0; disp_constraint[1][0][19][2] = 0;
+        disp_constraint[1][0][20][0] = 35; disp_constraint[1][0][20][1] = 1; disp_constraint[1][0][20][2] = 0;
+        disp_constraint[1][0][21][0] = 36; disp_constraint[1][0][21][1] = 1; disp_constraint[1][0][21][2] = 0;
+        disp_constraint[1][0][22][0] = 37; disp_constraint[1][0][22][1] = 1; disp_constraint[1][0][22][2] = 0;
+        disp_constraint[1][0][23][0] = 38; disp_constraint[1][0][23][1] = 1; disp_constraint[1][0][23][2] = 0;
+    }
+    
+    for (i = 0; i < DIMENSION; i++)
+    {
+        for (j = 0; j < disp_constraint_n[i]; j++)
+        {
+            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            {
+                if (disp_constraint[i][j][k][1] == 0)
+                {
+                    temp4 += CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+                else if (disp_constraint[i][j][k][1] == 1)
+                {
+                    temp4 += CP_info[disp_constraint[i][j][k][0] * DIMENSION];
+                }
+            }
+        }
+        temp5 += disp_constraint_n[i];
+    }
+
+    int *length_before = (int *)malloc(sizeof(int) * temp5);    // 各変位量でのマージ前の長さ
+    int *length_after = (int *)malloc(sizeof(int) * temp5);     // 各変位量でのマージ後の長さ
+    int *Boundary = (int *)malloc(sizeof(int) * temp4);         // 境界条件のコネクティビティ
+    int *Boundary_result = (int *)malloc(sizeof(int) * temp4);  // ソート・マージ後境界条件のコネクティビティ
+
+    if (length_before == NULL || length_after == NULL || Boundary == NULL || Boundary_result == NULL)
+    {
+        printf("Memory cannot be allocated\n");
+        exit(1);
+    }
+
+    // 強制変位・変位固定の境界条件を作成
+    Sort(temp5, CP_info, A, Boundary, Boundary_result, length_before, length_after);
+
+    // 出力
+    Output_inputdata(Order, KV_info, CP_info, Connectivity, KV, CP_result, Boundary_result, length_before, length_after, temp5);
+
+    // 図の出力
+    Output_SVG(B, CP_result); // SVG出力
+
     // メモリ解放
     free(Order), free(KV_info), free(CP_info);
     free(CP), free(CP_result), free(A), free(B), free(Connectivity), free(KV);
     free(Edge_info), free(Opponent_patch_num);
-    // free(length_before), free(length_after), free(Boundary), free(Boundary_result);
+    free(length_before), free(length_after), free(Boundary), free(Boundary_result);
 }
 
 
@@ -902,17 +1095,7 @@ void Make_CP_KV_quarter_model(double *temp_CP, double *temp_KV, int *temp_CP_inf
         temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
     }
 
-    int singular_patch_n, Total_patch_n;
-    if (mode[0] == 0)
-    {
-        singular_patch_n = 4;
-        Total_patch_n = 10;
-    }
-    else if (mode[0] == 1)
-    {
-        singular_patch_n = 16;
-        Total_patch_n = 40;
-    }
+    int singular_patch_n = 4, Total_patch_n = 10;
 
     for (i = 0; i < Total_patch_n - singular_patch_n; i++)
     {
@@ -921,7 +1104,1662 @@ void Make_CP_KV_quarter_model(double *temp_CP, double *temp_KV, int *temp_CP_inf
 }
 
 
-void Make_CP_KV_full_model(double *temp_CP, double *temp_KV, int *temp_CP_info, int *temp_KV_info)
+void Make_CP_KV_full_model(double *temp_CP, double *temp_KV, int *temp_CP_info, int *temp_KV_info, char **temp_argv)
 {
+    int i;
+    int CP_to_here = 0;
+    int KV_to_here = 0;
+
+    // 特異パッチの要素の種類
+    if (mode[1] == 1)
+    {
+        // パッチ0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ1
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ9
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ10
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ11
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ12
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ13
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ14
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ15
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+    }
+    else if (mode[1] == 2)
+    {
+        // パッチ0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ1
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 4.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 4.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ5
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 4.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ6
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 4.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0]; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width; temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ9
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 4.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ10
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 4.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ11
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] + (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ12
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ13
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 4.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] - (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ14
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 4.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+
+        // パッチ15
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 0
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 1
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 2
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - singular_width; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 3
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 4
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 5
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 4.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 6
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1] - (singular_width / 2.0); temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 7
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 8
+        temp_CP[CP_to_here] = crack_tip[0] - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 9
+        temp_CP[CP_to_here] = crack_tip[0] + (singular_width / 2.0) - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 10
+        temp_CP[CP_to_here] = crack_tip[0] + singular_width - (2.0 * crack_tip[0]); temp_CP[CP_to_here + 1] = crack_tip[1]; temp_CP[CP_to_here + 2] = 1.0; CP_to_here += 3; // point 11
+
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 0.5; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; temp_KV[KV_to_here + 6] = 1.0; KV_to_here += 7;
+        temp_KV[KV_to_here] = 0.0; temp_KV[KV_to_here + 1] = 0.0; temp_KV[KV_to_here + 2] = 0.0; temp_KV[KV_to_here + 3] = 1.0; temp_KV[KV_to_here + 4] = 1.0; temp_KV[KV_to_here + 5] = 1.0; KV_to_here += 6;
+    }
+
+    int singular_patch_n = 16, Total_patch_n = 40;
+
+    for (i = 0; i < Total_patch_n - singular_patch_n; i++)
+    {
+        Get_input_b(temp_argv[i + 2], i, temp_CP, temp_KV, temp_CP_info, temp_KV_info);
+    }
+}
+
+
+void Make_B(int num, double *temp_B, int *temp_CP_info, double *temp_CP)
+{
+    int i;
+    int CP_to_here = 0;
+    int B_to_here = num * 16 * (DIMENSION + 1);
+
+    for (i = 0; i < num; i++)
+    {
+        CP_to_here += temp_CP_info[i * DIMENSION] * temp_CP_info[i * DIMENSION + 1] * (DIMENSION + 1);
+    }
+
+    // B 配列を作成
+    // 辺0 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺0 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺1 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺1 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺2 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺2 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺3 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺3 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺4 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺4 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺5 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1] - 1) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺5 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺6 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺6 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺7 点0
+    temp_B[B_to_here]     = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1)];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + (temp_CP_info[num * DIMENSION] * (temp_CP_info[num * DIMENSION + 1] - 1)) * (DIMENSION + 1) + 2];
+    B_to_here += DIMENSION + 1;
+
+    // 辺7 点1
+    temp_B[B_to_here]     = temp_CP[CP_to_here];
+    temp_B[B_to_here + 1] = temp_CP[CP_to_here + 1];
+    temp_B[B_to_here + 2] = temp_CP[CP_to_here + 2];
+    B_to_here += DIMENSION + 1;
+
+
+    printf("B on patch %d\n", num);
+    printf("point0[x y w] point1[x y w]\n");
+    int temp_counter = num * 16 * (DIMENSION + 1);
+
+    for (i = 0; i < 8; i++)
+    {
+        printf("[%le %le %le]\t[%le %le %le]\n", temp_B[temp_counter], temp_B[temp_counter + 1], temp_B[temp_counter + 2], temp_B[temp_counter + 3], temp_B[temp_counter + 4], temp_B[temp_counter + 5]);
+        temp_counter += 6;
+    }
+}
+
+
+void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num)
+{
+    int i, j;
+    int ii;
+    int x_diff[4], y_diff[4], w_diff[4];
+
+    int Check_B_own_to_here = num_own * 16 * (DIMENSION + 1);
+    int Check_B_opponent_to_here = num_opponent * 16 * (DIMENSION + 1);
+
+    // printf("自分パッチの先頭x y %le %le\n", temp_B[Check_B_own_to_here], temp_B[Check_B_own_to_here + 1]);
+    // printf("相手パッチの先頭x y %le %le\n", temp_B[Check_B_opponent_to_here], temp_B[Check_B_opponent_to_here + 1]);
+
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 8; j++)
+        {
+            ii = 2 * i;
+            // 点0
+            x_diff[0] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1)]     - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1)];
+            y_diff[0] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + 1] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + 1];
+            w_diff[0] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + 2] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + 2];
+
+            // 点1
+            x_diff[1] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1)]     - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1)];
+            y_diff[1] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 1] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 1];
+            w_diff[1] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 2] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 2];
+
+            // 辺0
+            x_diff[2] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1)]     - temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1)];
+            y_diff[2] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 1] - temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + 1];
+            w_diff[2] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 2] - temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + 2];
+
+            // 辺1
+            x_diff[3] = temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1)]     - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1)];
+            y_diff[3] = temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 1] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + 1];
+            w_diff[3] = temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 2] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + 2];
+
+            if (sqrt(pow(x_diff[2], 2) + pow(y_diff[2], 2) + pow(w_diff[2], 2)) <= MERGE_DISTANCE || sqrt(pow(x_diff[3], 2) + pow(y_diff[3], 2) + pow(w_diff[3], 2)) <= MERGE_DISTANCE)
+            {
+                // 辺の両端が重なっている場合はスキップ
+            }
+            else if ((num_own == 4 && i == 0) || (num_own == 15 && i == 2) || (num_own == 22 && i == 2) || (num_own == 39 && i == 2))
+            {
+                // full モデルでパッチ番号 (4, 3), (15, 8), (22, 21), (39, 28) のコネクティビティを切断
+            }
+            else if (sqrt(pow(x_diff[0], 2) + pow(y_diff[0], 2) + pow(w_diff[0], 2)) <= MERGE_DISTANCE && sqrt(pow(x_diff[1], 2) + pow(y_diff[1], 2) + pow(w_diff[1], 2)) <= MERGE_DISTANCE)
+            {
+                // 辺が一致している場合 Edge_info を True
+                temp_Edge_info[num_own * 32 + i * 8 + j] = 1;
+                temp_Opponent_patch_num[num_own * 4 + i] = num_opponent;
+                printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d\n", num_own, num_opponent, i, j);
+                return;
+            }
+        }
+    }
+}
+
+
+void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result)
+{
+    int i, j, k;
+    int p, q;
+    int temp_CP_n = 0;
+    int Edge[4];
+    int Edge_to_here = num * 32;
+
+    printf("make connectivity on patch %d\n", num);
+
+    int A_to_own = 0, A_to_opponent = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (temp_CP_info[i * DIMENSION] + temp_CP_info[i * DIMENSION + 1]);
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+        Edge[i] = 0;
+    }
+
+    // 重なっている辺の A 配列を作成
+    for (i = 0; i < 4; i++)
+    {
+        // i == 0 ではなにもしない
+        if (i == 1)
+        {
+            A_to_own += temp_CP_info[num * DIMENSION];
+        }
+        else if (i == 2)
+        {
+            A_to_own += temp_CP_info[num * DIMENSION + 1];
+        }
+        else if (i == 3)
+        {
+            A_to_own += temp_CP_info[num * DIMENSION];
+        }
+
+        for (j = 0; j < 8; j++)
+        {
+            if (temp_Edge_info[Edge_to_here + i * 8 + j] == 1)
+            {
+                A_to_opponent = 0;
+                for (k = 0; k < temp_Opponent_patch_num[num * 4 + i]; k++)
+                {
+                    A_to_opponent += 2 * (temp_CP_info[k * DIMENSION] + temp_CP_info[k * DIMENSION + 1]);
+                }
+
+                printf("Patch num = %d\n", num);
+                printf("Edge num = %d\n", j);
+                printf("Opponent patch num = %d\n", temp_Opponent_patch_num[num * 4 + i]);
+
+                Edge[i] = 1;
+
+                p = j / 2;
+                q = j % 2;
+                printf("p = %d\n", p);
+                printf("q = %d\n", q);
+
+                if (p == 0)
+                {
+                    temp_CP_n = temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION];
+                }
+                else if (p == 1)
+                {
+                    temp_CP_n = temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
+                    A_to_opponent += temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION];
+                }
+                else if (p == 2)
+                {
+                    temp_CP_n = temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION];
+                    A_to_opponent += temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION] + temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
+                }
+                else if (p == 3)
+                {
+                    temp_CP_n = temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
+                    A_to_opponent += 2 * temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION] + temp_CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
+                }
+
+                // printf("A to own = %d\n", A_to_own);
+                // printf("temp_CP_n = %d\n", temp_CP_n);
+                // printf("A to opponent = %d\n", A_to_opponent);
+                // printf("temp_A[A_to_opponent] = %d\n", temp_A[A_to_opponent]);
+
+                if (q == 0)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        temp_A[A_to_own + k] = temp_A[A_to_opponent + k];
+                        // printf("temp_A[A_to_own + k] = %d\n", temp_A[A_to_own + k]);
+                    }
+                    break;
+                }
+                else if (q == 1)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        temp_A[A_to_own + k] = temp_A[A_to_opponent + (temp_CP_n - 1) - k];
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    printf("patch %d array A before make connectivity\n", num);
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (temp_CP_info[i * DIMENSION] + temp_CP_info[i * DIMENSION + 1]);
+    }
+    for (i = 0; i < 2 * (temp_CP_info[num * DIMENSION] + temp_CP_info[num * DIMENSION + 1]); i++)
+    {
+        printf("%d\t", temp_A[A_to_own + i]);
+    }
+    printf("\n");
+
+    // コネクティビティを作成
+    int xi, eta;
+
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (temp_CP_info[i * DIMENSION] + temp_CP_info[i * DIMENSION + 1]);
+    }
+
+    for (eta = 0; eta < temp_CP_info[num * DIMENSION + 1]; eta++)
+    {
+        for (xi = 0; xi < temp_CP_info[num * DIMENSION]; xi++)
+        {
+            if (eta == 0 && Edge[0] == 1)
+            {
+                temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + xi];
+            }
+            else if (eta == temp_CP_info[num * DIMENSION + 1] - 1 && Edge[2] == 1)
+            {
+                temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + temp_CP_info[num * DIMENSION] + temp_CP_info[num * DIMENSION + 1] + xi];
+            }
+            else if (xi == 0 && Edge[3] == 1)
+            {
+                temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + 2 * temp_CP_info[num * DIMENSION] + temp_CP_info[num * DIMENSION + 1] + eta];
+            }
+            else if (xi == temp_CP_info[num * DIMENSION] - 1 && Edge[1] == 1)
+            {
+                temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + temp_CP_info[num * DIMENSION] + eta];
+            }
+            else
+            {
+                temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi] = counter;
+                temp_CP_result[CP_result_to_here] = temp_CP[(CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi) * (DIMENSION + 1)];
+                temp_CP_result[CP_result_to_here + 1] = temp_CP[(CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi) * (DIMENSION + 1) + 1];
+                temp_CP_result[CP_result_to_here + 2] = temp_CP[(CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi) * (DIMENSION + 1) + 2];
+                counter++;
+                CP_result_to_here += (DIMENSION + 1);
+            }
+        }
+    }
+
+    // A 配列の作ってない分を作成
+    for (eta = 0; eta < temp_CP_info[num * DIMENSION + 1]; eta++)
+    {
+        for (xi = 0; xi < temp_CP_info[num * DIMENSION]; xi++)
+        {
+            if (eta == 0 && Edge[0] == 0)
+            {
+                temp_A[A_to_own + xi] = temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi];
+            }
+            if (eta == temp_CP_info[num * DIMENSION + 1] - 1 && Edge[2] == 0)
+            {
+                temp_A[A_to_own + temp_CP_info[num * DIMENSION] + temp_CP_info[num * DIMENSION + 1] + xi] = temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi];
+            }
+            if (xi == 0 && Edge[3] == 0)
+            {
+                temp_A[A_to_own + 2 * temp_CP_info[num * DIMENSION] + temp_CP_info[num * DIMENSION + 1] + eta] = temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi];
+            }
+            if (xi == temp_CP_info[num * DIMENSION] - 1 && Edge[1] == 0)
+            {
+                temp_A[A_to_own + temp_CP_info[num * DIMENSION] + eta] = temp_Connectivity[CP_to_here_counter + eta * temp_CP_info[num * DIMENSION] + xi];
+            }
+        }
+    }
+    CP_to_here_counter += temp_CP_info[num * DIMENSION] * temp_CP_info[num * DIMENSION + 1];
+
+    printf("patch %d array A after make connectivity\n", num);
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (temp_CP_info[i * DIMENSION] + temp_CP_info[i * DIMENSION + 1]);
+    }
+    for (i = 0; i < 2 * (temp_CP_info[num * DIMENSION] + temp_CP_info[num * DIMENSION + 1]); i++)
+    {
+        printf("%d\t", temp_A[A_to_own + i]);
+    }
+    printf("\n");
+
+    printf("\n");
+}
+
+
+void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after)
+{
+    int i, j, k, l;
+    int temp = 0;
+
+    int disp_constraint_n[2] = {1, 1};
+    int disp_constraint_edge_n[2][1];
+    int disp_constraint[2][1][30][3];
+
+    if (mode[0] == 0 && (length_each_side[1] - crack_tip[0]) >= MERGE_DISTANCE)
+    {
+        disp_constraint_edge_n[0][0] = 8; // x方向の固定する辺
+        disp_constraint_edge_n[1][0] = 10; // y方向の固定する辺
+
+        // x方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[0][0][0][0] = 4; disp_constraint[0][0][0][1] = 0; disp_constraint[0][0][0][2] = 1;
+        disp_constraint[0][0][1][0] = 5; disp_constraint[0][0][1][1] = 0; disp_constraint[0][0][1][2] = 1;
+        disp_constraint[0][0][2][0] = 5; disp_constraint[0][0][2][1] = 1; disp_constraint[0][0][2][2] = 1;
+        disp_constraint[0][0][3][0] = 6; disp_constraint[0][0][3][1] = 1; disp_constraint[0][0][3][2] = 1;
+        disp_constraint[0][0][4][0] = 7; disp_constraint[0][0][4][1] = 1; disp_constraint[0][0][4][2] = 1;
+        disp_constraint[0][0][5][0] = 8; disp_constraint[0][0][5][1] = 1; disp_constraint[0][0][5][2] = 1;
+        disp_constraint[0][0][6][0] = 8; disp_constraint[0][0][6][1] = 0; disp_constraint[0][0][6][2] = 0;
+        disp_constraint[0][0][7][0] = 9; disp_constraint[0][0][7][1] = 0; disp_constraint[0][0][7][2] = 0;
+
+        // y方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[1][0][0][0] = 0; disp_constraint[1][0][0][1] = 1; disp_constraint[1][0][0][2] = 0;
+        disp_constraint[1][0][1][0] = 4; disp_constraint[1][0][1][1] = 1; disp_constraint[1][0][1][2] = 0;
+        disp_constraint[1][0][2][0] = 4; disp_constraint[1][0][2][1] = 0; disp_constraint[1][0][2][2] = 1;
+        disp_constraint[1][0][3][0] = 5; disp_constraint[1][0][3][1] = 0; disp_constraint[1][0][3][2] = 1;
+        disp_constraint[1][0][4][0] = 5; disp_constraint[1][0][4][1] = 1; disp_constraint[1][0][4][2] = 1;
+        disp_constraint[1][0][5][0] = 6; disp_constraint[1][0][5][1] = 1; disp_constraint[1][0][5][2] = 1;
+        disp_constraint[1][0][6][0] = 7; disp_constraint[1][0][6][1] = 1; disp_constraint[1][0][6][2] = 1;
+        disp_constraint[1][0][7][0] = 8; disp_constraint[1][0][7][1] = 1; disp_constraint[1][0][7][2] = 1;
+        disp_constraint[1][0][8][0] = 8; disp_constraint[1][0][8][1] = 0; disp_constraint[1][0][8][2] = 0;
+        disp_constraint[1][0][9][0] = 8; disp_constraint[1][0][9][1] = 0; disp_constraint[1][0][9][2] = 0;
+    }
+    else if (mode[0] == 0 && (length_each_side[1] - crack_tip[0]) <= MERGE_DISTANCE)
+    {
+        disp_constraint_edge_n[0][0] = 8; // x方向の固定する辺
+        disp_constraint_edge_n[1][0] = 8; // y方向の固定する辺
+
+        // x方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[0][0][0][0] = 4; disp_constraint[0][0][0][1] = 0; disp_constraint[0][0][0][2] = 1;
+        disp_constraint[0][0][1][0] = 5; disp_constraint[0][0][1][1] = 0; disp_constraint[0][0][1][2] = 1;
+        disp_constraint[0][0][2][0] = 5; disp_constraint[0][0][2][1] = 1; disp_constraint[0][0][2][2] = 1;
+        disp_constraint[0][0][3][0] = 6; disp_constraint[0][0][3][1] = 1; disp_constraint[0][0][3][2] = 1;
+        disp_constraint[0][0][4][0] = 7; disp_constraint[0][0][4][1] = 1; disp_constraint[0][0][4][2] = 1;
+        disp_constraint[0][0][5][0] = 8; disp_constraint[0][0][5][1] = 1; disp_constraint[0][0][5][2] = 1;
+        disp_constraint[0][0][6][0] = 8; disp_constraint[0][0][6][1] = 0; disp_constraint[0][0][6][2] = 0;
+        disp_constraint[0][0][7][0] = 9; disp_constraint[0][0][7][1] = 0; disp_constraint[0][0][7][2] = 0;
+
+        // y方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[1][0][0][0] = 0; disp_constraint[1][0][0][1] = 1; disp_constraint[1][0][0][2] = 0;
+        disp_constraint[1][0][1][0] = 4; disp_constraint[1][0][1][1] = 1; disp_constraint[1][0][1][2] = 0;
+        disp_constraint[1][0][2][0] = 4; disp_constraint[1][0][2][1] = 0; disp_constraint[1][0][2][2] = 1;
+        disp_constraint[1][0][3][0] = 5; disp_constraint[1][0][3][1] = 0; disp_constraint[1][0][3][2] = 1;
+        disp_constraint[1][0][4][0] = 5; disp_constraint[1][0][4][1] = 1; disp_constraint[1][0][4][2] = 1;
+        disp_constraint[1][0][5][0] = 6; disp_constraint[1][0][5][1] = 1; disp_constraint[1][0][5][2] = 1;
+        disp_constraint[1][0][6][0] = 7; disp_constraint[1][0][6][1] = 1; disp_constraint[1][0][6][2] = 1;
+        disp_constraint[1][0][7][0] = 8; disp_constraint[1][0][7][1] = 1; disp_constraint[1][0][7][2] = 1;
+    }
+    else if (mode[0] == 1)
+    {
+        disp_constraint_edge_n[0][0] = 24; // x方向の固定する辺
+        disp_constraint_edge_n[1][0] = 24; // y方向の固定する辺
+
+        // x方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[0][0][0][0] = 16; disp_constraint[0][0][0][1] = 0; disp_constraint[0][0][0][2] = 1;
+        disp_constraint[0][0][1][0] = 17; disp_constraint[0][0][1][1] = 0; disp_constraint[0][0][1][2] = 1;
+        disp_constraint[0][0][2][0] = 17; disp_constraint[0][0][2][1] = 1; disp_constraint[0][0][2][2] = 1;
+        disp_constraint[0][0][3][0] = 18; disp_constraint[0][0][3][1] = 1; disp_constraint[0][0][3][2] = 1;
+        disp_constraint[0][0][4][0] = 19; disp_constraint[0][0][4][1] = 1; disp_constraint[0][0][4][2] = 1;
+        disp_constraint[0][0][5][0] = 20; disp_constraint[0][0][5][1] = 1; disp_constraint[0][0][5][2] = 1;
+        disp_constraint[0][0][6][0] = 23; disp_constraint[0][0][6][1] = 1; disp_constraint[0][0][6][2] = 0;
+        disp_constraint[0][0][7][0] = 24; disp_constraint[0][0][7][1] = 1; disp_constraint[0][0][7][2] = 0;
+        disp_constraint[0][0][8][0] = 25; disp_constraint[0][0][8][1] = 1; disp_constraint[0][0][8][2] = 0;
+        disp_constraint[0][0][9][0] = 26; disp_constraint[0][0][9][1] = 1; disp_constraint[0][0][9][2] = 0;
+        disp_constraint[0][0][10][0] = 26; disp_constraint[0][0][10][1] = 0; disp_constraint[0][0][10][2] = 1;
+        disp_constraint[0][0][11][0] = 27; disp_constraint[0][0][11][1] = 0; disp_constraint[0][0][11][2] = 1;
+        disp_constraint[0][0][12][0] = 29; disp_constraint[0][0][12][1] = 1; disp_constraint[0][0][12][2] = 1;
+        disp_constraint[0][0][13][0] = 30; disp_constraint[0][0][13][1] = 1; disp_constraint[0][0][13][2] = 1;
+        disp_constraint[0][0][14][0] = 31; disp_constraint[0][0][14][1] = 1; disp_constraint[0][0][14][2] = 1;
+        disp_constraint[0][0][15][0] = 32; disp_constraint[0][0][15][1] = 1; disp_constraint[0][0][15][2] = 1;
+        disp_constraint[0][0][16][0] = 32; disp_constraint[0][0][16][1] = 0; disp_constraint[0][0][16][2] = 0;
+        disp_constraint[0][0][17][0] = 33; disp_constraint[0][0][17][1] = 0; disp_constraint[0][0][17][2] = 0;
+        disp_constraint[0][0][18][0] = 34; disp_constraint[0][0][18][1] = 0; disp_constraint[0][0][18][2] = 0;
+        disp_constraint[0][0][19][0] = 35; disp_constraint[0][0][19][1] = 0; disp_constraint[0][0][19][2] = 0;
+        disp_constraint[0][0][20][0] = 35; disp_constraint[0][0][20][1] = 1; disp_constraint[0][0][20][2] = 0;
+        disp_constraint[0][0][21][0] = 36; disp_constraint[0][0][21][1] = 1; disp_constraint[0][0][21][2] = 0;
+        disp_constraint[0][0][22][0] = 37; disp_constraint[0][0][22][1] = 1; disp_constraint[0][0][22][2] = 0;
+        disp_constraint[0][0][23][0] = 38; disp_constraint[0][0][23][1] = 1; disp_constraint[0][0][23][2] = 0;
+
+        // y方向 0.0 で固定 (パッチ番号(0から), xi or eta, 始点0 or 終点1)
+        disp_constraint[1][0][0][0] = 16; disp_constraint[1][0][0][1] = 0; disp_constraint[1][0][0][2] = 1;
+        disp_constraint[1][0][1][0] = 17; disp_constraint[1][0][1][1] = 0; disp_constraint[1][0][1][2] = 1;
+        disp_constraint[1][0][2][0] = 17; disp_constraint[1][0][2][1] = 1; disp_constraint[1][0][2][2] = 1;
+        disp_constraint[1][0][3][0] = 18; disp_constraint[1][0][3][1] = 1; disp_constraint[1][0][3][2] = 1;
+        disp_constraint[1][0][4][0] = 19; disp_constraint[1][0][4][1] = 1; disp_constraint[1][0][4][2] = 1;
+        disp_constraint[1][0][5][0] = 20; disp_constraint[1][0][5][1] = 1; disp_constraint[1][0][5][2] = 1;
+        disp_constraint[1][0][6][0] = 23; disp_constraint[1][0][6][1] = 1; disp_constraint[1][0][6][2] = 0;
+        disp_constraint[1][0][7][0] = 24; disp_constraint[1][0][7][1] = 1; disp_constraint[1][0][7][2] = 0;
+        disp_constraint[1][0][8][0] = 25; disp_constraint[1][0][8][1] = 1; disp_constraint[1][0][8][2] = 0;
+        disp_constraint[1][0][9][0] = 26; disp_constraint[1][0][9][1] = 1; disp_constraint[1][0][9][2] = 0;
+        disp_constraint[1][0][10][0] = 26; disp_constraint[1][0][10][1] = 0; disp_constraint[1][0][10][2] = 1;
+        disp_constraint[1][0][11][0] = 27; disp_constraint[1][0][11][1] = 0; disp_constraint[1][0][11][2] = 1;
+        disp_constraint[1][0][12][0] = 29; disp_constraint[1][0][12][1] = 1; disp_constraint[1][0][12][2] = 1;
+        disp_constraint[1][0][13][0] = 30; disp_constraint[1][0][13][1] = 1; disp_constraint[1][0][13][2] = 1;
+        disp_constraint[1][0][14][0] = 31; disp_constraint[1][0][14][1] = 1; disp_constraint[1][0][14][2] = 1;
+        disp_constraint[1][0][15][0] = 32; disp_constraint[1][0][15][1] = 1; disp_constraint[1][0][15][2] = 1;
+        disp_constraint[1][0][16][0] = 32; disp_constraint[1][0][16][1] = 0; disp_constraint[1][0][16][2] = 0;
+        disp_constraint[1][0][17][0] = 33; disp_constraint[1][0][17][1] = 0; disp_constraint[1][0][17][2] = 0;
+        disp_constraint[1][0][18][0] = 34; disp_constraint[1][0][18][1] = 0; disp_constraint[1][0][18][2] = 0;
+        disp_constraint[1][0][19][0] = 35; disp_constraint[1][0][19][1] = 0; disp_constraint[1][0][19][2] = 0;
+        disp_constraint[1][0][20][0] = 35; disp_constraint[1][0][20][1] = 1; disp_constraint[1][0][20][2] = 0;
+        disp_constraint[1][0][21][0] = 36; disp_constraint[1][0][21][1] = 1; disp_constraint[1][0][21][2] = 0;
+        disp_constraint[1][0][22][0] = 37; disp_constraint[1][0][22][1] = 1; disp_constraint[1][0][22][2] = 0;
+        disp_constraint[1][0][23][0] = 38; disp_constraint[1][0][23][1] = 1; disp_constraint[1][0][23][2] = 0;
+    }
+
+    for (i = 0; i < DIMENSION; i++)
+    {
+        for (j = 0; j < disp_constraint_n[i]; j++)
+        {
+            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            {
+                if (disp_constraint[i][j][k][1] == 0)
+                {
+                    temp_length_before[temp] += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+                else if (disp_constraint[i][j][k][1] == 1)
+                {
+                    temp_length_before[temp] += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION];
+                }
+            }
+            temp++;
+        }
+    }
+
+    temp = 0;
+
+    for (i = 0; i < DIMENSION; i++)
+    {
+        for (j = 0; j < disp_constraint_n[i]; j++)
+        {
+            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            {
+                int A_to_here = 0;
+                for (l = 0; l < disp_constraint[i][j][k][0]; l++)
+                {
+                    A_to_here += 2 * (temp_CP_info[l * DIMENSION] + temp_CP_info[l * DIMENSION + 1]);
+                }
+
+                // if (disp_constraint[i][j][k][1] == 1 && disp_constraint[i][j][k][2] == 0) は何もしない
+                if (disp_constraint[i][j][k][1] == 0 && disp_constraint[i][j][k][2] == 1)
+                {
+                    A_to_here += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION];
+                }
+                else if (disp_constraint[i][j][k][1] == 1 && disp_constraint[i][j][k][2] == 1)
+                {
+                    A_to_here += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION] + temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+                else if (disp_constraint[i][j][k][1] == 0 && disp_constraint[i][j][k][2] == 0)
+                {
+                    A_to_here += 2 * temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION] + temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+                
+                if (disp_constraint[i][j][k][1] == 0)
+                {
+                    for (l = 0; l < temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1]; l++)
+                    {
+                        temp_Boundary[temp] = temp_A[A_to_here + l];
+                        temp++;
+
+                        // printf("patch num %d\n", disp_constraint[i][j][k][0]);
+                        // printf("xi or eta %d\n", disp_constraint[i][j][k][1]);
+                        // printf("start or end %d\n", disp_constraint[i][j][k][2]);
+                        // printf("temp = %d\n", temp);
+                        // printf("A_to_here + l = %d\n", A_to_here + l);
+                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+                    }
+                }
+                else if (disp_constraint[i][j][k][1] == 1)
+                {
+                    for (l = 0; l < temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION]; l++)
+                    {
+                        temp_Boundary[temp] = temp_A[A_to_here + l];
+                        temp++;
+
+                        // printf("patch num %d\n", disp_constraint[i][j][k][0]);
+                        // printf("xi or eta %d\n", disp_constraint[i][j][k][1]);
+                        // printf("start or end %d\n", disp_constraint[i][j][k][2]);
+                        // printf("temp = %d\n", temp);
+                        // printf("A_to_here + l = %d\n", A_to_here + l);
+                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+                    }
+                }
+            }
+        }
+    }
+
+    temp = 0;
+    for (i = 0; i < n; i++)
+    {
+        printf("length_before[%d] = %d\n", i, temp_length_before[i]);
+        for (j = 0; j < temp_length_before[i]; j++)
+        {
+            printf("%d\t", temp_Boundary[temp]);
+            temp++;
+        }
+        printf("\n");
+    }
+
+    temp = 0;
+    for (i = 0; i < n; i++)
+    {
+        int *temp_array = (int *)malloc(sizeof(int) * temp_length_before[i]);
+        if (temp_array == NULL)
+        {
+            printf("Memory cannot be allocated\n");
+            exit(1);
+        }
+
+        for (j = 0; j < temp_length_before[i]; j++)
+        {
+            temp_array[j] = temp_Boundary[temp + j];
+            // printf("%d\t", temp_array[j]);
+        }
+        printf("\n");
+
+        heapSort(temp_array, temp_length_before[i]);
+        Dedupe(temp_array, temp_length_before, temp_Boundary_result, temp_length_after, i);
+
+        free(temp_array);
+        temp += temp_length_before[i];
+    }
+
+    temp = 0;
+    for (i = 0; i < n; i++)
+    {
+        printf("length_after[%d] = %d\n", i, temp_length_after[i]);
+        for (j = 0; j < temp_length_after[i]; j++)
+        {
+            printf("%d\t", temp_Boundary_result[i * temp + j]);
+        }
+        printf("\n");
+        temp += temp_length_before[i];
+    }
+    printf("\n");
+}
+
+
+void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
+                      int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n)
+{
+    int i, j, k;
+    int Total_patch = 0;
+    char str[256] = "input_loc.txt";
     
+    fp = fopen(str, "w");
+
+    // ヤング率
+    fprintf(fp, "%d  ", (int)E_and_nu[0]);
+
+    // ポアソン比
+    fprintf(fp, "%le\n\n", E_and_nu[1]);
+
+    // パッチ数
+    if (mode[0] == 0)
+    {
+        Total_patch = 10;
+    }
+    else if (mode[0] == 1)
+    {
+        Total_patch = 40;
+    }
+    fprintf(fp, "%d\n\n", Total_patch);
+
+    // コントロールポイント数
+    fprintf(fp, "%d\n\n", (CP_result_to_here + 1) / 3);
+    int temp_num = (CP_result_to_here + 1) / 3, temp_counter = 0;
+    while (temp_num != 0)
+    {
+        temp_num = temp_num / 10;
+        temp_counter++;
+    }
+    temp_num = - (temp_counter + 2);
+
+    // 各パッチ内での各方向の次数
+    for (i = 0; i < Total_patch; i++)
+    {
+        for (j = 0; j < DIMENSION; j++)
+        {
+            if (j == DIMENSION - 1)
+            {
+                fprintf(fp, "%d", temp_Order[i * DIMENSION + j]);
+            }
+            else
+            {
+                fprintf(fp, "%*d", -6, temp_Order[i * DIMENSION + j]);
+            }
+        }
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "\n");
+
+    // 各パッチ内での各方向のノットベクトルの数
+    for (i = 0; i < Total_patch; i++)
+    {
+        for (j = 0; j < DIMENSION; j++)
+        {
+            if (j == DIMENSION - 1)
+            {
+                fprintf(fp, "%d", temp_KV_info[i * DIMENSION + j]);
+            }
+            else
+            {
+                fprintf(fp, "%*d", -6, temp_KV_info[i * DIMENSION + j]);
+            }
+        }
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "\n");
+
+    // 各パッチ内での各方向のコントロールポイントの数
+    for (i = 0; i < Total_patch; i++)
+    {
+        for (j = 0; j < DIMENSION; j++)
+        {
+            if (j == DIMENSION - 1)
+            {
+                fprintf(fp, "%d", temp_CP_info[i * DIMENSION + j]);
+            }
+            else
+            {
+                fprintf(fp, "%*d", -6, temp_CP_info[i * DIMENSION + j]);
+            }
+        }
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "\n");
+
+    // パッチコネクティビティ
+    int CP_to_here = 0;
+    for (i = 0; i < Total_patch; i++)
+    {
+        for (j = 0; j < temp_CP_info[i * DIMENSION] * temp_CP_info[i * DIMENSION + 1]; j++)
+        {
+            if (j == temp_CP_info[i * DIMENSION] * temp_CP_info[i * DIMENSION + 1] - 1)
+            {
+                fprintf(fp, "%d", temp_Connectivity[CP_to_here + j]);
+            }
+            else
+            {
+                fprintf(fp, "%*d", temp_num, temp_Connectivity[CP_to_here + j]);
+            }
+        }
+        CP_to_here += temp_CP_info[i * DIMENSION] * temp_CP_info[i * DIMENSION + 1];
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "\n");
+
+    // 変位拘束するコントロールポイントの数
+    int temp = 0;
+    for (i = 0; i < total_disp_constraint_n; i++)
+    {
+        temp += temp_length_after[i];
+    }
+    fprintf(fp, "%*d", -6, temp);
+
+    // 荷重条件を与えるコントロールポイントの数
+    fprintf(fp, "%*d", -6, 0);
+
+    // 分布荷重の数
+    fprintf(fp, "%d\n\n", 0);
+
+    // 各パッチでの各方向のノットベクトル
+    int KV_to_here = 0;
+    for (i = 0; i < Total_patch; i++)
+    {
+        for (j = 0; j < DIMENSION; j++)
+        {
+            for (k = 0; k < temp_KV_info[i * DIMENSION + j]; k++)
+            {
+                if (k == temp_KV_info[i * DIMENSION + j] - 1)
+                {
+                    fprintf(fp, "%.16e", temp_KV[KV_to_here + k]);
+                }
+                else
+                {
+                    fprintf(fp, "%.16e  ", temp_KV[KV_to_here + k]);
+                }
+            }
+            KV_to_here += temp_KV_info[i * DIMENSION + j];
+            fprintf(fp, "\n");
+        }
+    }
+    fprintf(fp, "\n");
+
+    // コントロールポイント
+    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+    {
+        fprintf(fp, "%*d", temp_num, i);
+        fprintf(fp, "%.16e  ", temp_CP_result[i * 3]);
+        fprintf(fp, "%.16e  ", temp_CP_result[i * 3 + 1]);
+        fprintf(fp, "%.16e\n", temp_CP_result[i * 3 + 2]);
+    }
+    fprintf(fp, "\n");
+
+    // 拘束するコントロールポイント
+    temp_counter = 0;
+    temp = 0;
+    for (i = 0; i < DIMENSION; i++)
+    {
+        for (j = 0; j < 1; j++)
+        {
+            for (k = 0; k < temp_length_after[temp_counter]; k++)
+            {
+                fprintf(fp, "%*d", temp_num, temp_Boundary_result[temp + k]);
+                fprintf(fp, "%*d", temp_num, i);
+                fprintf(fp, "%le\n", 0.0);
+            }
+            temp += temp_length_before[j];
+            temp_counter++;
+        }
+    }
+    fprintf(fp, "\n");
+
+    fclose(fp);
+}
+
+
+void Output_SVG(double *temp_B, double *temp_CP_result)
+{
+    int i;
+
+    char color_vec[10][10] = {"#696969", "#a9a9a9", "#00bfff", "#00fa9a", "#ffff00", "#ff8c00", "#cd5c5c", "#ff7f50", "#ee82ee", "#8a2be2"};
+    //  0   darkgray
+    //  1   deepskyblue
+    //  2   mediumspringgreen
+    //  3   yellow
+    //  4   darkorange
+    //  5   indianred
+    //  6   coral
+    //  7   violet
+    //  8   blueviolet
+    //  https://www.colordic.org/
+
+    char num_color[10] = "#dc143c";
+
+    double x_min = 0, x_max = 1;
+    double y_min = 0, y_max = 1;
+
+    double position_x, position_y;
+
+    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+    {
+        if (i == 0)
+        {
+            x_min = temp_CP_result[i * 3];
+            x_max = temp_CP_result[i * 3];
+            y_min = temp_CP_result[i * 3 + 1];
+            y_max = temp_CP_result[i * 3 + 1];
+        }
+        else
+        {
+            if (x_min > temp_CP_result[i * 3])
+            {
+                x_min = temp_CP_result[i * 3];
+            }
+            else if (x_max < temp_CP_result[i * 3])
+            {
+                x_max = temp_CP_result[i * 3];
+            }
+
+            if (y_min > temp_CP_result[i * 3 + 1])
+            {
+                y_min = temp_CP_result[i * 3 + 1];
+            }
+            else if (y_max < temp_CP_result[i * 3 + 1])
+            {
+                y_max = temp_CP_result[i * 3 + 1];
+            }
+        }
+    }
+
+    printf("x y : %le %le\n", x_max, y_max);
+    printf("x y : %le %le\n", x_min, y_min);
+
+    double space = 3.0;
+    double scale = 1000.0 / (x_max - x_min + 2.0 * space);
+
+    double width = 1.5 * (x_max - x_min + 2.0 * space) * scale;
+    double height = (y_max - x_min + 2.0 * space) * scale;
+
+    printf("width = %le\n", width);
+    printf("height = %le\n", height);
+
+    char str[256] = "input.svg";
+    
+    fp = fopen(str, "w");
+
+    fprintf(fp, "<?xml version='1.0'?>\n");
+    // fprintf(fp, "<svg width='%lept' height='%lept' viewBox='0 0 %le %le' style = 'background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height, width, height);
+    fprintf(fp, "<svg width='%le' height='%le' version='1.1' style='background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height);
+    
+    // パッチ境界を描画
+    int temp_color_num = 0;
+    int B_to_here = 0;
+    int Total_patch = 0;
+
+    if (mode[0] == 0)
+    {
+        Total_patch = 10;
+    }
+    else if (mode[0] == 1)
+    {
+        Total_patch = 40;
+    }
+
+    for (i = 0; i < Total_patch; i++)
+    {
+        position_x = ((temp_B[B_to_here] + space) * scale) + width * (1.0 / 4.0);
+        position_y = height / 2.0 - ((temp_B[B_to_here + 1] + space) * scale);
+        fprintf(fp, "<path d='M %le %le ", position_x, position_y);
+        B_to_here += 4 * (DIMENSION + 1);
+
+        position_x = ((temp_B[B_to_here] + space) * scale) + width * (1.0 / 4.0);
+        position_y = height / 2.0 - ((temp_B[B_to_here + 1] + space) * scale);
+        fprintf(fp, "L %le %le ", position_x, position_y);
+        B_to_here += 2 * (DIMENSION + 1);
+
+        position_x = ((temp_B[B_to_here] + space) * scale) + width * (1.0 / 4.0);
+        position_y = height / 2.0 - ((temp_B[B_to_here + 1] + space) * scale);
+        fprintf(fp, "L %le %le ", position_x, position_y);
+        B_to_here += 2 * (DIMENSION + 1);
+
+        position_x = ((temp_B[B_to_here] + space) * scale) + width * (1.0 / 4.0);
+        position_y = height / 2.0 - ((temp_B[B_to_here + 1] + space) * scale);
+        fprintf(fp, "L %le %le ", position_x, position_y);
+        B_to_here += 4 * (DIMENSION + 1);
+
+        fprintf(fp, "Z' fill='%s'/>\n", color_vec[temp_color_num % 10]);
+        B_to_here += 4 * (DIMENSION + 1);
+        
+        temp_color_num++;
+    }
+
+    // 点と番号を描画
+    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+    {
+        position_x = (temp_CP_result[i * 3] + space) * scale + width * (1.0 / 4.0);
+        position_y = height / 2.0 - ((temp_CP_result[i * 3 + 1] + space) * scale);
+        fprintf(fp, "<circle cx='%le' cy='%le' r='2' fill='%s'/>\n", position_x, position_y, num_color);
+        fprintf(fp, "<text x='%le' y='%le' font-family='Verdana' font-size='6' fill='%s' font-weight='700'>\n", position_x + 2, position_y, num_color);
+        fprintf(fp, "%d\n", i);
+        fprintf(fp, "</text>\n");
+    }
+
+    fprintf(fp, "</svg>");
+    fclose(fp);
+}
+
+
+/* データを入れ替える関数 */
+void swap(int *a, int *b)
+{
+    int temp;
+    temp = *b;
+    *b = *a;
+    *a = temp;
+}
+
+
+/* 左の子ノードの位置を取得 */
+int getLeft(int parent)
+{
+    return parent * 2 + 1;
+}
+
+
+/* 右の子ノードの位置を取得 */
+int getRight(int parent)
+{
+    return parent * 2 + 2;
+}
+
+
+/* 親ノードの位置を取得 */
+int getParent(int child)
+{
+    return (child - 1) / 2;
+}
+
+
+/* a[size]を二分ヒープに追加し、二分ヒープを再構成する */
+void addHeap(int *a, int size)
+{
+    int add; /* 追加ノードの位置 */
+    int parent; /* 追加ノードの親の位置 */
+
+    /* まだ二分ヒープに追加していないデータの先頭を二分ヒープに追加 */
+    add = size;
+    if (add == 0)
+    {
+        /* 追加したノードが根ノードなら二分ヒープへの追加完了 */
+        return;
+    }
+
+    /* 二分ヒープを満たすまで、追加したノードを根の方向に移動する */
+    while (1)
+    {
+        /* 親ノードの位置を取得 */
+        parent = getParent(add);
+        
+        if (a[parent] < a[add])
+        {
+            /* 親と子で大小関係が逆ならデータを交換する */
+            swap(&a[parent], &a[add]);
+
+            /* 追加ノードは親ノードの位置に移動する */
+            add = parent;
+            if (add == 0)
+            {
+                /* 追加ノードが根ノードまで移動したら二分ヒープへの追加完了 */
+                break;
+            }
+        }
+        else
+        {
+            /* 大小関係が満たされているなら二分ヒープへの追加完了 */
+            break;
+        }
+    }
+}
+
+
+/* 根ノードを二分ヒープから取り出し、二分ヒープを再構成する */
+void removeHeap(int *a, int size)
+{
+    int left; /* 左の子ノードの位置 */
+    int right; /* 右の子ノードの位置 */ 
+    int large; /* データが大きい方の子ノードの位置 */
+    int parent; /* 親ノードの位置 */
+
+    /* 根ノードをヒープ外に追い出す */
+    /* 一時的に木の末端のノードを根ノードに設定する */
+    swap(&a[0], &a[size - 1]);
+    
+    /* 二分ヒープのサイズを1減らす
+        これにより元々の根ノードが「ソート済みのデータ」の先頭に移動することになる */
+    size--;
+
+    /* 根ノードから子ノードとの大小関係を確認していく */
+    parent = 0;
+
+    /* 二分ヒープを満たすまで、根ノードを葉の方向に移動する */
+    while (1)
+    {
+        /* 子ノードの位置を取得 */
+        left = getLeft(parent);
+        right = getRight(parent);
+
+        /* 子ノードの大きい値を持つ方の位置を取得 */
+        if (left < size && right < size)
+        {
+            /* 左右両方の子ノードが存在する場合は比較して確認 */
+            if (a[left] < a[right])
+            {
+                large = right;
+            }
+            else
+            {
+                large = left;
+            }
+        }
+        else if (left < size)
+        {
+            /* 左の子ノードしか存在しない場合は左の子ノードを大きい値を持つとみなす */
+            large = left;
+        } else
+        {
+            /* 両ノードがヒープ内に存在しない場合は終了 */
+            /* (右の子ノードしか存在しない場合はあり得ない) */
+            break;
+        }
+
+        if (a[large] <= a[parent])
+        {
+            /* すでに親子の大小関係が満たされているので交換不要 */
+            break;
+        }
+
+        /* 親と子で大小関係が逆ならデータを交換する */
+        swap(&a[large], &a[parent]);
+
+        /* 根ノードはデータを交換した子ノードの位置に移動する */
+        parent = large;
+    }
+}
+
+
+/* 二分ヒープを作成する関数 */
+void makeHeap(int *a, int num)
+{
+    int size; /* 二分ヒープに追加済みのデータの個数 */
+
+    /* 二分ヒープのデータ個数を0にする */
+    size = 0;
+
+    /* sizeがソートするデータの個数になるまで二分ヒープにデータ追加 */
+    while (size < num)
+    {
+        /* a[size]を二分ヒープに追加 */
+        addHeap(a, size);
+
+        /* 二分ヒープのデータ数が増えたのでsizeも1増やす */
+        size++;
+    }
+}
+
+
+/* ヒープソートを行う関数 */
+void heapSort(int *a, int num)
+{
+    int size; /* 二分ヒープのノード個数 */
+
+    /* サイズnumの二分ヒープを作成 */
+    makeHeap(a, num);
+    
+
+    /* 二分ヒープの根ノードを１つずつ取り出す */
+    for (size = num; size > 0; size--)
+    {
+        /* サイズsizeの二分ヒープからデータを１つ取り出す */
+        removeHeap(a, size);
+    }
+}
+
+
+void Dedupe(int *a, int *num, int *a_new, int *num_new, int n)
+{
+    int i;
+    int temp_to_here = 0;
+    int temp_length = 0;
+
+    for (i = 0; i < n; i++)
+    {
+        temp_to_here += num[n];
+    }
+
+    for (i = 0; i < num[n] - 1; i++)
+    {
+        if (a[i] < a[i + 1])
+        {
+            a_new[temp_to_here] = a[i];
+            temp_to_here++;
+            temp_length++;
+        }
+    }
+    a_new[temp_to_here] = a[num[n] - 1];
+    temp_length++;
+
+    num_new[n] = temp_length;
 }
