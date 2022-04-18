@@ -2,13 +2,15 @@ default:
 	echo Please read README.txt to use this program.
 
 0:	step3_0
-	cd ./temp && mv input_loc.txt ../ -f
-	cd ./temp && mv input.svg ../ -f
+	mkdir -p inputdate_result
+	cd ./temp && mv input_loc.txt ../inputdate_result -f
+	cd ./temp && mv input.svg ../inputdate_result -f
 	rm -f -R temp
 
 1:	step3_1
-	cd ./temp && mv input_loc.txt ../ -f
-	cd ./temp && mv input.svg ../ -f
+	mkdir -p inputdate_result
+	cd ./temp && mv input_loc.txt ../inputdate_result -f
+	cd ./temp && mv input.svg ../inputdate_result -f
 	rm -f -R temp
 
 step3_0:	step2_0
