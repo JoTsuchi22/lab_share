@@ -22,6 +22,7 @@ static double crack_tip[DIMENSION];
 static double singular_width;
 static double length_each_side[3];  // (outer side, inner side, upper side)
 static int cp_after_each_side[3];   // (outer side, inner side, upper side)
+static double affine[3];
 static int counter;
 static int CP_result_to_here;
 static int CP_to_here_counter;
@@ -37,6 +38,7 @@ void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info,
 void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result);
 void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
                       int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n);
+void Output_J();
 void Output_SVG(double *temp_B, double *temp_CP_result);
 void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after);
 void swap(int *a, int *b);
@@ -181,6 +183,19 @@ void Get_input_a(char *filename)
         fscanf(fp, "%d", &temp_i);
         cp_after_each_side[i] = temp_i;
         printf("cp_after_each_side[%d] = %d\n", i, cp_after_each_side[i]);
+    }
+
+    fgets(s, 256, fp);
+
+    // affine infomation
+    if (mode[0] == 1)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            fscanf(fp, "%lf", &temp_d);
+            affine[i] = temp_d;
+            printf("affine[%d] = %le\n", i, affine[i]);
+        }
     }
 
     fclose(fp);
@@ -942,11 +957,44 @@ void Make_model(char **temp_argv)
         exit(1);
     }
 
+    // アフィン変換
+    if (mode[0] == 1 && sqrt(pow(affine[0], 2) + pow(affine[1], 2) + affine[2] >= MERGE_DISTANCE))
+    {
+        double *Affine_CP = (double *)malloc(sizeof(double) * CP_result_to_here);   // アフィン変換後のコントロールポイント
+
+        if (Affine_CP == NULL)
+        {
+            printf("Memory cannot be allocated\n");
+            exit(1);
+        }
+
+        double PI = 3.14159265358979323846264338327950288;
+        double theta = affine[2] * PI / 180.0;
+        double rot[4] = {cos(theta), -sin(theta), sin(theta), cos(theta)};
+
+        int temp_counter = 0;
+        for(i = 0; i < (CP_result_to_here + 1) / 3; i++)
+        {
+            Affine_CP[temp_counter] = rot[0] * CP_result[temp_counter] + rot[1] * CP_result[temp_counter + 1] + affine[0];
+            Affine_CP[temp_counter + 1] = rot[2] * CP_result[temp_counter] + rot[3] * CP_result[temp_counter + 1] + affine[1];
+            Affine_CP[temp_counter + 2] = CP_result[temp_counter + 2];
+            temp_counter += 3;
+        }
+
+        for (i = 0; i < CP_result_to_here; i++)
+        {
+            CP_result[i] = Affine_CP[i];
+        }
+
+        free(Affine_CP);
+    }
+
     // 強制変位・変位固定の境界条件を作成
     Sort(temp5, CP_info, A, Boundary, Boundary_result, length_before, length_after);
 
     // 出力
     Output_inputdata(Order, KV_info, CP_info, Connectivity, KV, CP_result, Boundary_result, length_before, length_after, temp5);
+    Output_J();
 
     // 図の出力
     Output_SVG(B, CP_result); // SVG出力
@@ -2425,6 +2473,116 @@ void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int
         }
     }
     fprintf(fp, "\n");
+
+    fclose(fp);
+}
+
+
+void Output_J(int *temp_CP_info, int *temp_A)
+{
+    int i, j;
+    char str[256] = "J_int.txt";
+
+    double PI = 3.14159265358979323846264338327950288;
+    double theta = affine[2] * PI / 180.0;
+    double rot[4] = {cos(theta), -sin(theta), sin(theta), cos(theta)};
+    
+    fp = fopen(str, "w");
+
+    // き裂先端座標
+    double x = rot[0] * crack_tip[0] + rot[1] * crack_tip[1];
+    double y = rot[2] * crack_tip[0] + rot[3] * crack_tip[1];
+
+    fprintf(fp, "1 %.17e %.17e %.17e\n", x, y, 1.0);
+
+    // q function
+    int q_func_edge_n = 0;
+    int q_info[8][3];   // パッチ番号, xi or eta, 始点0 or 終点1
+    if (mode[0] == 0)
+    {
+        q_func_edge_n = 4;
+        q_info[0][0] = 0; q_info[0][1] = 0; q_info[0][2] = 0;
+        q_info[1][0] = 1; q_info[1][1] = 0; q_info[1][2] = 0;
+        q_info[2][0] = 2; q_info[2][1] = 0; q_info[2][2] = 0;
+        q_info[3][0] = 3; q_info[3][1] = 0; q_info[3][2] = 0;
+    }
+    else if (mode[0] == 1)
+    {
+        q_func_edge_n = 8;
+        q_info[0][0] = 0; q_info[0][1] = 0; q_info[0][2] = 0;
+        q_info[1][0] = 1; q_info[1][1] = 0; q_info[1][2] = 0;
+        q_info[2][0] = 2; q_info[2][1] = 0; q_info[2][2] = 0;
+        q_info[3][0] = 3; q_info[3][1] = 0; q_info[3][2] = 0;
+        q_info[4][0] = 4; q_info[4][1] = 0; q_info[4][2] = 0;
+        q_info[5][0] = 5; q_info[5][1] = 0; q_info[5][2] = 0;
+        q_info[6][0] = 6; q_info[6][1] = 0; q_info[6][2] = 0;
+        q_info[7][0] = 7; q_info[7][1] = 0; q_info[7][2] = 0;
+    }
+
+    int before_l = q_func_edge_n * 3;
+    int *after_l;
+    int *temp_array = (int *)malloc(sizeof(int) * before_l);
+
+    int temp = 0;
+    for (i = 0; i < q_func_edge_n; i++)
+    {
+        int A_to_here = 0;
+        for (j = 0; j < q_info[i][0]; j++)
+        {
+            A_to_here += 2 * (temp_CP_info[j * DIMENSION] + temp_CP_info[j * DIMENSION + 1]);
+        }
+
+        // if (q_info[i][1] == 1 && q_info[i][2] == 0) は何もしない
+        if (q_info[i][1] == 0 && q_info[i][2] == 1)
+        {
+            A_to_here += temp_CP_info[q_info[i][0] * DIMENSION];
+        }
+        else if (q_info[i][1] == 1 && q_info[i][2] == 1)
+        {
+            A_to_here += temp_CP_info[q_info[i][0] * DIMENSION] + temp_CP_info[q_info[i][0] * DIMENSION + 1];
+        }
+        else if (q_info[i][1] == 0 && q_info[i][2] == 0)
+        {
+            A_to_here += 2 * temp_CP_info[q_info[i][0] * DIMENSION] + temp_CP_info[q_info[i][0] * DIMENSION + 1];
+        }
+        
+        if (q_info[i][1] == 0)
+        {
+            for (j = 0; j < temp_CP_info[q_info[i][0] * DIMENSION + 1]; j++)
+            {
+                temp_array[temp] = temp_A[A_to_here + j];
+                temp++;
+
+                // printf("patch num %d\n", q_info[i][0]);
+                // printf("xi or eta %d\n", q_info[i][1]);
+                // printf("start or end %d\n", q_info[i][2]);
+                // printf("temp = %d\n", temp);
+                // printf("A_to_here + l = %d\n", A_to_here + l);
+                // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+            }
+        }
+        else if (q_info[i][1] == 1)
+        {
+            for (j = 0; j < temp_CP_info[q_info[i][0] * DIMENSION]; j++)
+            {
+                temp_array[temp] = temp_A[A_to_here + j];
+                temp++;
+
+                // printf("patch num %d\n", q_info[i][0]);
+                // printf("xi or eta %d\n", q_info[i][1]);
+                // printf("start or end %d\n", q_info[i][2]);
+                // printf("temp = %d\n", temp);
+                // printf("A_to_here + l = %d\n", A_to_here + l);
+                // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+            }
+        }
+    }
+
+    heapSort(temp_array, before_l);
+    Dedupe(temp_array, temp_length_before, temp_Boundary_result, &after_l, i);
+
+
+    free(temp_array), free();
 
     fclose(fp);
 }

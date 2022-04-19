@@ -14,7 +14,7 @@
 
 4   4   4       // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side)
 
-// afin transformation;
+0.0 0.0 45.0    // affine transformation (offset_x[mm], offset_y[mm], angle[dgree] <- double);
 
 /*****************************************************************************
  * グローバルパッチは，
@@ -30,7 +30,7 @@
  * 変更したい場合はプログラムを修正してください．
  * 
  * 
- * アフィン変換は平行移動->回転の順で行います．
+ * アフィン変換は回転 -> 平行移動の順で行います．
  * 1/4モデルではアフィン変換は利用できません(0固定)．
  * 
  *****************************************************************************/

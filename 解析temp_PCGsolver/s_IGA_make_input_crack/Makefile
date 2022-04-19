@@ -5,12 +5,14 @@ default:
 	mkdir -p inputdate_result
 	cd ./temp && mv input_loc.txt ../inputdate_result -f
 	cd ./temp && mv input.svg ../inputdate_result -f
+	cd ./temp && mv J_int.txt ../inputdate_result -f
 	rm -f -R temp
 
 1:	step3_1
 	mkdir -p inputdate_result
 	cd ./temp && mv input_loc.txt ../inputdate_result -f
 	cd ./temp && mv input.svg ../inputdate_result -f
+	cd ./temp && mv J_int.txt ../inputdate_result -f
 	rm -f -R temp
 
 step3_0:	step2_0
