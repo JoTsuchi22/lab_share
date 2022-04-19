@@ -16,10 +16,10 @@ default:
 	rm -f -R temp
 
 step3_0:	step2_0
-	cd ./temp && ../s_IGA_make_input_crack.x ../input_crack_test.txt 4_edited.txt 5_edited.txt 6_edited.txt 7_edited.txt 8_edited.txt 9_edited.txt > temp.dat
+	cd ./temp && ../s_IGA_make_input_crack.x ../input_crack.txt 4_edited.txt 5_edited.txt 6_edited.txt 7_edited.txt 8_edited.txt 9_edited.txt > temp.dat
 
 step3_1:	step2_1
-	cd ./temp && ../s_IGA_make_input_crack.x ../input_crack_test.txt 16_edited.txt 17_edited.txt 18_edited.txt 19_edited.txt 20_edited.txt 21_edited.txt 22_edited.txt 23_edited.txt 24_edited.txt 25_edited.txt 26_edited.txt 27_edited.txt 28_edited.txt 29_edited.txt 30_edited.txt 31_edited.txt 32_edited.txt 33_edited.txt 34_edited.txt 35_edited.txt 36_edited.txt 37_edited.txt 38_edited.txt 39_edited.txt > temp.dat
+	cd ./temp && ../s_IGA_make_input_crack.x ../input_crack.txt 16_edited.txt 17_edited.txt 18_edited.txt 19_edited.txt 20_edited.txt 21_edited.txt 22_edited.txt 23_edited.txt 24_edited.txt 25_edited.txt 26_edited.txt 27_edited.txt 28_edited.txt 29_edited.txt 30_edited.txt 31_edited.txt 32_edited.txt 33_edited.txt 34_edited.txt 35_edited.txt 36_edited.txt 37_edited.txt 38_edited.txt 39_edited.txt > temp.dat
 
 step2_0:	step1
 	cd ./temp && ../s_IGA_make_input.x ./4.txt ./5.txt ./6.txt > ./temp.dat
@@ -34,7 +34,7 @@ step2_1:	step1
 
 step1:	s_IGA_make_input_crack.x s_IGA_make_input.x
 	mkdir -p temp
-	cd ./temp && ../s_IGA_make_input_crack.x ../input_crack_test.txt > temp.dat
+	cd ./temp && ../s_IGA_make_input_crack.x ../input_crack.txt > temp.dat
 
 s_IGA_make_input_crack.x:	s_IGA_make_input_crack.c
 	gcc -o ./s_IGA_make_input_crack.x ./s_IGA_make_input_crack.c -O3 -lm -Wall -Wextra
