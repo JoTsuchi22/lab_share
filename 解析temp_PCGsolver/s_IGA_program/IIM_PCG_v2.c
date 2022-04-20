@@ -40,7 +40,7 @@ mkdir checkAns
 #include <assert.h>
 #include <time.h>
 
-#define SKIP_S_IGA 1 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define SKIP_S_IGA 0 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
 
 #define ERROR -999
 #define PI  3.14159265359
@@ -298,13 +298,15 @@ static double Displacement[MAX_K_WHOLE_SIZE];
 static double Strain[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_overlay[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
+static double Strain_overlay_loc[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_aux_mode1[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Strain_aux_mode2[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
-// static double Strain_aux_mode1_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
+static double Strain_aux_mode1_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 // static double Strain_aux_mode2_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 static double Stress[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_overlay[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
+static double Stress_overlay_loc[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_aux_mode1_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_aux_mode1[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
 static double Stress_aux_mode2_local[MAX_N_ELEMENT][POW_Ng_extended][N_STRESS];
@@ -313,9 +315,11 @@ static double StrainEnergyDensity[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_overlay[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_mode1[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_mode2[MAX_N_ELEMENT][POW_Ng_extended];
+static double StrainEnergyDensity_aux_mode1_loc[MAX_N_ELEMENT][POW_Ng_extended];
+// static double StrainEnergyDensity_aux_mode2_loc[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_only_mode1[MAX_N_ELEMENT][POW_Ng_extended];
 static double StrainEnergyDensity_aux_only_mode2[MAX_N_ELEMENT][POW_Ng_extended];
-// static double StrainEnergyDensity_aux_only_mode1_local[MAX_N_ELEMENT][POW_Ng_extended];
+static double StrainEnergyDensity_aux_only_mode1_local[MAX_N_ELEMENT][POW_Ng_extended];
 // static double StrainEnergyDensity_aux_only_mode2_local[MAX_N_ELEMENT][POW_Ng_extended];
 static double Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION]; //Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][0] = 𝜕u1/𝜕x1  Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][1] = 𝜕u1/𝜕x2  Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][2] = 𝜕u2/𝜕x1 Disp_grad[MAX_N_ELEMENT][POW_Ng_extended][3] = 𝜕u2/𝜕x2
 static double Disp_grad_glo[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION];
@@ -408,7 +412,7 @@ static double val_Coord_array[MAX_N_DISTRIBUTE_FORCE], Range_Coord_array[MAX_N_D
 //static int shape_check_frag;
 
 //for Interaction integral
-// static double T[DIMENSION][DIMENSION];
+static double T[DIMENSION][DIMENSION];
 static double K_mode1;
 static double K_mode2;
 static double J_integral_value_aux_mode1;
@@ -1667,6 +1671,13 @@ int main(int argc, char *argv[])
 	// 重ね合わせをスキップした場合ここから
 	printf("Start J Integration Mixed Mode\n\n");
 
+	/* For the J-integral Evaluation */
+	int Location_Crack_Tip_Patch;
+	double Location_Local_Coordinates[DIMENSION];
+	double Virtual_Crack_Extension_Ct_Pt[MAX_N_NODE][DIMENSION];
+	double /*J_value,*/ DeltaA;
+	J_Integral_Input_Data(Total_Control_Point_to_mesh[Total_mesh],&Location_Crack_Tip_Patch,Location_Local_Coordinates,Virtual_Crack_Extension_Ct_Pt, &DeltaA);
+
 	Make_Displacement_grad(El_No);
 	printf("Finish Make_Displacement_grad\n");
 	Make_StrainEnergyDensity_2D();
@@ -1694,16 +1705,63 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+
+	double unit_basis_local[DIMENSION] = {0.0};
+	double r_tip = sqrt(Location_Local_Coordinates[0] * Location_Local_Coordinates[0] + Location_Local_Coordinates[1] * Location_Local_Coordinates[1]);
+
+	//x'-y'（き裂先端）座標における単位基底ベクトル
+	unit_basis_local[0] = Location_Local_Coordinates[0] / r_tip;
+	unit_basis_local[1] = Location_Local_Coordinates[1] / r_tip;
+	printf("unit_basis[0] : % 1.8e\n", unit_basis_local[0]);
+	printf("unit_basis[1] : % 1.8e\n", unit_basis_local[1]);
+
+	//2 × 2 の行列として局所座標系を登録
+	T[0][0] = unit_basis_local[0];   T[0][1] = unit_basis_local[1];   /*T[0][2] = 0.0;*/
+	T[1][0] = -unit_basis_local[1];  T[1][1] = unit_basis_local[0];   /*T[1][2] = 0.0;*/
+	// T[2][0] = 0.0;  T[2][1] = 0.0;;   T[2][2] = 0.0;
+	printf("T[0][0] = %1.8e\tT[0][1] = %1.8e\tT[1][0] = %1.8e\tT[1][1] = %1.8e\n", T[0][0], T[0][1], T[1][0], T[1][1]);
+
+	double TT[DIMENSION][DIMENSION];
+	for (i = 0; i < DIMENSION; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+			TT[i][j] = T[j][i];
+		}
+	}
+
+	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
+        e = real_element[re];
+		for(N = 0; N < GP_2D; N++){
+			double TEMP_Strain_overlay[DIMENSION][DIMENSION], TEMP_Strain_overlay_loc[DIMENSION][DIMENSION];
+			TEMP_Strain_overlay[0][0] = Strain_overlay[e][N][0];
+			TEMP_Strain_overlay[0][1] = Strain_overlay[e][N][2];
+			TEMP_Strain_overlay[1][0] = Strain_overlay[e][N][2];
+			TEMP_Strain_overlay[1][1] = Strain_overlay[e][N][1];
+			Coordinate_Transform(TT, TEMP_Strain_overlay, TEMP_Strain_overlay_loc);
+			Strain_overlay_loc[e][N][0] = TEMP_Strain_overlay_loc[0][0];
+			Strain_overlay_loc[e][N][2] = TEMP_Strain_overlay_loc[0][1];
+			Strain_overlay_loc[e][N][2] = TEMP_Strain_overlay_loc[1][0];
+			Strain_overlay_loc[e][N][1] = TEMP_Strain_overlay_loc[1][1];
+		}
+	}
+
 	Make_Stress_2D_glo(E, nu, Total_Element_to_mesh[Total_mesh], DM);
 
 	Make_gauss_array(0);
+
+	double D[D_MATRIX_SIZE][D_MATRIX_SIZE];
+	Make_D_Matrix_2D(D, E, nu, DM);
 
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
 		e = real_element[re];
 		for(N = 0; N < GP_2D; N++){
 			for (i = 0; i < D_MATRIX_SIZE; i++){
 				Stress_overlay[e][N][i] = Stress[e][N][i] + Stress_glo[e][N][i];
+				for (j = 0; j < D_MATRIX_SIZE; j++){
+					Stress_overlay_loc[e][N][i] += D[i][j] * Strain_overlay_loc[e][N][j];
 				// printf("Stress_overlay[%d][%d][%d] = %.10e\n", e, N, i, Stress_overlay[e][N][i]);
+				}
 			}
 		}
 	}
@@ -1714,13 +1772,6 @@ int main(int argc, char *argv[])
 	printf("Finish Make_StrainEnergyDensity\n");
 	Make_Parameter_z_overlay(Total_Element_to_mesh[Total_mesh], E, nu, DM);
 	printf("Finish Make_Parameter_z_overlay\n");
-
-	/* For the J-integral Evaluation */
-	int Location_Crack_Tip_Patch;
-	double Location_Local_Coordinates[DIMENSION];
-	double Virtual_Crack_Extension_Ct_Pt[MAX_N_NODE][DIMENSION];
-	double /*J_value,*/ DeltaA;
-	J_Integral_Input_Data(Total_Control_Point_to_mesh[Total_mesh],&Location_Crack_Tip_Patch,Location_Local_Coordinates,Virtual_Crack_Extension_Ct_Pt, &DeltaA);
 
 	printf("Start J_Integral_Computation\n");
 	// J_value = J_Integral_Computation(Total_Control_Point_to_mesh[Total_mesh], Total_Element_to_mesh[Total_mesh], Location_Crack_Tip_Patch,  Location_Local_Coordinates, Virtual_Crack_Extension_Ct_Pt, DeltaA, El_No);
@@ -1787,7 +1838,7 @@ void J_Integral_Input_Data(int Total_Control_Point, int *Location_Crack_Tip_Patc
 	int Num_Non_Zero_Pt;
 	int kk_control_pt;
 
-	fp = fopen("J-int.inp","r");
+	fp = fopen("J_int.txt","r");
 
 	for(jj = 0; jj < DIMENSION; jj++) 
 		for(ii = 0; ii < Total_Control_Point; ii++) 
@@ -1799,9 +1850,10 @@ void J_Integral_Input_Data(int Total_Control_Point, int *Location_Crack_Tip_Patc
 	printf("%d\n", Num_Non_Zero_Pt);
 	for(kk=0; kk < Num_Non_Zero_Pt; kk++){
 		fscanf(fp, "%d", &kk_control_pt); 
-			for(jj=0; jj < DIMENSION; jj++) 
-				fscanf(fp, "%lf", &Virtual_Crack_Extension_Ct_Pt[kk_control_pt][jj]);
-		printf("kk = %d  kk_control_pt = %d  cood values %f %f\n", kk, kk_control_pt, Virtual_Crack_Extension_Ct_Pt[kk_control_pt][0], Virtual_Crack_Extension_Ct_Pt[kk_control_pt][1]);
+		for(jj=0; jj < DIMENSION; jj++) 
+			fscanf(fp, "%lf", &Virtual_Crack_Extension_Ct_Pt[kk_control_pt + Total_Control_Point_to_mesh[1]][jj]);
+		// printf("kk = %d  kk_control_pt = %d  cood values %f %f\n", kk, kk_control_pt, Virtual_Crack_Extension_Ct_Pt[kk_control_pt][0], Virtual_Crack_Extension_Ct_Pt[kk_control_pt][1]);
+		// printf("Control Point : %d\n", kk_control_pt + Total_Control_Point_to_mesh[1]);
 	}
 	fclose(fp);
 }
@@ -1988,7 +2040,6 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 	int ii, jj, kk; 
 	int e, i, j, re, N;
 	double unit_basis_local[DIMENSION] = {0.0};
-	double T[DIMENSION][DIMENSION];
 	double r_tip = sqrt(Location_Local_Coordinates[0] * Location_Local_Coordinates[0] + Location_Local_Coordinates[1] * Location_Local_Coordinates[1]);
 	double J;
 	double K_1 = 0.0;
@@ -2093,17 +2144,32 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 				//モード1のEMTの計算
 				printf("check 9 %.15e  %.15e  %.15e  %.15e  %.15e\n", 
 						StrainEnergyDensity_aux_mode1[e][N], Stress_aux_mode1[e][N][0], Disp_grad_aux_mode1[e][N][0], Stress_aux_mode1[e][N][2], Disp_grad_aux_mode1[e][N][2]);
-				EMT_mode1[0][0] = StrainEnergyDensity_aux_mode1[e][N] - (Stress_overlay[e][N][0] * Disp_grad_aux_mode1[e][N][0] + Stress_aux_mode1[e][N][0] * Disp_grad_overlay[e][N][0] + Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][2] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][2]);
+				// EMT_mode1[0][0] = StrainEnergyDensity_aux_mode1[e][N] - (Stress_overlay[e][N][0] * Disp_grad_aux_mode1[e][N][0] + Stress_aux_mode1[e][N][0] * Disp_grad_overlay[e][N][0] + Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][2] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][2]);
+				// printf("G E: %.15e %.15e\n", Gxi[N][0], Gxi[N][1]);
+				// printf("EMT_mode1[0][0] = %.15e\n", EMT_mode1[0][0]);
+				// /* W - s11 * du1/dx1 - s12 * du2/dx1 */
+				// EMT_mode1[0][1] =                            - (Stress_overlay[e][N][0] * Disp_grad_aux_mode1[e][N][1] + Stress_aux_mode1[e][N][0] * Disp_grad_overlay[e][N][1] + Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][3] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][3]);
+				// printf("EMT_mode1[0][1] = %.15e\n", EMT_mode1[0][1]);
+				// /* - s11 * du1/dx2 - s22 * du2/dx2 */
+				// EMT_mode1[1][0] =                            - (Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][0] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][0] + Stress_overlay[e][N][1] * Disp_grad_aux_mode1[e][N][2] + Stress_aux_mode1[e][N][1] * Disp_grad_overlay[e][N][2]);
+				// printf("EMT_mode1[1][0] = %.15e\n", EMT_mode1[1][0]);
+				// /* - s21 * du1/dx1 - s22 * du2/dx1 */
+				// EMT_mode1[1][1] = StrainEnergyDensity_aux_mode1[e][N] - (Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][1] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][1] + Stress_overlay[e][N][1] * Disp_grad_aux_mode1[e][N][3] + Stress_aux_mode1[e][N][1] * Disp_grad_overlay[e][N][3]);
+				// printf("EMT_mode1[1][1] = %.15e\n", EMT_mode1[1][1]);
+				// /* W - s21 * du1/dx2 - s22 * du2/dx2 */
+
+				//モード1のEMTの計算（ローカル）
+				EMT_mode1[0][0] = StrainEnergyDensity_aux_mode1_loc[e][N] - (Stress_overlay_loc[e][N][0] * Disp_grad_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][0] * Disp_grad_overlay[e][N][0] + Stress_overlay_loc[e][N][2] * Disp_grad_aux_mode1_local[e][N][2] + Stress_aux_mode1_local[e][N][2] * Disp_grad_overlay[e][N][2]);
 				printf("G E: %.15e %.15e\n", Gxi[N][0], Gxi[N][1]);
 				printf("EMT_mode1[0][0] = %.15e\n", EMT_mode1[0][0]);
 				/* W - s11 * du1/dx1 - s12 * du2/dx1 */
-				EMT_mode1[0][1] =                            - (Stress_overlay[e][N][0] * Disp_grad_aux_mode1[e][N][1] + Stress_aux_mode1[e][N][0] * Disp_grad_overlay[e][N][1] + Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][3] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][3]);
+				EMT_mode1[0][1] =                            - (Stress_overlay_loc[e][N][0] * Disp_grad_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][0] * Disp_grad_overlay[e][N][1] + Stress_overlay_loc[e][N][2] * Disp_grad_aux_mode1_local[e][N][3] + Stress_aux_mode1_local[e][N][2] * Disp_grad_overlay[e][N][3]);
 				printf("EMT_mode1[0][1] = %.15e\n", EMT_mode1[0][1]);
 				/* - s11 * du1/dx2 - s22 * du2/dx2 */
-				EMT_mode1[1][0] =                            - (Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][0] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][0] + Stress_overlay[e][N][1] * Disp_grad_aux_mode1[e][N][2] + Stress_aux_mode1[e][N][1] * Disp_grad_overlay[e][N][2]);
+				EMT_mode1[1][0] =                            - (Stress_overlay_loc[e][N][2] * Disp_grad_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][2] * Disp_grad_overlay[e][N][0] + Stress_overlay_loc[e][N][1] * Disp_grad_aux_mode1_local[e][N][2] + Stress_aux_mode1_local[e][N][1] * Disp_grad_overlay[e][N][2]);
 				printf("EMT_mode1[1][0] = %.15e\n", EMT_mode1[1][0]);
 				/* - s21 * du1/dx1 - s22 * du2/dx1 */
-				EMT_mode1[1][1] = StrainEnergyDensity_aux_mode1[e][N] - (Stress_overlay[e][N][2] * Disp_grad_aux_mode1[e][N][1] + Stress_aux_mode1[e][N][2] * Disp_grad_overlay[e][N][1] + Stress_overlay[e][N][1] * Disp_grad_aux_mode1[e][N][3] + Stress_aux_mode1[e][N][1] * Disp_grad_overlay[e][N][3]);
+				EMT_mode1[1][1] = StrainEnergyDensity_aux_mode1_loc[e][N] - (Stress_overlay_loc[e][N][2] * Disp_grad_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][2] * Disp_grad_overlay[e][N][1] + Stress_overlay_loc[e][N][1] * Disp_grad_aux_mode1_local[e][N][3] + Stress_aux_mode1_local[e][N][1] * Disp_grad_overlay[e][N][3]);
 				printf("EMT_mode1[1][1] = %.15e\n", EMT_mode1[1][1]);
 				/* W - s21 * du1/dx2 - s22 * du2/dx2 */
 
@@ -2136,7 +2202,7 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 				printf("EMT_aux_mode1[1][1] = %.15e\n",EMT_aux_mode1[1][1]);
 				/* W - s21 * du1/dx2 - s22 * du2/dx2 */
 
-				// //補助場のみでのモードIにおけるEMT（ローカル座標）
+				//補助場のみでのモードIにおけるEMT（ローカル座標）
 				// EMT_aux_mode1[0][0] =  StrainEnergyDensity_aux_only_mode1_local[e][N] - (Stress_aux_mode1_local[e][N][0] * Disp_grad_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][2] * Disp_grad_aux_mode1_local[e][N][2]);
 				// printf("EMT_aux_mode1[0][0] = %.15e\n",EMT_aux_mode1[0][0]);
 				// /* W - s11 * du1/dx1 - s12 * du2/dx1 */
@@ -2179,8 +2245,8 @@ double J_Integral_Computation_Interaction(int Total_Control_Point, double Locati
 				double rrrr = sqrt((GXY[N][0] - 25.0) * (GXY[N][0] - 25.0) + (GXY[N][1] - 0.0) * (GXY[N][1] - 0.0));
 				
 				//モード1
-				K_1 -= (EMT_mode1[0][0] * q_func_grad[0][0] + EMT_mode1[1][0] * q_func_grad[0][1]) * w[N] * J;
-				K_1 -= (EMT_mode1[0][1] * q_func_grad[1][0] + EMT_mode1[1][1] * q_func_grad[1][1]) * w[N] * J; 
+				K_1 -= (EMT_mode1[0][0] * q_func_grad_local[0][0] + EMT_mode1[1][0] * q_func_grad_local[0][1]) * w[N] * J;
+				K_1 -= (EMT_mode1[0][1] * q_func_grad_local[1][0] + EMT_mode1[1][1] * q_func_grad_local[1][1]) * w[N] * J; 
 
 				//モード2
 				K_2 -= (EMT_mode2[0][0] * q_func_grad[0][0] + EMT_mode2[1][0] * q_func_grad[0][1]) * w[N] * J;
@@ -5715,7 +5781,7 @@ int Make_b_grad_Matrix(int El_No, double b_grad[DIMENSION * DIMENSION][2 * MAX_N
 			for( j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; j++ ){
 				b[i][j] = 0.0;
 				for( k = 0; k < DIMENSION; k++ ){
-					b[i][j] += a[k][i] * dShape_func(j, k, Local_coord, El_No);
+					b[i][j] += a[k][i] * dShape_func(j, k, Local_coord, El_No) * sqrt(2.0);
 				}
 			}
 		}
@@ -6149,13 +6215,22 @@ void Make_Displacement_grad(int El_No)
 				X[i][j] = Node_Coordinate[ Controlpoint_of_Element[e][i] ][j];
 			}
 		}
+
+		double Disp_loc[MAX_KIEL_SIZE];
+		double T[2][2] = {{sqrt(1.0 / 2.0), sqrt(1.0 / 2.0)}, {- sqrt(1.0 / 2.0), sqrt(1.0 / 2.0)}};
+		for( i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[e]]; i++ ){
+			Disp_loc[i * DIMENSION + 0] = U[i * DIMENSION + 0] * T[0][0] + U[i * DIMENSION + 1] * T[1][0];
+			Disp_loc[i * DIMENSION + 1] = U[i * DIMENSION + 0] * T[0][1] + U[i * DIMENSION + 1] * T[1][1];
+		}
+
 		//変位勾配
 		for( N = 0; N < GP_2D; N++ ){
 			//printf("N:%d\n",N);
 			Make_b_grad_Matrix( e, b_grad, Gxi[N], X, &J);
 			for( i = 0; i < DIMENSION * DIMENSION; i++ )
 				for( j = 0; j < 2 * No_Control_point_ON_ELEMENT[Element_patch[El_No]]; j++ ){
-					Disp_grad[e][N][i] += b_grad[i][j] * U[j] ;
+					// Disp_grad[e][N][i] += b_grad[i][j] * U[j] ;
+					Disp_grad[e][N][i] += b_grad[i][j] * Disp_loc[j] ;
 					//printf("b_grad[%d][%d] = %lf  また　U = %lf",i,j,b_grad[i][j],U[j]);
 				}
 		}
@@ -6244,7 +6319,6 @@ void Make_StrainEnergyDensity_2D_overlay()
 		}
 	}
 }
-
 
 void Make_ReactionForce(int Total_Control_Point)
 {
@@ -10475,7 +10549,7 @@ void Make_auxiliary_mode1(int e, double E, double nu, int DM, double X[MAX_NO_CC
 		for (i = 0; i < D_MATRIX_SIZE; i++){
 			for (j = 0; j < D_MATRIX_SIZE; j++){
 				Strain_aux_mode1[e][N][i] += Dinv[i][j] * Stress_aux_mode1[e][N][j];
-				// Strain_aux_mode1_local[e][N][i] += Dinv[i][j] * Stress_aux_mode1_local[e][N][j];
+				Strain_aux_mode1_local[e][N][i] += Dinv[i][j] * Stress_aux_mode1_local[e][N][j];
 			}
 			printf("Strain_aux_mode1[%d][%d][%d] = %1.10e\n", e, N, i, Strain_aux_mode1[e][N][i]);
 			// printf("Strain_aux_mode1_local[%d][%d][%d] = %1.10e\n", e, N, i, Strain_aux_mode1_local[e][N][i]);
@@ -10485,12 +10559,16 @@ void Make_auxiliary_mode1(int e, double E, double nu, int DM, double X[MAX_NO_CC
 		StrainEnergyDensity_aux_mode1[e][N] = Stress_overlay[e][N][0] * Strain_aux_mode1[e][N][0] + Stress_overlay[e][N][1] * Strain_aux_mode1[e][N][1] + Stress_overlay[e][N][2] * Strain_aux_mode1[e][N][2];
 		printf("StrainEnergyDensity_aux_mode1[%d][%d] = %1.10e\n", e, N, StrainEnergyDensity_aux_mode1[e][N]);
 
+		//ローカルでの相互ポテンシャルエネルギ密度Wを算出する
+		StrainEnergyDensity_aux_mode1_loc[e][N] = Stress_overlay_loc[e][N][0] * Strain_aux_mode1_local[e][N][0] + Stress_overlay_loc[e][N][1] * Strain_aux_mode1_local[e][N][1] + Stress_overlay_loc[e][N][2] * Strain_aux_mode1_local[e][N][2];
+		printf("StrainEnergyDensity_aux_mode1_loc[%d][%d] = %1.10e\n", e, N, StrainEnergyDensity_aux_mode1_loc[e][N]);
+
 		//補助場のひずみエネルギ密度を算出する
 		StrainEnergyDensity_aux_only_mode1[e][N] = (Stress_aux_mode1[e][N][0] * Strain_aux_mode1[e][N][0] + Stress_aux_mode1[e][N][1] * Strain_aux_mode1[e][N][1] + Stress_aux_mode1[e][N][2] * Strain_aux_mode1[e][N][2]) / 2.0;
 		printf("StrainEnergyDensity_aux_only_mode1[%d][%d] = %1.10e\n", e, N, StrainEnergyDensity_aux_only_mode1[e][N]);
 
 		// //補助場のローカルでのひずみエネルギ密度を算出する
-		// StrainEnergyDensity_aux_only_mode1_local[e][N] = (Stress_aux_mode1_local[e][N][0] * Strain_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][1] * Strain_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][2] * Strain_aux_mode1_local[e][N][2]) / 2.0;
+		StrainEnergyDensity_aux_only_mode1_local[e][N] = (Stress_aux_mode1_local[e][N][0] * Strain_aux_mode1_local[e][N][0] + Stress_aux_mode1_local[e][N][1] * Strain_aux_mode1_local[e][N][1] + Stress_aux_mode1_local[e][N][2] * Strain_aux_mode1_local[e][N][2]) / 2.0;
 		// printf("StrainEnergyDensity_aux_only_mode1_local[%d][%d] = %1.10e\n", e, N, StrainEnergyDensity_aux_only_mode1_local[e][N]);
 	}
 }
