@@ -7,8 +7,8 @@ s_IGA_cuda_cpp.x:	s_IGA_cuda_cpp.cpp
 a:	a.cu
 	nvcc -O0 a.cu -o a.x -Xcompiler "/wd 4819" && ./a.x
 
-b:	a.cu
-	nvcc -O2 cuda_test_IMM.cu -o cuda_test_IMM.x -Xcompiler "/wd 4819"
+b:	b.cu
+	nvcc -O2 b.cu -o b.x -Xcompiler "/wd 4819" && ./b.x
 
 c:	cuda_test_IMM.cu
 	nvcc -O0 cuda_test_IMM.cu -o cuda_test_IMM.x -Xcompiler "/wd 4819"
