@@ -2,23 +2,39 @@
 #include "device_launch_parameters.h"
 
 #include <stdio.h>
-#include <time.h>
+#include <math.h>
+#include <stdlib.h>
 
-static int c[100][2];
+#define PP 10
 
-void MM()
-{
-    printf("%d\n", c[2][1]);
-}
+static int c[10][10];
+static double d[PP][PP];
+
+void MM();
 
 int main()
 {
-    // int i = 0;
-    // printf("%d\n", i);
-    for (int k = 0; k < 100; k++)
+    int i, j;
+
+    for (i = 0; i < 10; i++)
     {
-        c[k][1] = k;
-        // printf("%d\n", c[k][1]);
+        for (j = 0; j < 10; j++)
+        {
+            c[i][j] = i * 10 + j;
+            d[i][j] = i * 10 + j;
+        }
     }
     MM();
+
+    for (i = 0; i < 2; i++)
+    printf("%le\n", sin(0));
+
+    printf("%d\n", PP);
+    printf("%le\n", d[2][2]);
+}
+
+void MM()
+{
+    d[2][1] = 99;
+    printf("%d\n", c[2][1]);
 }
