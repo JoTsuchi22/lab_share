@@ -20,7 +20,13 @@ NURBSviewer
 
 
 cuda test
-../../../../s_IGA_program/cuda_test_IMM.x ../input_glo_element.txt ../local3_Interaction.txt
+../../../../s_IGA_program/IIM_PCG_v2_cu.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../s_IGA_program/IIM_PCG_v2_cu.x ../input_glo_element.txt ../local3_Interaction.txt
+
+gdb ../../../../s_IGA_program/IIM_PCG_v2_cu.x
+run ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+
+
 c++ test
 ../../../../cuda/s_IGA_cuda_cpp.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
 

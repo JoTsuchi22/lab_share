@@ -14,7 +14,7 @@
 
 4   4   4       // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side)
 
-0.0 0.0 45.0    // affine transformation (offset_x[mm], offset_y[mm], angle[dgree] <- double);
+0.0 0.0 45.0    // affine transformation (offset_x[mm], offset_y[mm], angle[degree] <- double);
 
 /*****************************************************************************
  * グローバルパッチは，

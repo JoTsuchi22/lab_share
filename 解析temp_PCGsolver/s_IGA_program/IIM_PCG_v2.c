@@ -40,7 +40,7 @@ mkdir checkAns
 #include <assert.h>
 #include <time.h>
 
-#define SKIP_S_IGA 0 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define SKIP_S_IGA 1 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
 
 #define ERROR -999
 #define PI  3.14159265359
@@ -4747,7 +4747,7 @@ double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
 	int p, j;
 	double sum1 = 0.0;
 	double sum2 = 0.0;
-	double temp_basis[order][order];
+	double temp_basis[MAX_N_ORDER][MAX_N_ORDER];
 	(*output) = 0.0;
 	(*d_output) = 0.0;
 
@@ -4805,7 +4805,7 @@ double rBasisFunc(double *knot_vec, int knot_index,
 	int p, j;
 	double sum1 = 0.0;
 	double sum2 = 0.0;
-	double temp_basis[order][order];
+	double temp_basis[MAX_N_ORDER][MAX_N_ORDER];
 	(*output) = 0.0;
 	(*d_output) = 0.0;
 
@@ -4880,7 +4880,7 @@ double lBasisFunc(double *knot_vec, int knot_index,
 	int p, j;
 	double sum1 = 0.0;
 	double sum2 = 0.0;
-	double temp_basis[order][order];
+	double temp_basis[MAX_N_ORDER][MAX_N_ORDER];
 	(*output) = 0.0;
 	(*d_output) = 0.0;
 
@@ -10105,7 +10105,7 @@ void K_output_svg(int ndof)
 	// 各行の成分を抽出
 	for (i = 0; i < ndof; i++)
 	{
-		int K_bool[ndof]; //一行分保存する
+		int *K_bool = (int *)malloc(sizeof(int) * ndof); //一行分保存する
 		for (j = 0; j < ndof; j++)
 		{
 			K_bool[j] = 0;
@@ -10142,6 +10142,7 @@ void K_output_svg(int ndof)
 				fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[1]);
 			}
 		}
+		free(K_bool);
 	}
 
 	fprintf(fp, "</svg>");

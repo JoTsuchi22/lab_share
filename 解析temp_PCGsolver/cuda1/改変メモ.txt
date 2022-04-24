@@ -1,0 +1,14 @@
+
+fscanf の double を %le -> %lf に統一 (?)
+
+結局，malloc -> static は簡単なので，いったん全部mallocにしてもよい
+
+連立一次方程式のところもstatic で残す，並列化しそうだったらmallocでも可
+MAX_K_WHOLE_SIZEはstatic で残す
+extern double sol_vec[MAX_K_WHOLE_SIZE];
+
+Patch_controlpoint
+Position_Knots
+Node_Coordinate
+
+Constraint_Node_Dir
