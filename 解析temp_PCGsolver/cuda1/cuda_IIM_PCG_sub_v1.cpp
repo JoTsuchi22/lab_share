@@ -148,6 +148,16 @@ void Get_Input_2(int tm, int Load_Node_Dir[MAX_N_LOAD][2], double Value_of_Load[
 	}
 	printf("\n");
 
+	// パッチコネクティビティ(スキップ)
+	for (i = 0; i < No_Patch; i++)
+	{
+		for (j = 0; j < No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]]; j++)
+		{
+			fscanf(fp, "%d", temp_i);
+		}
+	}
+	fgets(s, 256, fp);
+
 	fclose(fp);
 }
 
@@ -214,6 +224,7 @@ void Get_Input_3(int tm, int Load_Node_Dir[MAX_N_LOAD][2], double Value_of_Load[
 	}
 	fgets(s, 256, fp);
 
+	// パッチコネクティビティ
 	for (i = 0; i < No_Patch; i++)
 	{
 		for (j = 0; j < No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]]; j++)
