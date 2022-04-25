@@ -1,9 +1,17 @@
+演習2
+図3.7.4の4節点から9節点までの要素について、形状関数のサブルーチンをプログラムする。
+IEN 配列は引数リストを通してルーチンが利用でき、もし IEN(a) = 0 ならば、ノード a は考慮中の要素に存在しないと仮定する。
+IEN 配列はルーチン内で 9 次元とみなすことができる。
+(形状関数を計算するために実行されるすべての操作は、導関数を計算するためにも実行される必要があることに注意してください)。
 
 
-Program shape function subroutines for the four-through nine-node element described in Fig.3.7.4.
+演習3
+練習問題1のサブルーチンを一般化し、くさび形要素への退化の可能性を許容せよ。
+論理変数 BRICK が次のような場所で使用されると仮定する。
 
-Assume the IEN array is made available to the routines through the argument list and that if IEN(a) = 0, then node a is absent for the element under consideration.
+読者は、この章の前のセクションで議論されたさまざまな可能性を考慮することによって、多くの追加の形状関数-サブルーチンの演習を設定することができます。
 
-The IEN array may be taken to have dimension 9 within the routines.
-
-(Note that all operations performed to calculate the shape functions need also be performed to calculate the derivatives.)
+-------------
+演習1
+8節点の3線式ブリックの形状関数のサブルーチンをプログラムする。
+(これを行うには、まず表記表(表3.9.1)を3次元の場合について明示的に一般化することが有用である。ルーチンQDCSHLとQDCSHGのスタイルを模倣してください)。
