@@ -1,0 +1,9 @@
+
+
+Program shape function subroutines for the four-through nine-node element described in Fig.3.7.4.
+
+Assume the IEN array is made available to the routines through the argument list and that if IEN(a) = 0, then node a is absent for the element under consideration.
+
+The IEN array may be taken to have dimension 9 within the routines.
+
+(Note that all operations performed to calculate the shape functions need also be performed to calculate the derivatives.)
