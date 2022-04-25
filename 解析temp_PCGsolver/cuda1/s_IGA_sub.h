@@ -9,23 +9,16 @@ extern double w[POW_Ng_extended];              // ガウス点での重み
 
 extern int KIEL_SIZE;                           //要素分割マトリックスの大きさ
 extern int Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT];
-extern double Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
 extern double Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION]; // Equivalent nodal forces arising from the distributed load
 extern int K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1], K_Whole_Col[MAX_NON_ZERO];
 extern double K_Whole_Val[MAX_NON_ZERO];
 extern int Index_Dof[MAX_K_WHOLE_SIZE];
 extern int INC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];
 extern int Adress_Controlpoint[MAX_N_PATCH][1000][1000]; // INCの配列をいじったものAdress_Controlpoint[ξ][η]；コントールポイント番号、任意のパッチ上でξ方向[]番目、η方向[]番目のコントロールポイント番号を示す
-// extern int Order[MAX_N_PATCH][DIMENSION];
-// extern int No_knot[MAX_N_PATCH][DIMENSION];
-// extern int No_Control_point[MAX_N_PATCH][DIMENSION];
 extern double element_coordinate_Nopoint[MAX_N_ELEMENT][DIMENSION];
 extern double Gausspoint_coordinates[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION];
 extern int same_point_in_Element[MAX_N_NODE];
-// extern int Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]; // バッチとコントロールポイント番号の要素コネクティビティ
 extern int Element_patch[MAX_N_ELEMENT];                                 // 要素がどのパッチに属しているか示す配列(要素番号は1つのモデルで通し番号)
-// extern int No_Controlpoint_in_patch[MAX_N_PATCH];
-extern int No_Control_point_ON_ELEMENT[10000];
 
 extern int Node_To_Node[K_DIVISION_LENGE][10000], Total_Control_Point_To_Node[K_DIVISION_LENGE]; //ある節点に関係する節点番号s
 
@@ -103,21 +96,30 @@ extern int Patch_mesh[MAX_N_PATCH];     // パッチがどのメッシュ内に�
 // extern int Total_Element_on_mesh[MAX_N_MESH];
 // extern int Total_Element_to_mesh[MAX_N_MESH + 1];
 // extern int Total_Element_to_Now;
-extern int El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]; // メッシュ内でのコントロールポイント配列
 
-extern int Total_Constraint_all_mesh;
-extern int Total_Constraint_on_mesh[MAX_N_MESH];
-extern int Total_Constraint_to_mesh[MAX_N_MESH + 1];
-extern int Total_Load_on_mesh[MAX_N_MESH];
-extern int Total_Load_to_mesh[MAX_N_MESH + 1];
-extern int Total_DistributeForce_on_mesh[MAX_N_MESH];
-extern int Total_DistributeForce_to_mesh[MAX_N_MESH + 1];
+// extern int Total_Constraint_all_mesh;
+// extern int Total_Constraint_on_mesh[MAX_N_MESH];
+// extern int Total_Constraint_to_mesh[MAX_N_MESH + 1];
+// extern int Total_Load_on_mesh[MAX_N_MESH];
+// extern int Total_Load_to_mesh[MAX_N_MESH + 1];
+// extern int Total_DistributeForce_on_mesh[MAX_N_MESH];
+// extern int Total_DistributeForce_to_mesh[MAX_N_MESH + 1];
+// extern double Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
+// extern int Order[MAX_N_PATCH][DIMENSION];
+// extern int No_knot[MAX_N_PATCH][DIMENSION];
+// extern int No_Control_point[MAX_N_PATCH][DIMENSION];
+// extern int Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]; // バッチとコントロールポイント番号の要素コネクティビティ
+// extern int No_Controlpoint_in_patch[MAX_N_PATCH];
+// extern int No_Control_point_ON_ELEMENT[10000];
+
+// extern double Control_Coord[DIMENSION][MAX_N_NODE];
+// extern double Control_Weight[MAX_N_NODE];
+
+extern int El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]; // メッシュ内でのコントロールポイント配列
 extern int Constraint_ID[MAX_N_NODE * DIMENSION];
 extern int Constraint_Node_Dir_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT][2];
 extern double Value_of_Constraint_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT];
 
-extern double Control_Coord[DIMENSION][MAX_N_NODE];
-extern double Control_Weight[MAX_N_NODE];
 
 extern int real_Total_Element_on_mesh[MAX_N_MESH];
 extern int real_Total_Element_to_mesh[MAX_N_MESH + 1];

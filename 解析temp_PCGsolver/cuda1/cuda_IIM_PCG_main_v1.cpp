@@ -65,6 +65,9 @@ int main(int argc, char **argv)
 	int *Total_Control_Point_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));	// メッシュ[]までのコントロールポイント数(メッシュ[]内のコントロールポイント数は含まない)
 	int *Total_Element_on_mesh = (int *)malloc(sizeof(int) * (Total_mesh));				// 各メッシュ上の要素数
 	int *Total_Element_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));			// メッシュ[]までの要素数(メッシュ[]内の要素数は含まない)
+	int *Total_Constraint_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
+	int *Total_Load_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
+	int *Total_DistributeForce_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
 
 	// ファイル読み込み1回目
     for (tm = 0; tm < Total_mesh; tm++)
@@ -78,6 +81,12 @@ int main(int argc, char **argv)
 	int *No_knot = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// No_knot[MAX_N_PATCH][DIMENSION]
 	int *No_Control_point = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));		// Order[MAX_N_PATCH][DIMENSION]
 	int *No_Controlpoint_in_patch = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));			// No_Controlpoint_in_patch[MAX_N_PATCH]
+	int *Patch_controlpoint = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
+	int *No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
+	double *Node_Coordinate = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh] * (DIMENSION + 1));	// Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
+	double *Control_Coord_x = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); //Control_Coord[DIMENSION][MAX_N_NODE];
+	double *Control_Coord_y = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); //Control_Coord[DIMENSION][MAX_N_NODE];
+	double *Control_Weight = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh]));	//Control_Weight[MAX_N_NODE];
 
 	// ファイル読み込み2回目
 	for (tm = 0; tm < Total_mesh; tm++)
@@ -87,7 +96,6 @@ int main(int argc, char **argv)
 	}
 
 	// memory allocation
-	int *Patch_controlpoint = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
 
 	// ファイル読み込み3回目
 	for (tm = 0; tm < Total_mesh; tm++)

@@ -4,14 +4,17 @@ compile:	mkdir_temp cuda_IIM_PCG_v1.x
 	mv ./cuda_IIM_PCG_v1.lib ./temp/cuda_IIM_PCG_v1.lib
 
 cuda_IIM_PCG_v1.x:	cuda_IIM_PCG_main_v1 cuda_IIM_PCG_sub_v1 myheader.h
-	nvcc -O1 -Xcompiler "/wd 4819" -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.o cuda_IIM_PCG_sub_v1.obj
-	# nvcc -O1 -Xcompiler "/wd 4819" -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.cu
+	nvcc -O1 -Xcompiler "/wd 4819" -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.cu
+	# nvcc -O1 -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.o -lcudart
+	# nvcc -O1 -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.o cuda_IIM_PCG_sub_v1.o -lcudart
+	# g++ -O1 -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.o cuda_IIM_PCG_sub_v1.o
+	# nvcc -O1 -Xcompiler "/wd 4819" -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.o cuda_IIM_PCG_sub_v1.o -lcudart
 
 cuda_IIM_PCG_main_v1:	cuda_IIM_PCG_main_v1.cpp
 	g++ -c cuda_IIM_PCG_main_v1.cpp
 
-cuda_IIM_PCG_sub_v1:	cuda_IIM_PCG_sub_v1.cu
-	nvcc -c cuda_IIM_PCG_sub_v1.cu
+cuda_IIM_PCG_sub_v1:	cuda_IIM_PCG_sub_v1.cpp
+	g++ -c cuda_IIM_PCG_sub_v1.cpp
 
 mkdir_temp:
 	mkdir -p temp
