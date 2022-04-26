@@ -18,28 +18,20 @@
 #include <assert.h>
 #include <time.h>
 
-#include <iostream>
-#include <bits/stdc++.h>
-
 // header
 #include "s_IGA_header.h"
 #include "s_IGA_main.h"
-
-using namespace std;
 
 int main(int argc, char **argv)
 {
 	clock_t start, end, t1;
 
 	int i, j, k;
-	int re;
 	int Load_Node_Dir[MAX_N_LOAD][2];
 	double Value_of_Load[MAX_N_LOAD];
-	int Total_Constraint = 0, Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
+	int Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
 	double Value_of_Constraint[MAX_N_CONSTRAINT];
-	int Total_DistributeForce = 0;
 	int K_Whole_Size = 0;
-	int El_No = 0;
     double element_loc[DIMENSION];
 
 	int Total_mesh = argc - 1;
@@ -64,6 +56,7 @@ int main(int argc, char **argv)
 	start = clock();
 
 	// memory allocation
+	int *Total_Knot_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1);
 	int *Total_Patch_on_mesh = (int *)malloc(sizeof(int) * (Total_mesh));				// 各メッシュ上のパッチ数
 	int *Total_Patch_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));			// メッシュ[]までのパッチ数（メッシュ[]内のパッチ数は含まない）
 	int *Total_Control_Point_on_mesh = (int *)malloc(sizeof(int) * (Total_mesh));		// 各メッシュ上のコントロールポイント数
@@ -77,25 +70,23 @@ int main(int argc, char **argv)
 	// ファイル読み込み1回目
     for (tm = 0; tm < Total_mesh; tm++)
     {
-		Get_input_1(tm, E, nu, Total_Patch_on_mesh, Total_Patch_to_mesh, Total_Control_Point_on_mesh, Total_Control_Point_to_mesh,
-					Total_Element_on_mesh, Total_Element_to_mesh);
+		Get_input_1(tm, Total_Knot_to_mesh,
+					Total_Patch_on_mesh, Total_Patch_to_mesh,
+					Total_Control_Point_on_mesh, Total_Control_Point_to_mesh, argv);
 	}
 	
 	// memory allocation
 	int *Order = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// Order[MAX_N_PATCH][DIMENSION]
 	int *No_knot = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// No_knot[MAX_N_PATCH][DIMENSION]
+	double *Position_Knots = (double *)malloc(sizeof(double) * Total_Knot_to_mesh[Total_mesh]);								// Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
 	int *No_Control_point = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));		// Order[MAX_N_PATCH][DIMENSION]
 	int *No_Controlpoint_in_patch = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));			// No_Controlpoint_in_patch[MAX_N_PATCH]
 	int *Patch_controlpoint = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
 	int *No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
 	double *Node_Coordinate = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh] * (DIMENSION + 1));	// Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
+	double *Control_Coord_x = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
+	double *Control_Coord_y = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
 	double *Control_Weight = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh]));	// Control_Weight[MAX_N_NODE];
-
-	// smart pointer for s_IGA function :(
-	vector<vector<vector<double>>> data(3, vector<vector<double>>(3, vector<double>(3)));
-	vector<vector<double>> Control_Coord(3, vector<double>(4));
-	double *Control_Coord = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
-
 
 	// ファイル読み込み2回目
 	for (tm = 0; tm < Total_mesh; tm++)
@@ -106,15 +97,9 @@ int main(int argc, char **argv)
 
 	// memory allocation
 
-	// ファイル読み込み3回目
-	for (tm = 0; tm < Total_mesh; tm++)
-    {
-	    Get_input_3(tm, Load_Node_Dir,
-		Value_of_Load, &Total_Constraint, Constraint_Node_Dir, Value_of_Constraint, &Total_DistributeForce, argv);
-	}
-
 	// memory free
 	free(Patch_controlpoint);
+
 
 	// ncheck_over_parameter
 	printf("\ncheck_over_parameter;%d\n\n", check_over_parameter);
@@ -630,6 +615,7 @@ int main(int argc, char **argv)
 	double DeltaA;
 	J_Integral_Input_Data(Total_Control_Point_to_mesh[Total_mesh],&Location_Crack_Tip_Patch,Location_Local_Coordinates,Virtual_Crack_Extension_Ct_Pt, &DeltaA);
 
+	int El_No = 0;
 	Make_Displacement_grad(El_No);
 	printf("Finish Make_Displacement_grad\n");
 	Make_StrainEnergyDensity_2D();
@@ -641,6 +627,7 @@ int main(int argc, char **argv)
 	
 	Make_gauss_array(0);
 
+	int re;
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
         e = real_element[re];
 		for(N = 0; N < GP_2D; N++){

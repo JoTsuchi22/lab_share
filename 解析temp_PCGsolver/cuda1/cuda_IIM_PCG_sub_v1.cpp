@@ -5,17 +5,12 @@
 #include <assert.h>
 #include <time.h>
 
-#include <iostream>
-#include <bits/stdc++.h>
-
 // header
 #include "s_IGA_header.h"
 #include "s_IGA_sub.h"
 
-using namespace std;
-
 // ファイル読み込み1回目
-void Get_Input_1(int tm,
+void Get_Input_1(int tm, int *Total_Knot_to_mesh,
                  int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
                  int *Total_Control_Point_on_mesh, int *Total_Control_Point_to_mesh, char **argv)
 {
@@ -30,10 +25,10 @@ void Get_Input_1(int tm,
 	// 材料定数
 	fscanf(fp, "%lf %lf", E, nu);
 	fgets(s, 256, fp);
-	printf("E: %le, nu: %le\n", E, nu);
+	printf("E: %le, nu: %le\n", &E, &nu);
 
 	// パッチ数
-	fscanf(fp, "%d", temp_i);
+	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int No_Patch = temp_i;
 	printf("No_Patch: %d\n", temp_i);
@@ -42,7 +37,7 @@ void Get_Input_1(int tm,
 	printf("Total_Patch_to_mesh[%d] = %d\n", tm, Total_Patch_to_mesh[tm]);
 
 	// コントロールポイント数
-	fscanf(fp, "%d", temp_i);
+	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int Total_Control_Point = temp_i;
 	printf("Total_Control_Point: %d\n", temp_i);
@@ -50,11 +45,32 @@ void Get_Input_1(int tm,
 	Total_Control_Point_to_mesh[tm + 1] = Total_Control_Point_to_mesh[tm] + temp_i;
     printf("Total_Control_Point_to_mesh[%d] = %d\n", tm, Total_Control_Point_to_mesh[tm]);
 
+	// 各方向の次数(スキップ)
+	for (i = 0; i < No_Patch; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+            fscanf(fp, "%d", &temp_i);
+		}
+	}
+	fgets(s, 256, fp);
+
+	// ノット数
+	Total_Knot_to_mesh[tm + 1] = 0;
+	for (i = 0; i < No_Patch; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+            fscanf(fp, "%d", &temp_i);
+			Total_Knot_to_mesh[tm + 1] += temp_i;
+		}
+	}
+
 	fclose(fp);
 }
 
 // ファイル読み込み2回目
-void Get_Input_2(int tm,
+void Get_Input_2(int tm, int *Total_Knot_to_mesh,
                  int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
                  int *Total_Control_Point_on_mesh, int *Total_Control_Point_to_mesh,
 				 int *Total_Element_on_mesh, int Total_Element_to_mesh,
@@ -66,6 +82,7 @@ void Get_Input_2(int tm,
 				 char **argv)
 {
 	char s[256];
+	int temp_count;
 	int temp_i;
 	double temp_d;
 
@@ -74,16 +91,16 @@ void Get_Input_2(int tm,
 	fp = fopen(argv[tm + 1], "r");
 
 	// 材料定数(スキップ)
-	fscanf(fp, "%lf %lf", temp_d, temp_d);
+	fscanf(fp, "%lf %lf", &temp_d, &temp_d);
 	fgets(s, 256, fp);
 
 	// パッチ数(スキップ)
-	fscanf(fp, "%d", temp_i);
+	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int No_Patch = temp_i;
 
 	// コントロールポイント数(スキップ)
-	fscanf(fp, "%d", temp_i);
+	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int Total_Control_Point = temp_i;
 
@@ -92,7 +109,7 @@ void Get_Input_2(int tm,
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-            fscanf(fp, "%d", temp_i);
+            fscanf(fp, "%d", &temp_i);
 			Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
 		    printf("Order[%d] = %d\n", (i + Total_Patch_to_mesh[tm]) * DIMENSION + j, Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]);
 		}
@@ -104,7 +121,7 @@ void Get_Input_2(int tm,
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-            fscanf(fp, "%d", temp_i);
+            fscanf(fp, "%d", &temp_i);
 			No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
 		    printf("No_knot[%d] = %d\n", No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j], No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]);
 		}
@@ -116,7 +133,7 @@ void Get_Input_2(int tm,
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-    		fscanf(fp, "%d", temp_i);
+    		fscanf(fp, "%d", &temp_i);
 			No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
 			printf("No_Control_point[%d] = %d\n", No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j], No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]);
 		}
@@ -150,28 +167,30 @@ void Get_Input_2(int tm,
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		printf("No_Controlpoint_in_patch[%d] = %d\t", i + Total_Patch_to_mesh[tm] ,No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]]);
+		printf("No_Controlpoint_in_patch[%d] = %d\t", i + Total_Patch_to_mesh[tm], No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]]);
 	}
 	printf("\n");
 
 	// パッチコネクティビティ
+	temp_count = 0;
 	for (i = 0; i < No_Patch; i++)
 	{
 		for (j = 0; j < No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]]; j++)
 		{
-			fscanf(fp, "%d", temp_i);
-			Patch_controlpoint[Total_Control_Point_to_mesh[tm] + i * No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]] + j] = temp_i;
+			fscanf(fp, "%d", &temp_i);
+			Patch_controlpoint[Total_Control_Point_to_mesh[tm] + temp_count + j] = temp_i;
 			if (tm > 0)
 			{
-				Patch_controlpoint[Total_Control_Point_to_mesh[tm] + i * No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]] + j] += Total_Control_Point_to_mesh[tm];
+				Patch_controlpoint[Total_Control_Point_to_mesh[tm] + temp_count + j] += Total_Control_Point_to_mesh[tm];
 			}
 		}
+		temp_count += No_Controlpoint_in_patch[i + Total_Patch_to_mesh[tm]]
 	}
 	fgets(s, 256, fp);
 
 	// 境界条件
 	int Total_Constraint, Total_Load, Total_DistributeForce;
-	fscanf(fp, "%d %d %d", Total_Constraint, Total_Load, Total_DistributeForce);
+	fscanf(fp, "%d %d %d", &Total_Constraint, &Total_Load, &Total_DistributeForce);
 	Total_Constraint_to_mesh[tm + 1] = Total_Constraint_to_mesh[tm] + Total_Constraint;
 	Total_Load_to_mesh[tm + 1] = Total_Load_to_mesh[tm] + Total_Load;
 	Total_DistributeForce_to_mesh[tm + 1] = Total_DistributeForce_to_mesh[tm] + Total_DistributeForce;
@@ -182,15 +201,18 @@ void Get_Input_2(int tm,
 	fgets(s, 256, fp);
 
 	// ノットベクトルの読み込み
+	temp_count = 0;
 	for (i = 0; i < No_Patch; i++)
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
 			for (k = 0; k < No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]; k++)
 			{
-				fscanf(fp, "%lf", &Position_Knots[l+Total_Patch_to_mesh[tm]][j][k]);
-				printf("%le\t", Position_Knots[l+Total_Patch_to_mesh[tm]][j][k]);
+				fscanf(fp, "%lf", &temp_d);
+				Position_Knots[Total_Knot_to_mesh[tm] + temp_count + k] = temp_d;
+				printf("%le\t", Position_Knots[Total_Knot_to_mesh[tm] + temp_count + k]);
 			}
+			temp_count += No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j];
 			printf("\n");
 		}
 	}
@@ -227,10 +249,10 @@ void Get_Input_2(int tm,
 	// 節点座標
 	for (i = 0; i < Total_Control_Point; i++)
 	{
-		fscanf(fp, "%d", temp_i);
+		fscanf(fp, "%d", &temp_i);
 		for (j = 0; j < DIMENSION + 1; j++)
 		{
-			fscanf(fp, "%lf", temp_d);
+			fscanf(fp, "%lf", &temp_d);
 			Node_Coordinate[(temp_i + Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j] = temp_d;
 		}
 	}
@@ -256,53 +278,45 @@ void Get_Input_2(int tm,
 	fgets(s, 256, fp);
 
 	// 拘束
-	for (i = 0; i < *Total_Constraint; i++)
-		fscanf(fp, "%d %d %le",
-					&Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0],
-					&Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][1],
-					&Value_of_Constraint[i+Total_Constraint_to_mesh[tm]]);
-	for (i = 0; i < *Total_Constraint; i++)
+	for (i = 0; i < Total_Constraint; i++)
+		fscanf(fp, "%d %d %lf",
+			   &Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0],
+			   &Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][1],
+			   &Value_of_Constraint[i+Total_Constraint_to_mesh[tm]]);
+	
+	for (i = 0; i < Total_Constraint; i++)
     {
-		Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0]
-			= Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0] + Total_Control_Point_to_mesh[tm];
+		Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0] = Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0] + Total_Control_Point_to_mesh[tm];
 		Constraint_Node_Dir_on_mesh[tm][i][0] = Constraint_Node_Dir[i][0];
 		Constraint_Node_Dir_on_mesh[tm][i][1] = Constraint_Node_Dir[i][1];
         Value_of_Constraint_on_mesh[tm][i] = Value_of_Constraint[i];
         printf("Constraint_Node_Dir[%d][0]= %d Constraint_Node_Dir[%d][1]=%d Value_of_Constraint[%d]= %e \n",
-				i+Total_Constraint_to_mesh[tm],
-				Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0],
-				i+Total_Constraint_to_mesh[tm],
-				Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][1],
-				i+Total_Constraint_to_mesh[tm],
-				Value_of_Constraint[i+Total_Constraint_to_mesh[tm]]);
+			   i+Total_Constraint_to_mesh[tm], Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][0],
+			   i+Total_Constraint_to_mesh[tm],	Constraint_Node_Dir[i+Total_Constraint_to_mesh[tm]][1],
+			   i+Total_Constraint_to_mesh[tm], Value_of_Constraint[i+Total_Constraint_to_mesh[tm]]);
     }
     fgets(s, 256, fp);
 
 	// 荷重
-	for (i = 0; i < *Total_Load; i++)
+	for (i = 0; i < Total_Load; i++)
 	{
-		fscanf(fp, "%d %d %le",
-					&Load_Node_Dir[i+Total_Load_to_mesh[tm]][0],
-					&Load_Node_Dir[i+Total_Load_to_mesh[tm]][1],
-					&Value_of_Load[i+Total_Load_to_mesh[tm]]);
-		Load_Node_Dir[i+Total_Load_to_mesh[tm]][0]
-			= Load_Node_Dir[i+Total_Load_to_mesh[tm]][0] + Total_Control_Point_to_mesh[tm];
+		fscanf(fp, "%d %d %lf",
+			   &Load_Node_Dir[i+Total_Load_to_mesh[tm]][0],
+			   &Load_Node_Dir[i+Total_Load_to_mesh[tm]][1],
+			   &Value_of_Load[i+Total_Load_to_mesh[tm]]);
+		Load_Node_Dir[i+Total_Load_to_mesh[tm]][0] = Load_Node_Dir[i+Total_Load_to_mesh[tm]][0] + Total_Control_Point_to_mesh[tm];
 
 		printf("Load_Node_Dir[%d][0]= %d Load_Node_Dir[%d][1]= %d Value_of_Load[%d]= %e\n",
-				i+Total_Load_to_mesh[tm],
-				Load_Node_Dir[i+Total_Load_to_mesh[tm]][0],
-				i+Total_Load_to_mesh[tm],
-				Load_Node_Dir[i+Total_Load_to_mesh[tm]][1],
-				i+Total_Load_to_mesh[tm],
-				Value_of_Load[i+Total_Load_to_mesh[tm]]);
+			   i+Total_Load_to_mesh[tm], Load_Node_Dir[i+Total_Load_to_mesh[tm]][0],
+			   i+Total_Load_to_mesh[tm], Load_Node_Dir[i+Total_Load_to_mesh[tm]][1],
+			   i+Total_Load_to_mesh[tm], Value_of_Load[i+Total_Load_to_mesh[tm]]);
 	}
-
-	int iPatch, iCoord, type_load;
-	double Range_Coord[2], val_Coord, Coeff_Dist_Load[3];
-
 	fgets(s, 256, fp);
 
-	for (i = 0; i < *Total_DistributeForce; i++)
+	int type_load, iPatch, iCoord;
+	double val_Coord, Range_Coord[2], Coeff_Dist_Load[3];	
+
+	for (i = 0; i < Total_DistributeForce; i++)
 	{
 		fscanf(fp, "%d %d %d %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &val_Coord, &Range_Coord[0], &Range_Coord[1], &Coeff_Dist_Load[0], &Coeff_Dist_Load[1], &Coeff_Dist_Load[2]);
 		printf("Distibuted load nober: %d\n", i);
@@ -1354,7 +1368,7 @@ int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *sol
 
 void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec)
 {
-	int i/*, j*/;
+	int i;
 	// int icount = 0;
 
 	// 対角スケーリング 前処理
@@ -1601,10 +1615,8 @@ void PCG_Solver(int ndof, int max_itetarion, double eps)
 }
 
 
-////////////////////////////////////////////////////////////////////////
-/////////////////基底関数
-////////////////////////////////////////////////////////////////////////
-//IGAの基底関数
+// 基底関数
+// IGAの基底関数
 void ShapeFunction1D(double Position_Data_param[DIMENSION], int j, int e)
 {
 
@@ -1913,19 +1925,11 @@ double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No)
 	{
 		if (xez == 0)
 		{
-			//dR = dShape_func1[Controlpoint_of_Element[El_No][I_No]] * dShapeFunc_from_paren(xez, El_No);
-			dR =
-                dShape_func1[Controlpoint_of_Element[El_No][I_No]]
-                * dShapeFunc_from_paren(xez, El_No);
-			//printf("dShape_func1[%d]:%le\n",Controlpoint_of_Element[El_No][I_No],dShape_func1[Controlpoint_of_Element[El_No][I_No]]);
+			dR = dShape_func1[Controlpoint_of_Element[El_No][I_No]] * dShapeFunc_from_paren(xez, El_No);
 		}
 		else if (xez == 1)
 		{
-			//dR = dShape_func2[Controlpoint_of_Element[El_No][I_No]] * dShapeFunc_from_paren(xez, El_No);
-			dR =
-                dShape_func2[Controlpoint_of_Element[El_No][I_No]]
-                * dShapeFunc_from_paren(xez, El_No);
-			//printf("dShape_func2[%d]:%le\n",Controlpoint_of_Element[El_No][I_No],dShape_func2[Controlpoint_of_Element[El_No][I_No]]);
+			dR = dShape_func2[Controlpoint_of_Element[El_No][I_No]] * dShapeFunc_from_paren(xez, El_No);
 		}
 		//printf("dR%lf\n",dR);
 	}
@@ -1938,64 +1942,12 @@ double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No)
 	//printf("Controlpoint_of_Element[%d][%d]:%d\t",El_No,I_No,Controlpoint_of_Element[El_No][I_No]);
 	//printf("dShape_func1:%le\t",dShape_func1[Controlpoint_of_Element[El_No][I_No]]);
 	//printf("dShape_func2:%le\n",dShape_func2[Controlpoint_of_Element[El_No][I_No]]);
-
-	/*for (i = 0; i < DIMENSION; i++) {
-	printf("Local_coord[%d]=%lf\n",i,Local_coord[i] );
-}*/
 	//printf("dR:%le\t", dR);
 	return dR;
 }
-/*
-//形状関数
-double N_Quad_4(int I_No, double Local_coord[DIMENSION] )
-{
-	double N;
-	if(I_No==0) N= (1.0+Local_coord[0])*(1.0-Local_coord[1])/4.0;
-	else if(I_No==1) N = (1.0+Local_coord[0])*(1.0+Local_coord[1])/4.0;
-	else if(I_No==2) N = (1.0-Local_coord[0])*(1.0+Local_coord[1])/4.0;
-	else if(I_No==3) N = (1.0-Local_coord[0])*(1.0-Local_coord[1])/4.0;
-	else N = ERROR;
-	return N;
-}
-
-//形状関数の偏微分(I_No:節点番号 xez:偏微分の分母部分0ξ1η2ζ)
-double dN_Quad_4(int I_No, double Local_coord[DIMENSION], int xez)
-{
-	double dN;
-	if(xez!=0 && xez!=1) dN = ERROR;
-
-	else if(I_No==0)
-		{
-		if( xez == 0 )	    dN = (1.0-Local_coord[1])/4.0;
-		else if( xez == 1 ) dN = (1.0+Local_coord[0])*(-1)/4.0;
-		}
-
-	else if(I_No==1)
-		{
-		if( xez == 0 )      dN = (1.0+Local_coord[1])/4.0;
-		else if( xez == 1 ) dN = (1.0+Local_coord[0])/4.0;
-		}
-
-	else if(I_No==2)
-		{
-		if( xez == 0 )      dN = (1.0+Local_coord[1])*(-1)/4.0;
-		else if( xez == 1 ) dN = (1.0-Local_coord[0])/4.0;
-		}
-
-	else if(I_No==3)
-		{
-		if( xez == 0 )      dN = (1.0-Local_coord[1])*(-1)/4.0;
-		else if( xez == 1 ) dN = (1.0-Local_coord[0])*(-1)/4.0;
-		}
-
-	else dN = ERROR;
-
-	return dN;
-}
-*/
 
 
-//逆行列を元の行列に代入
+// 逆行列を元の行列に代入
 double InverseMatrix_2D(double M[2][2])
 {
 	int i, j;
@@ -2047,10 +1999,8 @@ double InverseMatrix_3X3(double M[3][3])
 }
 
 
-////////////////////////////////////////////////////////////////////////
-/////////////////Newton-Raphson法
-////////////////////////////////////////////////////////////////////////
-//from NURBSviewer
+// Newton-Raphson法
+// from NURBSviewer
 double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
                  double *output, double *d_output) {
 	int p, j;

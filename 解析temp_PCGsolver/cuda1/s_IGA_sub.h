@@ -31,7 +31,6 @@ extern double shape_func[MAX_N_NODE];
 extern double dShape_func1[MAX_N_NODE];
 extern double dShape_func2[MAX_N_NODE];
 extern double dShape[DIMENSION][MAX_N_NODE];
-extern double Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
 extern double Position_Data_param[DIMENSION];
 
 extern double Displacement[MAX_K_WHOLE_SIZE];
@@ -115,11 +114,12 @@ extern int Patch_mesh[MAX_N_PATCH];     // パッチがどのメッシュ内に�
 // extern double Control_Coord[DIMENSION][MAX_N_NODE];
 // extern double Control_Weight[MAX_N_NODE];
 
+// extern double Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
+
 extern int El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]; // メッシュ内でのコントロールポイント配列
 extern int Constraint_ID[MAX_N_NODE * DIMENSION];
 extern int Constraint_Node_Dir_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT][2];
 extern double Value_of_Constraint_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT];
-
 
 extern int real_Total_Element_on_mesh[MAX_N_MESH];
 extern int real_Total_Element_to_mesh[MAX_N_MESH + 1];
@@ -240,10 +240,7 @@ extern int graph_patch_n; // グラフ作成用出力ファイル内のパッチ
 extern int DM;                   // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 extern int check_over_parameter; // 要素の重なりの判定(要素の物体上の端点:0 ガウス点:1)
 
-extern double E, nu;
-
 extern int n_patch;
-
 
 extern FILE *fp;
 
