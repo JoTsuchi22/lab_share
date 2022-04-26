@@ -18,9 +18,14 @@
 #include <assert.h>
 #include <time.h>
 
+#include <iostream>
+#include <bits/stdc++.h>
+
 // header
 #include "s_IGA_header.h"
 #include "s_IGA_main.h"
+
+using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -84,9 +89,13 @@ int main(int argc, char **argv)
 	int *Patch_controlpoint = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
 	int *No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
 	double *Node_Coordinate = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh] * (DIMENSION + 1));	// Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
-	double *Control_Coord_x = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); //Control_Coord[DIMENSION][MAX_N_NODE];
-	double *Control_Coord_y = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); //Control_Coord[DIMENSION][MAX_N_NODE];
-	double *Control_Weight = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh]));	//Control_Weight[MAX_N_NODE];
+	double *Control_Weight = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh]));	// Control_Weight[MAX_N_NODE];
+
+	// smart pointer for s_IGA function :(
+	vector<vector<vector<double>>> data(3, vector<vector<double>>(3, vector<double>(3)));
+	vector<vector<double>> Control_Coord(3, vector<double>(4));
+	double *Control_Coord = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
+
 
 	// ファイル読み込み2回目
 	for (tm = 0; tm < Total_mesh; tm++)

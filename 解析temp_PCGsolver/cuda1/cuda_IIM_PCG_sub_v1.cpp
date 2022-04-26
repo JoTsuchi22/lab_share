@@ -5,9 +5,14 @@
 #include <assert.h>
 #include <time.h>
 
+#include <iostream>
+#include <bits/stdc++.h>
+
 // header
 #include "s_IGA_header.h"
 #include "s_IGA_sub.h"
+
+using namespace std;
 
 // ファイル読み込み1回目
 void Get_Input_1(int tm,
@@ -3943,17 +3948,11 @@ int ele_check(int patch_n, double para_coord[DIMENSION])
 			//Local要素の頂点がGlobal要素内部にある場合
 	        if ( para_coord[j] < Position_Knots[patch_n][j][Order[patch_n][j]+k] )
             {
-                //printf("if\nPosition_Knots[%d][%d][%d]=%le\n",
-                //        patch_n,j,Order[patch_n][j]+k,Position_Knots[patch_n][j][Order[patch_n][j]+k]);
                 int kk = 0;
                 for (kk = 0; kk < k + 1; kk++)
                 {
-                    //if ( RangeCheck_flag == 1 ) break;
                     if (para_coord[j] > Position_Knots[patch_n][j][Order[patch_n][j] + k - kk])
                     {
-                        //printf("ifif\nPosition_Knots[%d][%d][%d]=%le\n",
-                        //        patch_n,j,Order[patch_n][j]+k-kk,
-						//		Position_Knots[patch_n][j][Order[patch_n][j]+k-kk]);
                         temp_ad[j][l] = k - kk;
 						//printf("temp_ad[%d][%d]=%d\n",j,l,temp_ad[j][l]);
 						l++;
@@ -4213,12 +4212,6 @@ void Check_coupled_Glo_Loc_element_for_end(double element_loc[DIMENSION], int me
 		{
 			NNLOVER[e] = 0;
 		}
-		/*
-		for (i = 0; i < Total_n_elements; i++)
-		{
-			printf("element_n_point[%d]=%d\n",i,element_n_point[i]);
-		}
-		*/
 		printf("NNLOVER[%d]=%d\n",e,NNLOVER[e]);
 
 		for (i = 0; i < NNLOVER[e]; i++)
@@ -4358,19 +4351,6 @@ void Check_coupled_Glo_Loc_element_for_Gauss(double element_loc[DIMENSION], int 
 				sort(Total_n_elements);
 				//重複削除
 				NNLOVER[e] = duplicate_delete(Total_n_elements, e); //NNLOVER:要素eに重なる要素の総数
-
-				/*
-				for (i = 0; i < Total_n_elements; i++)
-				{
-					printf("element_n_point[%d]=%d\n",i,element_n_point[i]);
-				}
-				*/
-				// printf("NNLOVER[%d]=%d\n",e,NNLOVER[e]);
-
-				// for (i = 0; i < NNLOVER[e]; i++)
-				// {
-				// 	// printf("NELOVER[%d][%d]=%d\n",e,i,NELOVER[e][i]);
-				// }
 			}
 		}
 	}
@@ -4445,250 +4425,6 @@ void Make_Loc_Glo()
 	}
 }
 
-/*
-////////////////////////////////////////////////////////////////
-//////////////////AVS出力///////////////////////////////////////
-////////////////////////////////////////////////////////////////
-
-//節点座標と要素の節点番号の書き込み
-void AVS_inputInp_Quad_4( int Total_Element, int Total_Control_Point ){
-	int i;
-
-	fprintf(fp,"%d	%d\n", Total_Control_Point, Total_Element);	//総節点数,総要素数
-	for(i = 0; i < Total_Control_Point; i++ ){
-		fprintf(fp,"%d	%e	%e	%e\n", i+1,Node_Coordinate[i][0],Node_Coordinate[i][1],0.0);
-														//節点番号(1〜),ＸＹＺ座標(２次元だとZ=0と記述
-	}
-	for( i = 0; i < Total_Element; i++ ){
-		fprintf(fp,"%d	0	quad	", i+1);					//要素番号(1〜),材料番号(0),要素の形
-		//要素タイプごとに順番を確認のとこ
-		fprintf(fp,"%d	", Controlpoint_of_Element[i][2]+1);
-		fprintf(fp,"%d	", Controlpoint_of_Element[i][3]+1);
-		fprintf(fp,"%d	", Controlpoint_of_Element[i][0]+1);
-		fprintf(fp,"%d	", Controlpoint_of_Element[i][1]+1);
-		fprintf(fp,"\n");
-	}
-
-}
-//計算結果のデータの書き込み
-void AVS_inputAns_2D( int Total_Control_Point, int Total_Element ){
-
-	int i,j,k, NodeDataCom = 6;
-	int ElementDataCom = 12;	//N_STRAIN + N_STRESS + 4
-	double Str;
-
-	fprintf(fp,"%d	%d\n", NodeDataCom, ElementDataCom);	//各節点に存在するデータ数,各要素に存在するデータ数
-
-	//節点のデータの書き込み(変位ＸＹＺ方向＋自由利用分XYZ)
-	fprintf(fp,"%d	", NodeDataCom);						//節点データ成分数
-	for( i = 0; i < NodeDataCom; i++ )
-		fprintf(fp,"1	");								//各成分の構成数
-	fprintf(fp,"\n");
-
-	fprintf(fp,"DisX,\nDisY,\nDisZ,\nOpX,\nOpY,\nOpZ,\n");		//各節点データ成分のラベル
-	for( i = 0; i < Total_Control_Point; i++ ){
-		fprintf(fp,"%d	%e	%le	", i+1, Displacement[i*DIMENSION], Displacement[i*DIMENSION+1]);
-		fprintf(fp,"%e	%le	%le	%le\n", 0.0, 0.0, 0.0, 0.0 );
-	}
-
-	//要素データの書き込み(応力＋自由利用２,歪＋自由利用２)
-	fprintf(fp,"%d	", ElementDataCom);						//要素データ成分数
-	for( i = 0; i < ElementDataCom; i++ )
-		fprintf(fp,"1	");									//各成分の構成数
-	fprintf(fp,"\n");
-
-	fprintf(fp,"SigXX,\nSigYY,\nSigXY,\nSigZZ,\nSigOp1,\nSigOp2,\n");		//各節点データ成分のラベル
-	fprintf(fp,"IpuXX,\nIpuYY,\nIpuXY,\nIpuZZ,\nIpuOp1,\nIpuOp2,\n");		//各節点データ成分のラベル
-
-	for( i = 0; i < Total_Element; i++ ){
-		fprintf(fp,"%d	", i+1);
-		for( j = 0; j < N_STRESS; j++ ){
-			Str = 0.0;
-			for( k = 0; k < POW_Ng; k++ )		Str += Stress[i][k][j];
-			fprintf(fp,"	%e",Str / (double)(POW_Ng) );
-		}
-		for( ; j < 6; j++ )				fprintf(fp,"	%e", 0.0 );
-
-		for( j = 0; j < N_STRAIN; j++ ){
-			Str = 0.0;
-			for( k = 0; k < POW_Ng; k++ )
-				Str += Strain[i][k][j];
-			fprintf(fp,"	%e",Str / (double)(POW_Ng) );
-		}
-		for( ; j < 6; j++ )				fprintf(fp,"	%e", 0.0 );
-
-		fprintf(fp,"\n");
-	}
-}
-
-void Make_Output( int Total_Control_Point, int Total_Element ){
-	int StepMax=1, StepNo=1;
-
-	//AVS用のinpファイルの制作
-	fp = fopen( "AVS/1_1_force_120_0122.inp", "w");
-	fprintf(fp,"# AVS field file\n");					//注釈文(必ず先頭に「#」)
-	fprintf(fp,"%d\n", StepMax);						//ステップ数の設定
-	fprintf(fp,"data\n" );								//データの繰り返しタイプ	data,geom,data_geom
-
-	fprintf(fp,"step%d\n", StepNo);					//ステップ番号
-	AVS_inputInp_Quad_4( Total_Element, Total_Control_Point);	//節点座標と要素の取得
-	AVS_inputAns_2D( Total_Control_Point, Total_Element );			//各種計算結果の取得
-	printf("Finish Make_AVS_Step%d\n",StepNo);
-
-	fclose(fp);
-}
-*/
-
-/*
-////////////////////////////////////////////////////////////////
-//////////////////J積分/////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-
-
-
-//B_xマトリックスを求める関数
-int Make_B_x_Matrix_Quad_4(double B_x[DIMENSION][KIEL_SIZE], double Local_coord[DIMENSION], double X[No_Control_point_ON_ELEMENT][DIMENSION], double *J ){
-	double a[DIMENSION][DIMENSION], b[DIMENSION][No_Control_point_ON_ELEMENT];
-	int i,j,k;
-
-	Jacobian_Quad_4( a, Local_coord, X );
-
-	*J = InverseMatrix_2D( a );
-	if( *J <= 0 )return -999;
-
-	for( i = 0; i < DIMENSION; i++ ){
-		for( j = 0; j < No_Control_point_ON_ELEMENT; j++ ){
-			b[i][j] = 0.0;
-			for( k = 0; k < DIMENSION; k++ ){
-				b[i][j] += a[k][i] * dN_Quad_4( j, Local_coord, k);
-			}
-		}
-	}
-	for( i = 0; i < No_Control_point_ON_ELEMENT; i++ ){
-		B_x[0][2*i] = b[0][i];	B_x[0][2*i+1] = 0.0;
-		B_x[1][2*i] = 0.0;		B_x[1][2*i+1] = b[0][i];
-	}
-	return 0;
-}
-
-
-
-
-
-
-
-void Make_Strain_x_Quad_4(double E, double nu, int Total_Element){
-	static double U[KIEL_SIZE];
-	static double B_x[DIMENSION][KIEL_SIZE],X[No_Control_point_ON_ELEMENT][DIMENSION],J;
-	double w[POW_Ng] = {1.0,1.0,1.0,1.0};
-	double G = 1/pow(3,0.5);
-	double Gxi[Total_Element][POW_Ng][DIMENSION] = { {{(1+G)/2,(1-G)/2},{(1+G)/2,(1+G)/2},{(1-G)/2,(1+G)/2},{(1-G)/2,(1-G)/2}},
-	 {{(1+G)/2,(1-G)/2},{(1+G)/2,(1+G)/2},{(1-G)/2,(1+G)/2},{(1-G)/2,(1-G)/2}}};
-
-	int N,e,i,j;
-
-	for( e = 0; e < Total_Element; e++ ){
-		for( N = 0; N < POW_Ng; N++)
-			for( i = 0; i < DIMENSION; i ++ )
-				Strain_x[e][N][i] = 0.0;
-		//Bマトリックスと各要素の変位を取得
-		for( i = 0; i < No_Control_point_ON_ELEMENT; i++ ){
-			for( j = 0; j < DIMENSION; j++ ){
-				U[ i*DIMENSION +j ] = Displacement[ Controlpoint_of_Element[e][i]*DIMENSION + j ];
-				X[i][j] = Node_Coordinate[ Controlpoint_of_Element[e][i] ][j];
-			}
-		}
-		//歪
-		for( N = 0; N < POW_Ng; N++ ){
-			Make_B_x_Matrix_Quad_4( B_x, Gxi[N], X ,&J );
-			for( i = 0; i < DIMENSION; i++ )
-				for( j = 0; j < KIEL_SIZE; j++ )
-					 Strain_x[e][N][i] += B_x[i][j] * U[j] * w[N];
-		}
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-//エネルギーモーメンタムテンソルを求める関数
-void Make_EMT(double E, double nu, int Total_Element){
-
-	int i, j, k;
-	double W;
-	double W_x[DIMENSION];
-
-	int K_D[DIMENSION] = {1, 0};
-	double W_K_D[DIMENSION];
-	double P_1j[DIMENSION];
-
-	Make_Stress_2D(E, nu, Total_Element);
-	Make_Strain_Quad_4(E, nu, Total_Element);
-	Make_Strain_x_Quad_4(E, nu, Total_Element);
-
-	W = 0.0;
-
-
-	for( i = 0; i < DIMENSION; i++){
-		W_x[i] = 0.0;
-	}
-
-
-	for( k = 0; k < POW_Ng; k++ ){
-		for( i = 0; i < Total_Element; i++ ){
-			for( j = 0; j < DIMENSION+1; j++ ){
-
-				W += (1.0/2.0)*Stress[i][k][j]*Strain[i][k][j];
-			}
-		}
-	}
-	printf("\nW = %lf\n", W);
-
-
-	for( i = 0; i < DIMENSION; i++ ){
-		W_K_D[i] = W*K_D[i];
-
-		printf("\nW_K_D[%d] = %lf\n", i, W_K_D[i]);
-	}
-
-
-	for( k = 0; k < POW_Ng; k++ ){
-		for( i = 0; i < Total_Element; i++ ){
-			for( j = 0; j < DIMENSION; j++ ){
-
-				if(j == 0){
-					W_x[j] += Stress[i][k][j]*Strain_x[i][k][j]+Stress[i][k][j+2]*Strain_x[i][k][j+1];
-				}
-
-				else if(j == 1){
-					W_x[j] += Stress[i][k][j+1]*Strain_x[i][k][j-1]+Stress[i][k][j]*Strain_x[i][k][j];
-				}
-			}
-		}
-	}
-
-
-	for( j = 0; j < DIMENSION; j++ ){
-		printf("\nW_x[%d] = %le\n", j, W_x[j]);
-	}
-
-
-	for( i = 0; i < DIMENSION; i++ ){
-		P_1j[i] = W_K_D[i] - W_x[i];
-
-		printf("\nP_1j[%d] = %lf\n", i, P_1j[i]);
-	}
-}
-*/
-
 
 int SerchForElement(int mesh_n, int iPatch, int Total_Element, int iX, int iY)
 {
@@ -4709,7 +4445,6 @@ int SerchForElement(int mesh_n, int iPatch, int Total_Element, int iX, int iY)
 			// 		iX, iY);
 			if (iX == ENC[iPatch][iii+Total_Element_to_mesh[mesh_n]][0] && iY == ENC[iPatch][iii+Total_Element_to_mesh[mesh_n]][1])
 				goto loopend;
-			/* iii --; */
 
 			// printf("Check SerchForElement 2 iii = %d\n", iii);
 		}
@@ -4726,7 +4461,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	int iii, jjj;
 	// int iDir_Element[MAX_N_KNOT], jDir_Element;
 	int N_Seg_Load_Element_iDir = 0, jCoord;
-	int iRange_ele[2]/*, jRange_ele*/;
+	int iRange_ele[2];
 	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000};
 	// double Coord_Seg_Load_Element_iDir[MAX_N_KNOT][2], Coord_Seg_Load_Element_jDir[2];
 	int No_Element_for_Integration[MAX_N_KNOT], No_Element_For_Dist_Load;
@@ -4737,9 +4472,9 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	double GaussPt[3], Weight[3];
 	double Gg = pow(3.0 / 5.0, 0.5);
 
-	/* type_load: 0: Dist load in x direction
- * 	              1:              y direction
- * 	              2:              normal direciton */
+	// type_load: 0: Dist load in x direction
+	        //    1:              y direction
+	        //    2:              normal direciton
 
 	GaussPt[0] = -Gg;
 	GaussPt[1] = 0.0;
@@ -4748,31 +4483,23 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	Weight[1] = 8.0 / 9.0;
 	Weight[2] = 5.0 / 9.0;
 
-	/* iCoord=0: Load on Eta=Constant
-	   iCoord=1: Load on Xi=Constant */
+	// iCoord=0: Load on Eta=Constant
+	// iCoord=1: Load on Xi=Constant
 	if (iCoord == 0)
 		jCoord = 1;
 	if (iCoord == 1)
 		jCoord = 0;
 
-	/* val_Coord: Value of Eta or Xi of the line or surface to give the distributed load */
+	// val_Coord: Value of Eta or Xi of the line or surface to give the distributed load
 
-	/* Setting elements needed to computed the distributed load */
+	// Setting elements needed to computed the distributed load
 
 	for (iii = Order[iPatch][iCoord]; iii < No_knot[iPatch][iCoord] - Order[iPatch][iCoord] - 1; iii++)
 	{
 		double epsi = 0.00000000001;
-		/* iPos[0] = -10000; iPos[1] = -10000; jPos[0] = -10000; jPos[1] = -10000;*/
 		printf("Check1 iii = %d\n", iii);
 		printf("Check2 Position_Knots[iCoord][iii]= %f  Range_Coord[0] =%f Position_Knots[iCoord][iii+1] = %f\n", Position_Knots[iPatch][iCoord][iii], Range_Coord[0], Position_Knots[iPatch][iCoord][iii + 1]);
-		/*
 
-		if(Position_Knots[iCoord][iii]-epsi <= Range_Coord[0] &&
-			Position_Knots[iCoord][iii+1]+epsi > Range_Coord[0]) iPos[0] = iii;
-
-		if(Position_Knots[iCoord][iii]-epsi <= Range_Coord[1] &&
-                        Position_Knots[iCoord][iii+1]+epsi > Range_Coord[1]) iPos[1] = iii+1;
-	*/
 		if (Position_Knots[iPatch][iCoord][iii] - epsi <= Range_Coord[0])
 			iPos[0] = iii;
 		if (Position_Knots[iPatch][iCoord][iii + 1] - epsi <= Range_Coord[1])
@@ -4792,7 +4519,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	for (jjj = Order[iPatch][jCoord]; jjj < No_knot[iPatch][jCoord] - Order[iPatch][jCoord] - 1; jjj++)
 	{
 		double epsi = 0.00000000001;
-		/* jjj=Order[jCoord]; */
+		// jjj=Order[jCoord];
 		if (Position_Knots[iPatch][jCoord][jjj] - epsi <= val_Coord &&
 			Position_Knots[iPatch][jCoord][jjj + 1] + epsi > val_Coord)
 		{
@@ -4814,15 +4541,9 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 
 	for (iii = iPos[0]; iii < iPos[1]; iii++)
 	{
-		// Coord_Seg_Load_Element_iDir[iii][0] = Position_Knots[iPatch][iCoord][iii + iPos[0]];
-		// Coord_Seg_Load_Element_iDir[iii][1] = Position_Knots[iPatch][iCoord][iii + iPos[0] + 1];
-		// iDir_Element[N_Seg_Load_Element_iDir] = iii - Order[iPatch][iCoord];
 		N_Seg_Load_Element_iDir++;
 	}
 
-	// Coord_Seg_Load_Element_jDir[0] = Position_Knots[iPatch][iCoord][jPos[0]];
-	// Coord_Seg_Load_Element_jDir[1] = Position_Knots[iPatch][iCoord][jPos[1]];
-	// jDir_Element = jPos[0] - Order[iPatch][iCoord];
 	iii = 0;
 	if (iCoord == 1)
 	{
