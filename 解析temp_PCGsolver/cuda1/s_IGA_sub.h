@@ -115,15 +115,19 @@ extern int Patch_mesh[MAX_N_PATCH];     // パッチがどのメッシュ内に�
 // extern double Control_Weight[MAX_N_NODE];
 
 // extern double Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
+// extern int Constraint_Node_Dir_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT][2];
+// extern double Value_of_Constraint_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT];
+
+// extern int iPatch_array[MAX_N_DISTRIBUTE_FORCE], iCoord_array[MAX_N_DISTRIBUTE_FORCE], type_load_array[MAX_N_DISTRIBUTE_FORCE];
+// extern double val_Coord_array[MAX_N_DISTRIBUTE_FORCE], Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2], Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3];
+
+// extern int real_Total_Element_to_Now;
 
 extern int El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]; // メッシュ内でのコントロールポイント配列
 extern int Constraint_ID[MAX_N_NODE * DIMENSION];
-extern int Constraint_Node_Dir_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT][2];
-extern double Value_of_Constraint_on_mesh[MAX_N_MESH][MAX_N_CONSTRAINT];
 
 extern int real_Total_Element_on_mesh[MAX_N_MESH];
 extern int real_Total_Element_to_mesh[MAX_N_MESH + 1];
-extern int real_Total_Element_to_Now;
 extern int real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT];
 
 extern int temp_element_n[MAX_N_ELEMENT_OVER_POINT];
@@ -134,8 +138,6 @@ extern int Check_BDBJ_flag[MAX_N_ELEMENT];
 extern int Total_BDBJ_flag;
 extern int Same_BDBJ_flag[POW_Ng_extended];
 
-extern int iPatch_array[MAX_N_DISTRIBUTE_FORCE], iCoord_array[MAX_N_DISTRIBUTE_FORCE], type_load_array[MAX_N_DISTRIBUTE_FORCE];
-extern double val_Coord_array[MAX_N_DISTRIBUTE_FORCE], Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2], Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3];
 
 // for Interaction integral
 extern double T[DIMENSION][DIMENSION];

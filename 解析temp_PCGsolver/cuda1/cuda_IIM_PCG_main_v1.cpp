@@ -1,14 +1,14 @@
 /****************************************************************
  * s-IGA :)
- * 
+ *
  * 仮定条件
  * 	ローカルメッシュ同士は原則被りなしと仮定
  * 	グローバルパッチはシングルパッチ
- * 
+ *
  * ガウス積分の積分点数：4(一部10)
- * 
+ *
  * inputファイルを複数読み込む, 2つ目以降がローカルメッシュ
- * 
+ *
  ****************************************************************/
 
 #include <stdio.h>
@@ -27,31 +27,28 @@ int main(int argc, char **argv)
 	clock_t start, end, t1;
 
 	int i, j, k;
-	int Load_Node_Dir[MAX_N_LOAD][2];
-	double Value_of_Load[MAX_N_LOAD];
-	int Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
-	double Value_of_Constraint[MAX_N_CONSTRAINT];
+	
 	int K_Whole_Size = 0;
-    double element_loc[DIMENSION];
+	double element_loc[DIMENSION];
 
 	int Total_mesh = argc - 1;
 
-    // for s-IGA
-    int tm;
+	// for s-IGA
+	int tm;
 
-    // 引数の個数確認
+	// 引数の個数確認
 	if (argc <= 1)
 	{
 		printf("Argument is missing\n");
 	}
-    if (argc == 2)  // 通常IGA: input file 1つ
-    {
-        printf("IGA carried out.(No local mesh)\n");
-    }
-    if (argc >= 3)  // s-IGA: input file 複数
-    {
-        printf("s-IGA carried out.(%d local meshes)\n", argc - 2);
-    }
+	if (argc == 2) // 通常IGA: input file 1つ
+	{
+		printf("IGA carried out.(No local mesh)\n");
+	}
+	if (argc >= 3) // s-IGA: input file 複数
+	{
+		printf("s-IGA carried out.(%d local meshes)\n", argc - 2);
+	}
 
 	start = clock();
 
@@ -78,7 +75,7 @@ int main(int argc, char **argv)
 	// memory allocation
 	int *Order = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// Order[MAX_N_PATCH][DIMENSION]
 	int *No_knot = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// No_knot[MAX_N_PATCH][DIMENSION]
-	double *Position_Knots = (double *)malloc(sizeof(double) * Total_Knot_to_mesh[Total_mesh]);								// Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
+	double *Position_Knots = (double *)malloc(sizeof(double) * Total_Knot_to_mesh[Total_mesh]);				// Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
 	int *No_Control_point = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));		// Order[MAX_N_PATCH][DIMENSION]
 	int *No_Controlpoint_in_patch = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));			// No_Controlpoint_in_patch[MAX_N_PATCH]
 	int *Patch_controlpoint = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
@@ -87,12 +84,44 @@ int main(int argc, char **argv)
 	double *Control_Coord_x = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
 	double *Control_Coord_y = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
 	double *Control_Weight = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh]));	// Control_Weight[MAX_N_NODE];
+	int *Constraint_Node_Dir = (int *)malloc(sizeof(int) * (Total_Constraint_to_mesh[Total_mesh] * 2));		// Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
+	double *Value_of_Constraint = (double *)malloc(sizeof(double) * Total_Constraint_to_mesh[Total_mesh]);	// Value_of_Constraint[MAX_N_CONSTRAINT];
+	int *Load_Node_Dir = (int *)malloc(sizeof(int) * (Total_Load_to_mesh[Total_mesh] * 2));					// Load_Node_Dir[MAX_N_LOAD][2];
+	double *Value_of_Load = (double *)malloc(sizeof(double) * Total_Load_to_mesh[Total_mesh]);				// Value_of_Load[MAX_N_LOAD];
+	int *iPatch_array = (int *)malloc(sizeof(int) * Total_DistributeForce_to_mesh[Total_mesh]);				// iPatch_array[MAX_N_DISTRIBUTE_FORCE]
+	int *iCoord_array = (int *)malloc(sizeof(int) * Total_DistributeForce_to_mesh[Total_mesh]);				// iCoord_array[MAX_N_DISTRIBUTE_FORCE]
+	int *type_load_array = (int *)malloc(sizeof(int) * Total_DistributeForce_to_mesh[Total_mesh]);			// type_load_array[MAX_N_DISTRIBUTE_FORCE]
+	double *val_Coord_array = (double *)malloc(sizeof(double) * Total_DistributeForce_to_mesh[Total_mesh]); // val_Coord_array[MAX_N_DISTRIBUTE_FORCE]
+	double *Range_Coord_array = (double *)malloc(sizeof(double) * (Total_DistributeForce_to_mesh[Total_mesh] * 2));	// Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2]
+	double *Coeff_Dist_Load_array = (double *)malloc(sizeof(double) * (Total_DistributeForce_to_mesh[Total_mesh] * 3));	// Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3]
+	
+	INC
+	Adress_Controlpoint
+	Controlpoint_of_Element
+	Element_patch
+	Element_mesh
+	line_No_real_element
+	line_No_Total_element
+	difference
+	Total_element_all_ID
+	ENC
+	real_element_line
+	real_element
+	real_El_No_on_mesh
+	real_Total_Element <- staticに残す
+
+	real_Total_Element_on_mesh <-できとる
+	real_Total_Element_to_mesh <-上にある
+	Equivalent_Nodal_Force
+
+	次の関数 Setting_Dist_Load_2D
+
 
 	// ファイル読み込み2回目
 	for (tm = 0; tm < Total_mesh; tm++)
     {
-	    Get_input_2(tm, Load_Node_Dir,
-		Value_of_Load, &Total_Constraint, Constraint_Node_Dir, Value_of_Constraint, &Total_DistributeForce, argv);
+		Get_input_2(tm, Load_Node_Dir,
+					Value_of_Load, &Total_Constraint, Constraint_Node_Dir, Value_of_Constraint, &Total_DistributeForce, argv);
 	}
 
 	// memory allocation
@@ -163,15 +192,15 @@ int main(int argc, char **argv)
 	// 変位と歪と応力
     for(i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
     {
-        Constraint_ID[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = 1;
-        Displacement[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = Value_of_Constraint[i];
+		Constraint_ID[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = 1;
+		Displacement[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = Value_of_Constraint[i];
     }
 
 	for(i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
 	{
-		for(j = 0; j < DIMENSION; j++)
+		for (j = 0; j < DIMENSION; j++)
 		{
-            int index = Index_Dof[i * DIMENSION + j];
+			int index = Index_Dof[i * DIMENSION + j];
 			if (index >= 0)
 				Displacement[i * DIMENSION + j] = sol_vec[index];
 		}
@@ -216,22 +245,22 @@ int main(int argc, char **argv)
 	for (i = 0; i < l_patch; i++)
 	{
 		fprintf(fp, "%d\t%d\n",
-					Order[i + g_patch][0], Order[i + g_patch][1]);
+				Order[i + g_patch][0], Order[i + g_patch][1]);
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < l_patch; i++)
 	{
 		fprintf(fp, "%d\t%d\n",
-					No_knot[i + g_patch][0], No_knot[i + g_patch][1]);
+				No_knot[i + g_patch][0], No_knot[i + g_patch][1]);
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < l_patch; i++)
 	{
 		fprintf(fp, "%d\t%d\n",
-					No_Control_point[i + g_patch][0],
-					No_Control_point[i + g_patch][1]);
+				No_Control_point[i + g_patch][0],
+				No_Control_point[i + g_patch][1]);
 	}
 	fprintf(fp,"\n");
 
@@ -240,9 +269,9 @@ int main(int argc, char **argv)
 		for (j = 0; j < No_Controlpoint_in_patch[i + g_patch]; j++)
 		{
 			l_temp = Patch_controlpoint[i + g_patch][j] - g_cntl_p;
-			fprintf(fp,"%d\t", l_temp);
+			fprintf(fp, "%d\t", l_temp);
 		}
-		fprintf(fp,"\n");
+		fprintf(fp, "\n");
 	}
 	fprintf(fp,"\n");
 
@@ -258,56 +287,56 @@ int main(int argc, char **argv)
 		{
 			for (k = 0; k < No_knot[i + g_patch][j]; k++)
 			{
-				fprintf(fp,"%.5f\t",Position_Knots[i + g_patch][j][k]);
+				fprintf(fp, "%.5f\t", Position_Knots[i + g_patch][j][k]);
 			}
-			fprintf(fp,"\n");
+			fprintf(fp, "\n");
 		}
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < l_cntl_p; i++)
 	{
-		fprintf(fp,"%d\t",i);
-		for (j = 0; j < DIMENSION+1; j++)
+		fprintf(fp, "%d\t", i);
+		for (j = 0; j < DIMENSION + 1; j++)
 		{
-			fprintf(fp,"%.10f\t",Node_Coordinate[i + g_cntl_p][j]);
+			fprintf(fp, "%.10f\t", Node_Coordinate[i + g_cntl_p][j]);
 		}
-		fprintf(fp,"\n");
+		fprintf(fp, "\n");
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < l_cnst; i++)
 	{
 		l_temp = Constraint_Node_Dir[i + g_cnst][0] - g_cntl_p;
-		fprintf(fp,"%d\t%d\t%.10f\n",
-					l_temp,
-					Constraint_Node_Dir[i + g_cnst][1],
-					Value_of_Constraint[i + g_cnst]);
+		fprintf(fp, "%d\t%d\t%.10f\n",
+				l_temp,
+				Constraint_Node_Dir[i + g_cnst][1],
+				Value_of_Constraint[i + g_cnst]);
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < l_load; i++)
 	{
 		l_temp = Load_Node_Dir[i + g_load][0] - g_cntl_p;
-		fprintf(fp,"%d\t%d\t%.10f\n",
-					l_temp,
-					Load_Node_Dir[i + g_load][1],
-					Value_of_Load[i + g_load]);
+		fprintf(fp, "%d\t%d\t%.10f\n",
+				l_temp,
+				Load_Node_Dir[i + g_load][1],
+				Value_of_Load[i + g_load]);
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < l_dist; i++)
 	{
-		fprintf(fp,"%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
-					type_load_array[i + g_dist],
-					iPatch_array[i + g_dist],
-					iCoord_array[i + g_dist],
-					val_Coord_array[i + g_dist],
-					Range_Coord_array[i + g_dist][0],
-					Range_Coord_array[i + g_dist][1],
-					Coeff_Dist_Load_array[i + g_dist][0],
-					Coeff_Dist_Load_array[i + g_dist][1],
-					Coeff_Dist_Load_array[i + g_dist][2]);
+		fprintf(fp, "%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+				type_load_array[i + g_dist],
+				iPatch_array[i + g_dist],
+				iCoord_array[i + g_dist],
+				val_Coord_array[i + g_dist],
+				Range_Coord_array[i + g_dist][0],
+				Range_Coord_array[i + g_dist][1],
+				Coeff_Dist_Load_array[i + g_dist][0],
+				Coeff_Dist_Load_array[i + g_dist][1],
+				Coeff_Dist_Load_array[i + g_dist][2]);
 	}
 	fclose(fp);
 
@@ -340,9 +369,9 @@ int main(int argc, char **argv)
 	{
 		for (j = 0; j < No_Controlpoint_in_patch[i]; j++)
 		{
-			fprintf(fp,"%d\t",Patch_controlpoint[i][j]);
+			fprintf(fp, "%d\t", Patch_controlpoint[i][j]);
 		}
-		fprintf(fp,"\n");
+		fprintf(fp, "\n");
 	}
 	fprintf(fp,"\n");
 
@@ -357,54 +386,54 @@ int main(int argc, char **argv)
 		{
 			for (k = 0; k < No_knot[i][j]; k++)
 			{
-				fprintf(fp,"%.5f\t",Position_Knots[i][j][k]);
+				fprintf(fp, "%.5f\t", Position_Knots[i][j][k]);
 			}
-			fprintf(fp,"\n");
+			fprintf(fp, "\n");
 		}
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
 	{
-		fprintf(fp,"%d\t",i);
-		for (j = 0; j < DIMENSION+1; j++)
+		fprintf(fp, "%d\t", i);
+		for (j = 0; j < DIMENSION + 1; j++)
 		{
-			fprintf(fp,"%.10f\t",Node_Coordinate[i][j]);
+			fprintf(fp, "%.10f\t", Node_Coordinate[i][j]);
 		}
-		fprintf(fp,"\n");
+		fprintf(fp, "\n");
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
 	{
-		fprintf(fp,"%d\t%d\t%.10f\n",
-					Constraint_Node_Dir[i][0],
-					Constraint_Node_Dir[i][1],
-					Value_of_Constraint[i]);
+		fprintf(fp, "%d\t%d\t%.10f\n",
+				Constraint_Node_Dir[i][0],
+				Constraint_Node_Dir[i][1],
+				Value_of_Constraint[i]);
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < Total_Load_to_mesh[Total_mesh]; i++)
 	{
-		fprintf(fp,"%d\t%d\t%.10f\n",
-					Load_Node_Dir[i][0],
-					Load_Node_Dir[i][1],
-					Value_of_Load[i]);
+		fprintf(fp, "%d\t%d\t%.10f\n",
+				Load_Node_Dir[i][0],
+				Load_Node_Dir[i][1],
+				Value_of_Load[i]);
 	}
 	fprintf(fp,"\n");
 
 	for (i = 0; i < Total_DistributeForce_to_mesh[Total_mesh]; i++)
 	{
-		fprintf(fp,"%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
-					type_load_array[i],
-					iPatch_array[i],
-					iCoord_array[i],
-					val_Coord_array[i],
-					Range_Coord_array[i][0],
-					Range_Coord_array[i][1],
-					Coeff_Dist_Load_array[i][0],
-					Coeff_Dist_Load_array[i][1],
-					Coeff_Dist_Load_array[i][2]);
+		fprintf(fp, "%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+				type_load_array[i],
+				iPatch_array[i],
+				iCoord_array[i],
+				val_Coord_array[i],
+				Range_Coord_array[i][0],
+				Range_Coord_array[i][1],
+				Coeff_Dist_Load_array[i][0],
+				Coeff_Dist_Load_array[i][1],
+				Coeff_Dist_Load_array[i][2]);
 	}
 
 	fclose(fp);
@@ -412,12 +441,12 @@ int main(int argc, char **argv)
 	fp = fopen("coord_data.txt","w");
 	for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
 	{
-		fprintf(fp,"%d\t",i);
+		fprintf(fp, "%d\t", i);
 		for (j = 0; j < DIMENSION; j++)
 		{
-			fprintf(fp,"%.10e\t",Node_Coordinate[i][j]);
+			fprintf(fp, "%.10e\t", Node_Coordinate[i][j]);
 		}
-		fprintf(fp,"\n");
+		fprintf(fp, "\n");
 	}
 	fclose(fp);
 
@@ -445,28 +474,32 @@ int main(int argc, char **argv)
 	if (SKIP_S_IGA != 1)
 	{
 		// 重ね合わせの結果
-		division_ele_xi  = DIVISION_ELE_XI;
+		division_ele_xi = DIVISION_ELE_XI;
 		division_ele_eta = DIVISION_ELE_ETA;
 
-		if (division_ele_xi > MAX_DIVISION) {
+		if (division_ele_xi > MAX_DIVISION)
+		{
 			printf("Error!!\n");
 			printf("Too many Divsion at xi!\n"
-				"Maximum of division is %d (Now %d)\n"
-				"\n", MAX_DIVISION, division_ele_xi);
+				   "Maximum of division is %d (Now %d)\n"
+				   "\n",
+				   MAX_DIVISION, division_ele_xi);
 			exit(1);
 		}
-		if (division_ele_eta > MAX_DIVISION) {
+		if (division_ele_eta > MAX_DIVISION)
+		{
 			printf("Error!!\n");
 			printf("Too many Divsion at eta!\n"
-				"Maximum of division is %d (Now %d)\n"
-				"\n", MAX_DIVISION, division_ele_eta);
+				   "Maximum of division is %d (Now %d)\n"
+				   "\n",
+				   MAX_DIVISION, division_ele_eta);
 			exit(1);
 		}
 
 		// ローカルメッシュの情報取得
 		GetLocData();
 
-		int patch_n_loc = 0, patch_n_glo = 0;	// パッチ番号
+		int patch_n_loc = 0, patch_n_glo = 0; // パッチ番号
 
 		ReadFile();
 		fp = fopen("view.dat", "w");
@@ -485,12 +518,12 @@ int main(int argc, char **argv)
 		// 重ね合わせ結果出力のためのoverlay_view.dat作成
 		fp = fopen("overlay_view.dat", "w");
 		fprintf(fp, "%d\t%d\t%d\n",
-					fields_flag, division_ele_xi, division_ele_eta);
+				fields_flag, division_ele_xi, division_ele_eta);
 		fclose(fp);
 		// machino
 		fp = fopen("overlay_view_r_theta.dat", "w");
 		fprintf(fp, "%d\t%d\t%d\n",
-					fields_flag, division_ele_xi, division_ele_eta);
+				fields_flag, division_ele_xi, division_ele_eta);
 		fclose(fp);
 
 		// グラフ作成のための出力
@@ -553,10 +586,11 @@ int main(int argc, char **argv)
 		}
 
 		// 重ね合わせ
-		for (i = 0; i < patch_n; i++) {
+		for (i = 0; i < patch_n; i++)
+		{
 
 			fp = fopen("stress_vm_graph.txt", "a");
-			fprintf(fp, "\npatch_n;%d\n\n",i);
+			fprintf(fp, "\npatch_n;%d\n\n", i);
 			fclose(fp);
 
 			graph_patch_n = i;
@@ -571,20 +605,20 @@ int main(int argc, char **argv)
 						weight[i]);
 			printf("-----------End calculation at patch %d-----------\n\n", i);
 
-			if (i >= n_patch_glo)	// ローカル上のパッチに対しては重合計算行う
+			if (i >= n_patch_glo) // ローカル上のパッチに対しては重合計算行う
 			{
 				patch_n_loc = i;
 				printf("----------Start overlay calculation at patch %d in LOCAL patch----------\n\n", i);
 				for (j = 0; j < n_patch_glo; j++)
 				{
 					patch_n_glo = j;
-					Calculation_overlay(order_xi[patch_n_loc],order_eta[patch_n_loc],
+					Calculation_overlay(order_xi[patch_n_loc], order_eta[patch_n_loc],
 										knot_n_xi[patch_n_loc], knot_n_eta[patch_n_loc],
 										cntl_p_n_xi[patch_n_loc], cntl_p_n_eta[patch_n_loc],
 										knot_vec_xi[patch_n_loc], knot_vec_eta[patch_n_loc],
 										cntl_px[patch_n_loc], cntl_py[patch_n_loc],
 										weight[patch_n_loc],
-										order_xi[patch_n_glo],order_eta[patch_n_glo],
+										order_xi[patch_n_glo], order_eta[patch_n_glo],
 										cntl_p_n_xi[patch_n_glo], cntl_p_n_eta[patch_n_glo],
 										knot_vec_xi[patch_n_glo], knot_vec_eta[patch_n_glo],
 										cntl_px[patch_n_glo], cntl_py[patch_n_glo],
@@ -629,16 +663,19 @@ int main(int argc, char **argv)
 
 	int re;
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
-        e = real_element[re];
-		for(N = 0; N < GP_2D; N++){
+		e = real_element[re];
+		for (N = 0; N < GP_2D; N++)
+		{
 			// Disp_gradをlocalとglobalで重ね合わせる
-			for(i = 0; i <  DIMENSION * DIMENSION; i++){
+			for (i = 0; i < DIMENSION * DIMENSION; i++)
+			{
 				Disp_grad_overlay[e][N][i] = Disp_grad[e][N][i] + Disp_grad_glo[e][N][i];
 				// printf("Disp_grad[%d][%d][%d] = %.10e\tDisp_grad_glo[%d][%d][%d] = %.10e\n", e, N, i, Disp_grad[e][N][i], e, N, i, Disp_grad_glo[e][N][i]);
 				printf("Disp_grad_overlay[%d][%d][%d] = %.10e\n", e, N, i, Disp_grad_overlay[e][N][i]);
 			}
 			// Strainをlocalとglobalで重ね合わせる
-			for (i = 0; i < D_MATRIX_SIZE; i++){
+			for (i = 0; i < D_MATRIX_SIZE; i++)
+			{
 				Strain_overlay[e][N][i] = Strain[e][N][i] + Strain_glo[e][N][i];
 				printf("Strain_overlay[%d][%d][%d] = %.10e\n", e, N, i, Strain_overlay[e][N][i]);
 			}
@@ -670,8 +707,9 @@ int main(int argc, char **argv)
 	}
 
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
-        e = real_element[re];
-		for(N = 0; N < GP_2D; N++){
+		e = real_element[re];
+		for (N = 0; N < GP_2D; N++)
+		{
 			double TEMP_Strain_overlay[DIMENSION][DIMENSION], TEMP_Strain_overlay_loc[DIMENSION][DIMENSION];
 			TEMP_Strain_overlay[0][0] = Strain_overlay[e][N][0];
 			TEMP_Strain_overlay[0][1] = Strain_overlay[e][N][2];
@@ -694,10 +732,13 @@ int main(int argc, char **argv)
 
 	for(re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++){
 		e = real_element[re];
-		for(N = 0; N < GP_2D; N++){
-			for (i = 0; i < D_MATRIX_SIZE; i++){
+		for (N = 0; N < GP_2D; N++)
+		{
+			for (i = 0; i < D_MATRIX_SIZE; i++)
+			{
 				Stress_overlay[e][N][i] = Stress[e][N][i] + Stress_glo[e][N][i];
-				for (j = 0; j < D_MATRIX_SIZE; j++){
+				for (j = 0; j < D_MATRIX_SIZE; j++)
+				{
 					Stress_overlay_loc[e][N][i] += D[i][j] * Strain_overlay_loc[e][N][j];
 				}
 			}
