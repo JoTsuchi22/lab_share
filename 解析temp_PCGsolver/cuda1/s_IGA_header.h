@@ -54,10 +54,11 @@
 #define MAX_DIVISION 10									//一要素あたりの最大分割数
 #define MAX_POINTS (MAX_ELEMENTS * MAX_DIVISION + 1)	//最大点数
 
-void Get_Input_1(int tm, double *E, double *nu,
-                 int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
-                 int *Total_Control_Point_on_mesh, int *Total_Control_Point_to_mesh,
-                 int *Total_Element_on_mesh, int *Total_Element_to_mesh);
+void Get_Input_1(int tm, int *Total_Knot_to_mesh,
+				 int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
+				 int *Total_Control_Point_on_mesh, int *Total_Control_Point_to_mesh,
+				 int *Total_Constraint_to_mesh, int *Total_Load_to_mesh, int *Total_DistributeForce_to_mesh,
+				 char **argv);
 void Get_Input_2(int tm, int Load_Node_Dir[MAX_N_LOAD][2], double Value_of_Load[MAX_N_LOAD],
 				 int *Total_Constraint, int Constraint_Node_Dir[MAX_N_CONSTRAINT][2], double Value_of_Constraint[MAX_N_CONSTRAINT],
 				 int *Total_DistributeForce, char **argv);

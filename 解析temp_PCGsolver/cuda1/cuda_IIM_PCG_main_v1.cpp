@@ -58,10 +58,8 @@ int main(int argc, char **argv)
 	int *Total_Patch_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));			// メッシュ[]までのパッチ数（メッシュ[]内のパッチ数は含まない）
 	int *Total_Control_Point_on_mesh = (int *)malloc(sizeof(int) * (Total_mesh));		// 各メッシュ上のコントロールポイント数
 	int *Total_Control_Point_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));	// メッシュ[]までのコントロールポイント数(メッシュ[]内のコントロールポイント数は含まない)
-	int *Total_Element_on_mesh = (int *)malloc(sizeof(int) * (Total_mesh));				// 各メッシュ上の要素数
-	int *Total_Element_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));			// メッシュ[]までの要素数(メッシュ[]内の要素数は含まない)
-	int *Total_Constraint_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
 	int *Total_Load_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
+	int *Total_Constraint_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
 	int *Total_DistributeForce_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));
 
 	// ファイル読み込み1回目
@@ -69,7 +67,9 @@ int main(int argc, char **argv)
     {
 		Get_input_1(tm, Total_Knot_to_mesh,
 					Total_Patch_on_mesh, Total_Patch_to_mesh,
-					Total_Control_Point_on_mesh, Total_Control_Point_to_mesh, argv);
+					Total_Control_Point_on_mesh, Total_Control_Point_to_mesh,
+					Total_Load_to_mesh, Total_Constraint_to_mesh, Total_DistributeForce_to_mesh,
+					argv);
 	}
 	
 	// memory allocation
@@ -95,13 +95,13 @@ int main(int argc, char **argv)
 	double *Range_Coord_array = (double *)malloc(sizeof(double) * (Total_DistributeForce_to_mesh[Total_mesh] * 2));	// Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2]
 	double *Coeff_Dist_Load_array = (double *)malloc(sizeof(double) * (Total_DistributeForce_to_mesh[Total_mesh] * 3));	// Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3]
 	
-	INC
-	Adress_Controlpoint
-	Controlpoint_of_Element
-	Element_patch
-	Element_mesh
-	line_No_real_element
-	line_No_Total_element
+	INC	// INC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION]
+	Adress_Controlpoint // Adress_Controlpoint[MAX_N_PATCH][1000][1000]
+	Controlpoint_of_Element // Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT]
+	Element_patch // Element_patch[MAX_N_ELEMENT]
+	Element_mesh // Element_mesh[MAX_N_ELEMENT] 要素がどのメッシュ内にあるかを示す配列
+	line_No_real_element // line_No_real_element[MAX_N_PATCH][DIMENSION] ゼロエレメントではない要素列の数
+	line_No_Total_element // line_No_Total_element[MAX_N_PATCH][DIMENSION] ゼロエレメントを含むすべての要素列の数
 	difference
 	Total_element_all_ID
 	ENC
@@ -110,8 +110,8 @@ int main(int argc, char **argv)
 	real_El_No_on_mesh
 	real_Total_Element <- staticに残す
 
-	real_Total_Element_on_mesh <-できとる
-	real_Total_Element_to_mesh <-上にある
+	int *Total_Element_on_mesh = (int *)malloc(sizeof(int) * (Total_mesh));				// 各メッシュ上の要素数
+	int *Total_Element_to_mesh = (int *)malloc(sizeof(int) * (Total_mesh + 1));			// メッシュ[]までの要素数(メッシュ[]内の要素数は含まない)
 	Equivalent_Nodal_Force
 
 	次の関数 Setting_Dist_Load_2D

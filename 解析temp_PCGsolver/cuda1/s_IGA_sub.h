@@ -8,17 +8,17 @@ extern double Gxi[POW_Ng_extended][DIMENSION]; // ガウス点
 extern double w[POW_Ng_extended];              // ガウス点での重み
 
 extern int KIEL_SIZE;                           //要素分割マトリックスの大きさ
-extern int Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT];
+// extern int Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT];
 extern double Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION]; // Equivalent nodal forces arising from the distributed load
 extern int K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1], K_Whole_Col[MAX_NON_ZERO];
 extern double K_Whole_Val[MAX_NON_ZERO];
 extern int Index_Dof[MAX_K_WHOLE_SIZE];
-extern int INC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];
-extern int Adress_Controlpoint[MAX_N_PATCH][1000][1000]; // INCの配列をいじったものAdress_Controlpoint[ξ][η]；コントールポイント番号、任意のパッチ上でξ方向[]番目、η方向[]番目のコントロールポイント番号を示す
+// extern int INC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];
+// extern int Adress_Controlpoint[MAX_N_PATCH][1000][1000]; // INCの配列をいじったものAdress_Controlpoint[ξ][η]；コントールポイント番号、任意のパッチ上でξ方向[]番目、η方向[]番目のコントロールポイント番号を示す
 extern double element_coordinate_Nopoint[MAX_N_ELEMENT][DIMENSION];
 extern double Gausspoint_coordinates[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION];
 extern int same_point_in_Element[MAX_N_NODE];
-extern int Element_patch[MAX_N_ELEMENT];                                 // 要素がどのパッチに属しているか示す配列(要素番号は1つのモデルで通し番号)
+// extern int Element_patch[MAX_N_ELEMENT];                                 // 要素がどのパッチに属しているか示す配列(要素番号は1つのモデルで通し番号)
 
 extern int Node_To_Node[K_DIVISION_LENGE][10000], Total_Control_Point_To_Node[K_DIVISION_LENGE]; //ある節点に関係する節点番号s
 
@@ -71,8 +71,8 @@ extern int ENC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];               // ENC[パ�
 extern int real_Total_Element;                                       // ゼロエレメントを除いた要素数
 extern int real_element[MAX_N_ELEMENT];                              // ゼロエレメントではない要素の番号
 extern int Total_element_all_ID[MAX_N_ELEMENT];                      // ゼロエレメントではない要素 = 1, ゼロエレメント = 0
-extern int line_No_Total_element[MAX_N_PATCH][DIMENSION];            // ゼロエレメントを含むすべての要素列の数
-extern int line_No_real_element[MAX_N_PATCH][DIMENSION];             // ゼロエレメントではない要素列の数
+// extern int line_No_Total_element[MAX_N_PATCH][DIMENSION];            // ゼロエレメントを含むすべての要素列の数
+// extern int line_No_real_element[MAX_N_PATCH][DIMENSION];             // ゼロエレメントではない要素列の数
 extern int real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION]; // ゼロエレメントではない要素列
 
 extern int No_points_for_colored_points;
@@ -81,7 +81,7 @@ extern int No_points_for_new_zarusoba;
 // for s-IGA
 extern int Total_mesh;
 
-extern int Element_mesh[MAX_N_ELEMENT]; // 要素がどのメッシュ内にあるかを示す配列
+// extern int Element_mesh[MAX_N_ELEMENT]; // 要素がどのメッシュ内にあるかを示す配列
 extern int Patch_mesh[MAX_N_PATCH];     // パッチがどのメッシュ内にあるかを示す配列
 
 // extern int Total_Patch_on_mesh[MAX_N_MESH];     // 各メッシュ上のパッチ数
