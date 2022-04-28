@@ -13,6 +13,10 @@ mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
 実行(IIM_PCG_v2)
 ../../../../s_IGA_program/IIM_PCG_v2.x ../input_glo_element.txt ../input_loc.txt
 
+実行 v3 vs v3_fast
+../../../../速度比較program/IIM_PCG_v3.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt > nomal.dat
+../../../../速度比較program/IIM_PCG_v3_fast.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt > fast.dat
+
 NURBSviewer
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_local.txt overlay_view.dat Displacement_loc.dat
 ../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_for_NURBS.txt view.dat Displacement.dat

@@ -9,7 +9,7 @@ extern double w[POW_Ng_extended];              // ガウス点での重み
 
 extern int KIEL_SIZE;                           //要素分割マトリックスの大きさ
 // extern int Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT];
-extern double Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION]; // Equivalent nodal forces arising from the distributed load
+// extern double Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION]; // Equivalent nodal forces arising from the distributed load
 extern int K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1], K_Whole_Col[MAX_NON_ZERO];
 extern double K_Whole_Val[MAX_NON_ZERO];
 extern int Index_Dof[MAX_K_WHOLE_SIZE];
@@ -66,14 +66,14 @@ extern double Disp_grad_aux_mode2_local[MAX_N_ELEMENT][POW_Ng_extended][DIMENSIO
 extern double Disp_grad_aux_mode2[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION];
 extern double ReactionForce[MAX_K_WHOLE_SIZE];
 
-extern double difference[MAX_N_PATCH][MAX_N_KNOT][DIMENSION];        // 隣り合うノットベクトルの差
-extern int ENC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];               // ENC[パッチ][全ての要素][0, 1] = x, y方向の何番目の要素か
-extern int real_Total_Element;                                       // ゼロエレメントを除いた要素数
-extern int real_element[MAX_N_ELEMENT];                              // ゼロエレメントではない要素の番号
-extern int Total_element_all_ID[MAX_N_ELEMENT];                      // ゼロエレメントではない要素 = 1, ゼロエレメント = 0
+// extern int real_Total_Element;                                       // ゼロエレメントを除いた要素数
+// extern double difference[MAX_N_PATCH][MAX_N_KNOT][DIMENSION];        // 隣り合うノットベクトルの差
+// extern int ENC[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION];               // ENC[パッチ][全ての要素][0, 1] = x, y方向の何番目の要素か
+// extern int real_element[MAX_N_ELEMENT];                              // ゼロエレメントではない要素の番号
+// extern int Total_element_all_ID[MAX_N_ELEMENT];                      // ゼロエレメントではない要素 = 1, ゼロエレメント = 0
 // extern int line_No_Total_element[MAX_N_PATCH][DIMENSION];            // ゼロエレメントを含むすべての要素列の数
 // extern int line_No_real_element[MAX_N_PATCH][DIMENSION];             // ゼロエレメントではない要素列の数
-extern int real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION]; // ゼロエレメントではない要素列
+// extern int real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION]; // ゼロエレメントではない要素列
 
 extern int No_points_for_colored_points;
 extern int No_points_for_new_zarusoba;
@@ -123,12 +123,12 @@ extern int Patch_mesh[MAX_N_PATCH];     // パッチがどのメッシュ内に�
 
 // extern int real_Total_Element_to_Now;
 
-extern int El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]; // メッシュ内でのコントロールポイント配列
+// extern int El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]; // メッシュ内でのコントロールポイント配列
 extern int Constraint_ID[MAX_N_NODE * DIMENSION];
 
-extern int real_Total_Element_on_mesh[MAX_N_MESH];
-extern int real_Total_Element_to_mesh[MAX_N_MESH + 1];
-extern int real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT];
+// extern int real_Total_Element_on_mesh[MAX_N_MESH];
+// extern int real_Total_Element_to_mesh[MAX_N_MESH + 1];
+// extern int real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT];
 
 extern int temp_element_n[MAX_N_ELEMENT_OVER_POINT];
 extern int element_n_point[MAX_N_ELEMENT_OVER_ELEMENT];
@@ -239,8 +239,8 @@ extern int graph_patch_n; // グラフ作成用出力ファイル内のパッチ
 //  extern double Jac[MAX_ELEMENTS*MAX_ELEMENTS][POW_Ng_extended];
 
 // 解析条件パラメータの設定
-extern int DM;                   // 平面応力状態:DM=0	平面ひずみ状態:DM=1
-extern int check_over_parameter; // 要素の重なりの判定(要素の物体上の端点:0 ガウス点:1)
+// extern int DM;                   // 平面応力状態:DM=0	平面ひずみ状態:DM=1
+// extern int check_over_parameter; // 要素の重なりの判定(要素の物体上の端点:0 ガウス点:1)
 
 extern int n_patch;
 

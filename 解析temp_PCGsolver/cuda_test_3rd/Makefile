@@ -11,8 +11,8 @@ cuda_IIM_PCG_v1.x:	cuda_IIM_PCG_main_v1.cu cuda_IIM_PCG_sub_v1.cpp IIM_PCG_heade
 
 02:	mkdir_temp cpp_IIM_PCG_v1.x
 
-cpp_IIM_PCG_v1.x:	cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.cpp IIM_PCG_header.h IIM_PCG_main.h IIM_PCG_sub.h
-	g++ -o cpp_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.cpp -g
+cpp_IIM_PCG_v1.x:	cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.cpp s_IGA_header.h s_IGA_main.h s_IGA_sub.h
+	g++ -o cpp_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cpp cuda_IIM_PCG_sub_v1.cpp -O0
 
 mkdir_temp:
 	mkdir -p temp

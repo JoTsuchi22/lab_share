@@ -7,8 +7,6 @@ fscanf の double を %le -> %lf に統一 (?)
 MAX_K_WHOLE_SIZEはstatic で残す
 extern double sol_vec[MAX_K_WHOLE_SIZE];
 
-Patch_controlpoint
-Position_Knots
-Node_Coordinate
-
-Constraint_Node_Dir
+三次元のやつはめんどいから定数で確保
+Position_Knots: MAX_N_KNOT <- inputから求める
+INC:    MAX_N_ELEMENT <- inputから, パッチ内の最大エレメント数
