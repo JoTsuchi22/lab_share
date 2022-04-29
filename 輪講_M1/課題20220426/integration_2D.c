@@ -15,33 +15,32 @@
 #define ELEMENT_N 100   // 要素数最大値
 #define PI 3.141592653589793238462643
 
-static double GP_temp[GP_1D];
-static double w_temp[GP_1D];
 static double GP[GP_2D * DIMENSION];
 static double w[GP_2D * DIMENSION];
-double element_GP[GP_1D];
 
 FILE *fp;
 
 void Make_gauss_array();
-double det_2D(double a[4]);
-double J_2D();
-void Integration(int element_num);
+double J_2D(double coordinate[4][2], double xi, double eta);
+double deriv(int axis, int num, double xi, double eta);
+void Integration(int Element, double coordinate[4][2]);
 
 int main()
 {
-    int i, j, k, l;
-
     Make_gauss_array();
-    Integration();
 
-    
+    int Element = 1;
+    // double coordinate[4][2] = {{0.0, 0.0}, {2.0, 0.0}, {2.0, 2.0}, {0.0, 2.0}};
+    double coordinate[4][2] = {{2.0, 2.0}, {3.0, 1.0}, {4.0, 3.0}, {1.0, 5.0}};
+    Integration(Element, coordinate);
 }
 
 
 void Make_gauss_array()
 {
     int i, j;
+    double GP_temp[GP_1D];
+    double w_temp[GP_1D];
 
     // ガウス点3x3の場合
     GP_temp[0] =  - sqrt(3.0 / 5.0);
@@ -57,16 +56,17 @@ void Make_gauss_array()
         {
             GP[(i * GP_1D + j) * DIMENSION + 0] = GP_temp[j];
             GP[(i * GP_1D + j) * DIMENSION + 1] = GP_temp[i];
-            w[i * GP_1D + j] = w_temp[i] * w_tmep[j];
+            w[i * GP_1D + j] = w_temp[i] * w_temp[j];
         }
     }
 }
 
 
-double J_2D(double temp_delta_el)
+double J_2D(double coordinate[4][2], double xi, double eta)
 {
     int i, j, k;
     double a[2][2];
+
     for (i = 0; i < 2; i++)
     {
         for (j = 0; j < 2; j++)
@@ -81,21 +81,17 @@ double J_2D(double temp_delta_el)
         {
             for (k = 0; k < 4; k++)
             {
-                a[i][j] += X[k][i] * deriv;
+                a[i][j] += coordinate[k][i] * deriv(j, k, xi, eta);
             }
         }
     }
-    return det_2D(a); // partial x / partial xi
+    return a[0][0] * a[1][1] - a[0][1] * a[1][0];
 }
 
-double det_2D(double a[4])
-{
-    return a[0] * a[3] - a[1] * a[2];
-}
 
-double deriv(int axis, double xi, double eta)
+double deriv(int axis, int num, double xi, double eta)
 {
-    double result;
+    double result = 0;
     if (axis == 0) // partial N (xi, eta) / partial xi
     {
         if (num == 0)
@@ -138,26 +134,27 @@ double deriv(int axis, double xi, double eta)
     return result;
 }
 
-void Integration(double *coordinete)
+
+void Integration(int Element, double coordinate[4][2])
 {
     int i, j;
     double result = 0.0;
 
-    char filename = "result.txt";
+    char filename[256] = "result.txt";
     fp = fopen(filename, "w");
-    fprintf(fp, "elementnum\tintegration_result\n");
+    fprintf(fp, "El_num\tintegration_result\n");
 
     for (i = 0; i < Element; i++)
     {
         double temp_result = 0.0;
         for (j = 0; j < GP_2D; j++)
         {
-            temp_result += J_2D() * w[j];
+            temp_result += J_2D(coordinate, GP[j * DIMENSION + 0], GP[j * DIMENSION + 1]) * w[j];
         }
         result += temp_result;
-        fprintf(fp, "%d\t%.15e", i, result);
+        fprintf(fp, "%d\t%.15e\n", i, result);
     }
-    fprintf(fp, "Total_integration_esult\n");
+    fprintf(fp, "\nTotal_integration_result\n");
     fprintf(fp, "%.15e", result);
     fclose(fp);
 }
