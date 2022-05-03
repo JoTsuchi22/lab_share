@@ -4066,8 +4066,8 @@ void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, doubl
 
 	// CG solver
 	static double gg[MAX_K_WHOLE_SIZE], dd[MAX_K_WHOLE_SIZE], pp[MAX_K_WHOLE_SIZE];
-	static double qqq, ppp, rrr;
-	static double alphak, betak;
+	double qqq, ppp, rrr;
+	double alphak, betak;
 	int itr;
 	int ii, istop;
 	int max_itr = ndof;

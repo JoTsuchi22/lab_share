@@ -26,12 +26,12 @@ extern double sol_vec[MAX_K_WHOLE_SIZE];
 extern double rhs_vec[MAX_K_WHOLE_SIZE];
 extern double diag_scaling[MAX_K_WHOLE_SIZE];
 
-extern double Shape[DIMENSION][MAX_N_NODE][10];
-extern double shape_func[MAX_N_NODE];
-extern double dShape_func1[MAX_N_NODE];
-extern double dShape_func2[MAX_N_NODE];
-extern double dShape[DIMENSION][MAX_N_NODE];
-extern double Position_Data_param[DIMENSION];
+// extern double Shape[DIMENSION][MAX_N_NODE][10];
+// extern double shape_func[MAX_N_NODE];
+// extern double dShape_func1[MAX_N_NODE];
+// extern double dShape_func2[MAX_N_NODE];
+// extern double dShape[DIMENSION][MAX_N_NODE];
+// extern double Position_Data_param[DIMENSION];
 
 extern double Displacement[MAX_K_WHOLE_SIZE];
 extern double Strain[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];

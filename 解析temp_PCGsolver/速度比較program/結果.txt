@@ -5,3 +5,8 @@
 2m 05s
 
 条件 loc size = 3.00, glo30x30 loc10x10
+
+変更点
+Shape_func (配列が大きすぎたので小さめに確保)
+CG  static 宣言を修正 (配列が大きいのでstaticで宣言，あまり変更なし)
+81.69s
