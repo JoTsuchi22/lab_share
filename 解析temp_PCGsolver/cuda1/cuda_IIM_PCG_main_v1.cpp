@@ -158,12 +158,22 @@ int main(int argc, char **argv)
 	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
 
 	// memory allocation
+	if (DIMENSION == 2)
+	{
+		D_MATRIX_SIZE = 3;
+	}
+	else if (DIMENSION == 3)
+	{
+		D_MATRIX_SIZE = 6;
+	}
+	int *NNLOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh]);
+	int *NELOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
 	double *Gauss_Coordinate = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
 	double *Gauss_Coordinate_ex = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION, sizeof(double));
 	double *Jac = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng);
 	double *Jac_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended);
-	double *B_Matrix = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE);
-	double *B_Matrix_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE);
+	double *B_Matrix = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *B_Matrix_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE * MAX_KIEL_SIZE);
 	
 	// check_over_parameter
 	for (i = 1; i < Total_mesh; i++)
@@ -174,8 +184,6 @@ int main(int argc, char **argv)
 		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org);
 		Make_Loc_Glo();
 	}
-
-
 
     // 全体剛性マトリックスの制作
 	K_Whole_Size = Make_Index_Dof(Total_Control_Point_to_mesh[Total_mesh],

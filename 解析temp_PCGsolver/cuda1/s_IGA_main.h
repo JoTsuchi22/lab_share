@@ -244,4 +244,6 @@ double E, nu;
 
 FILE *fp;
 
+int D_MATRIX_SIZE = 0;
+
 #endif

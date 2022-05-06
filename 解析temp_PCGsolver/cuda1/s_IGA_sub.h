@@ -130,10 +130,10 @@ extern int Constraint_ID[MAX_N_NODE * DIMENSION];
 // extern int real_Total_Element_to_mesh[MAX_N_MESH + 1];
 // extern int real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT];
 
-extern int temp_element_n[MAX_N_ELEMENT_OVER_POINT];
-extern int element_n_point[MAX_N_ELEMENT_OVER_ELEMENT];
-extern int NNLOVER[MAX_N_ELEMENT];
-extern int NELOVER[MAX_N_ELEMENT][MAX_N_ELEMENT_OVER];
+// extern int temp_element_n[MAX_N_ELEMENT_OVER_POINT];
+// extern int element_n_point[MAX_N_ELEMENT_OVER_ELEMENT];
+// extern int NNLOVER[MAX_N_ELEMENT];
+// extern int NELOVER[MAX_N_ELEMENT][MAX_N_ELEMENT_OVER];
 extern int Check_BDBJ_flag[MAX_N_ELEMENT];
 extern int Total_BDBJ_flag;
 extern int Same_BDBJ_flag[POW_Ng_extended];
@@ -242,8 +242,10 @@ extern int graph_patch_n; // グラフ作成用出力ファイル内のパッチ
 // extern int DM;                   // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 // extern int check_over_parameter; // 要素の重なりの判定(要素の物体上の端点:0 ガウス点:1)
 
-extern int n_patch;
+// extern int n_patch;
 
 extern FILE *fp;
+
+extern int D_MATRIX_SIZE = 0;
 
 #endif

@@ -13,7 +13,7 @@
 #define POW_Ng Ng * Ng										// NgのDIMENSION乗の計算
 #define Ng_extended 10										// Gauss-Legendreの足す回数
 #define POW_Ng_extended Ng_extended * Ng_extended			// NgのDIMENSION乗の計算
-#define D_MATRIX_SIZE 3										// 応力歪マトリックスの大きさ（2次元:3 3次元:6）
+// #define D_MATRIX_SIZE 3										// 応力歪マトリックスの大きさ（2次元:3 3次元:6）
 #define K_DIVISION_LENGE 10 	// 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
 #define EPS 1.0e-10				// 連立1次方程式の残差
 #define N_STRAIN 4
@@ -35,22 +35,19 @@
 // #define GAUSS_1DIR	Ng_extended						// 重なり判定のための一方向ガウス点数
 // #define NO_GAUSS_PT		GAUSS_1DIR * GAUSS_1DIR		// 重なり判定のためのガウス点総数
 // #define MAX_N_POINT_OVER	GAUSS_1DIR * GAUSS_1DIR	// 要素重なり判定に用いるローカルメッシュ上1要素内の点数
-#define MAX_N_MESH  10								// 重合IGAを行うモデルの総数（ローカルメッシュ+1）
+// #define MAX_N_MESH  10								// 重合IGAを行うモデルの総数（ローカルメッシュ+1）
 #define MAX_N_ELEMENT_OVER	1000					// グローバルメッシュ内の1要素に重なる最大要素数
-#define MAX_N_ELEMENT_OVER_POINT	5				// ローカル要素内の1点に重なるグローバル要素
-#define MAX_N_ELEMENT_OVER_ELEMENT	MAX_N_ELEMENT_OVER_POINT * MAX_N_POINT_OVER		// ローカルメッシュ内の1要素に重なる最大要素数
+// #define MAX_N_ELEMENT_OVER_POINT	5				// ローカル要素内の1点に重なるグローバル要素
+// #define MAX_N_ELEMENT_OVER_ELEMENT	MAX_N_ELEMENT_OVER_POINT * MAX_N_POINT_OVER		// ローカルメッシュ内の1要素に重なる最大要素数
 
 // 重ね合わせの結果
 #define DBL_MAX          1.7976931348623158e+308 // max value
 #define DIVISION_ELE_XI 10
 #define DIVISION_ELE_ETA 10
-// 最大値
 #define MAX_PATCHES MAX_N_PATCH							//最大パッチ数
-#define MAX_ORDER MAX_ORDER							//最大次数(p)
+// #define MAX_ORDER MAX_ORDER							//最大次数(p)
 #define MAX_CNRL_P MAX_N_Controlpoint_in_Patch			//最大コントロールポイント数(n)
-// 各パッチでの最大値
 #define MAX_KNOTS (MAX_CNRL_P + MAX_ORDER + 1)			//ノットベクトルの最大長さ(n+p+1)
-// 各パッチ、各方向での最大値
 #define MAX_ELEMENTS 100								//最大要素数
 #define MAX_DIVISION 10									//一要素あたりの最大分割数
 #define MAX_POINTS (MAX_ELEMENTS * MAX_DIVISION + 1)	//最大点数
@@ -112,11 +109,14 @@ int Make_K_EL(int El_No, double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], double 
 int Make_coupled_K_EL(int El_No_loc, int El_No_glo, double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION],
 					  double XG[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], double K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE],
 					  double E, double nu, int DM);
+
 // F vector
 void Make_F_Vec(int Total_Load, int Load_Node_Dir[MAX_N_LOAD][2], double Value_of_Load[MAX_N_LOAD], int K_Whole_Size);
 void Make_F_Vec_disp_const(int Mesh_No, int Total_Constraint, int Constraint_Node_Dir[MAX_N_CONSTRAINT][2], double Value_of_Constraint[MAX_N_CONSTRAINT], double E, double nu, int DM);
 void Add_Equivalent_Nodal_Forec_to_F_Vec(int Total_Control_Point);
-
+// tool
+double InverseMatrix_2x2(double M[DIMENSION][DIMENSION]);
+double InverseMatrix_3x3(double M[DIMENSION][DIMENSION]);
 // Shape Function
 double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *Node_Coordinate, int *Total_Control_Point_to_mesh,
 				  int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
