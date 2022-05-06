@@ -2,10 +2,12 @@
 #define S_IGA_MAIN_H
 
 // gauss array
-int GP_1dir;                            // 1方向のガウス点数
-int GP_2D;                              // 2次元のガウス点数
-double Gxi[POW_Ng_extended][DIMENSION]; // ガウス点
-double w[POW_Ng_extended];              // ガウス点での重み
+int GP_1dir;                                // 1方向のガウス点数
+int GP_2D;                                  // 2次元のガウス点数
+double Gxi[POW_Ng * DIMENSION];             // ガウス点
+double w[POW_Ng];                           // ガウス点での重み
+// double Gxi_ex[POW_Ng_extended * DIMENSION]; // ガウス点
+// double w_ex[POW_Ng_extended];               // ガウス点での重み
 
 int KIEL_SIZE;                          // 要素分割マトリックスの大きさ
 int Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT];

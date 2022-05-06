@@ -158,12 +158,12 @@ int main(int argc, char **argv)
 	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
 
 	// memory allocation
-	double *Gauss_Coordinate = (double *)malloc();
-	double *Gauss_Coordinate_ex = ;
-	double *B_Matrix = ;
-
-	// Preprocessing
-	Preprocessing();
+	double *Gauss_Coordinate = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
+	double *Gauss_Coordinate_ex = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION, sizeof(double));
+	double *Jac = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng);
+	double *Jac_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended);
+	double *B_Matrix = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE);
+	double *B_Matrix_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE);
 	
 	// check_over_parameter
 	for (i = 1; i < Total_mesh; i++)

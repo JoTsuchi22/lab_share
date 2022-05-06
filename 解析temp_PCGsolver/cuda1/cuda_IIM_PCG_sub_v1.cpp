@@ -848,6 +848,7 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org)
 
 			if (m == 0 || (m == 1 && NNLOVER[e] >= 2))
 			{
+				Preprocessing()
 				if (m == 1)
 				{
 					NNLOVER[e] = 0;
@@ -956,8 +957,7 @@ void Make_Loc_Glo()
 	int count;
 
 	j_n = real_Total_Element_to_mesh[Total_mesh] - real_Total_Element_on_mesh[0];
-	// printf("j_n=%d\n",j_n);
-	// printf("%d\t%d\n",)
+
 	for (i = 0; i < real_Total_Element_on_mesh[0]; i++)
 	{
 		e = real_element[i];
@@ -966,24 +966,20 @@ void Make_Loc_Glo()
 		for (j = 0; j < j_n; j++)
 		{
 			jj = real_element[real_Total_Element_to_mesh[1] + j]; //ローカルメッシュ上のreal element番号
-			// printf("jj=%d\n",jj);
+
 			if (NNLOVER[jj] > 0)
 			{
-				// printf("jj=%d\n",jj);
 				for (k = 0; k < NNLOVER[jj]; k++)
 				{
 					if (NELOVER[jj][k] == e)
 					{
 						NELOVER[e][count] = jj;
-						// printf("NELOVER[%d][%d]=%d\n",e,count,
-						//							  NELOVER[e][count]);
 						count++;
 					}
 				}
 			}
 		}
 		NNLOVER[e] = count;
-		// printf("NNLOVER[%d]=%d\n",e,NNLOVER[e]);
 	}
 }
 
@@ -1139,12 +1135,79 @@ int duplicate_delete(int total, int element_n)
 }
 
 
-
-
 // Preprocessing
+void Preprocessing(double *Gauss_Coordinate, double *Gauss_Coordinate_ex,
+				   double *B_Matrix, double *B_Matrix_ex,
+				   double *Jac, double *Jac_ex,
+				   double *real_Total_Element_to_mesh,
+				   int state)
+{
+	int e;
+	double dSF[MAX_NO_CCpoint_ON_ELEMENT], dSF_ex[MAX_NO_CCpoint_ON_ELEMENT];
+
+	// ガウス点の物理座標を計算
+	Make_Gauss_Coordinate(Gauss_Coordinate, Gauss_Coordinate_ex);
+
+	// ガウス点でのヤコビアン, Bマトリックスを計算
+	Make_dSF(dSF, dSF_ex);
+	Make_Jac(Jac, Jac_ex, dSF, dSF_ex);
+	Make_B_Matrix(B_Matrix, B_Matrix_ex, dSF, dSF_ex);
+}
 
 
+void Make_Gauss_Coordinate(int m, int e, double *Gauss_Coordinate, double *Gauss_Coordinate_ex)
+{
+	int i, j, k;
+	double temp_coordinate[DIMENSION];
+	double R;
 
+	for (i = 0; i < GP_2D; i++)
+	{
+		temp_coordinate[0] = Gxi[i * DIMENSION + 0];
+		temp_coordinate[1] = Gxi[i * DIMENSION + 1];
+		
+		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
+		{
+			R = Shape_func();
+
+			for (k = 0; k < DIMENSION; k++)
+			{
+				if (m == 0)
+				{
+					Gauss_Coordinate[e * GP_2D * DIMENSION + i * DIMENSION + k] += R * X[j][k];
+				}
+				else if (m == 1)
+				{
+					Gauss_Coordinate_ex[e * GP_2D * DIMENSION + i * DIMENSION + k] += R * X[j][k];
+				}
+			}
+		}
+	}
+}
+
+
+void Make_Gauss_Coordinate(double *Gauss_Coordinate, double *Gauss_Coordinate_ex)
+{
+
+}
+
+
+void Make_dSF(double *dSF, double *dSF_ex)
+{
+
+}
+
+
+void Make_Jac(double *Jac, double *Jac_ex, double *dSF, double *dSF_ex)
+{
+
+}
+
+
+void Make_B_Matrix(double *B_Matrix, double *B_Matrix_ex, double *dSF, double *dSF_ex)
+{
+
+}
 
 
 
