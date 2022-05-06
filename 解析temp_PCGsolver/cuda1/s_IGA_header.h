@@ -296,14 +296,5 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
                          double *cntl_px_glo, double *cntl_py_glo,
                          double *disp_cntl_px_glo, double *disp_cntl_py_glo,
                          double *weight_glo);
-// void Calculation_overlay_at_GP(double E, double nu,
-// 							   int order_xi_glo, int order_eta_glo,
-// 							   int knot_n_xi_glo, int knot_n_eta_glo,
-// 							   int cntl_p_n_xi_glo, int cntl_p_n_eta_glo,
-// 							   double *knot_vec_xi_glo, double *knot_vec_eta_glo,
-// 							   double *cntl_px_glo, double *cntl_py_glo,
-// 							   double *disp_cntl_px_glo, double *disp_cntl_py_glo,
-// 							   double *weight_glo);
-// static void Calculation_at_GP(double E, double nu);
 
 #endif

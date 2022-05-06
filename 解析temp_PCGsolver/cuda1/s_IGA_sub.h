@@ -140,11 +140,11 @@ extern int Same_BDBJ_flag[POW_Ng_extended];
 
 
 // for Interaction integral
-extern double T[DIMENSION][DIMENSION];
-extern double K_mode1;
-extern double K_mode2;
-extern double J_integral_value_aux_mode1;
-extern double J_integral_value_aux_mode2;
+// extern double T[DIMENSION][DIMENSION];
+// extern double K_mode1;
+// extern double K_mode2;
+// extern double J_integral_value_aux_mode1;
+// extern double J_integral_value_aux_mode2;
 
 //重ね合わせの結果
 extern double E;                      // ヤング率(GPa)

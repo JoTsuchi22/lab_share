@@ -3534,7 +3534,6 @@ int Make_K_EL(int El_No, double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], double 
 	double K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE], B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double D[D_MATRIX_SIZE][D_MATRIX_SIZE];
 	double J = 0.0;
-	double J_test = 0.0;
 
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
@@ -3551,7 +3550,6 @@ int Make_K_EL(int El_No, double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], double 
 		Make_B_Matrix(El_No, B, Gxi[i], X, &J);
 
 		BDBJ(B, D, J, K1);
-		J_test += J;
 		for (k = 0; k < KIEL_SIZE; k++)
 		{
 			for (l = 0; l < KIEL_SIZE; l++)
@@ -3577,7 +3575,6 @@ int Make_coupled_K_EL(int El_No_loc, int El_No_glo,
 	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double D[D_MATRIX_SIZE][D_MATRIX_SIZE];
 	double J = 0.0;
-	double J_test = 0.0;
 	double G_Gxi[POW_Ng_extended][DIMENSION]; //グローバルパッチ上での親要素内座標xi_bar, eta_bar
 
 	Total_BDBJ_flag = 0;
@@ -3592,12 +3589,10 @@ int Make_coupled_K_EL(int El_No_loc, int El_No_glo,
 
 	Make_D_Matrix_2D(D, E, nu, DM);
 
-	for (i = 0; i < GP_2D; i++) //ガウス点のループ(local)
+	for (i = 0; i < GP_2D; i++) // ガウス点のループ(local)
 	{
-		// printf("gauss point number:%d\n", i);
-
-		////ローカルガウス点がグローバル要素に含まれているかの判定
-		//ローカル要素ガウス点の物理座標算出
+		// ローカルガウス点がグローバル要素に含まれているかの判定
+		// ローカル要素ガウス点の物理座標算出
 		double data_result_shape[2] = {0.0};
 		double output_xi, output_eta;
 		int patch_n = 0;
@@ -3612,79 +3607,57 @@ int Make_coupled_K_EL(int El_No_loc, int El_No_glo,
 			}
 		}
 
-		//ローカル要素ガウス点のグローバルパッチ上のパラメータ空間座標算出
-		for (j = 0; j < Total_Patch_on_mesh[0]; j++) //グローバルメッシュ[0]上
+		// ローカル要素ガウス点のグローバルパッチ上のパラメータ空間座標算出
+		for (j = 0; j < Total_Patch_on_mesh[0]; j++) // グローバルメッシュ[0]上
 		{
 			Calc_xi_eta(data_result_shape[0], data_result_shape[1],
 						Position_Knots[j][0], Position_Knots[j][1],
 						No_Control_point[j][0], No_Control_point[j][1], Order[j][0], Order[j][1],
 						&output_xi, &output_eta);
-			// printf("  x: % 1.8e\n", data_result_shape[0]);
-			// printf("  y: % 1.8e\n", data_result_shape[1]);
-			// printf(" xi: % 1.8e\n", output_xi);
-			// printf("eta: % 1.8e\n", output_eta);
-			// printf("patch_n: %d\n", j);
 			patch_n = j;
 		}
-		//要素内外判定
 
+		// 要素内外判定
 		if (output_xi >= Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0]] &&
 			output_xi < Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0] + 1] &&
 			output_eta >= Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1]] &&
-			output_eta < Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1] + 1]) //要素内であるとき
+			output_eta < Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1] + 1])
 		{
 			BDBJ_flag = 1;
-			// printf("BDBJ_flag\n");
 
-			//親要素座標の算出
+			// 親要素座標の算出
 			G_Gxi[i][0] = -1.0 + 2.0 * (output_xi - Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0]]) /
 									 (Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0] + 1] - Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0]]);
 			G_Gxi[i][1] = -1.0 + 2.0 * (output_eta - Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1]]) /
 									 (Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1] + 1] - Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1]]);
-			// printf("G_Gxi[][]=\n");
 		}
-		else //要素外であるとき
+		else // 要素外であるとき
 		{
 			BDBJ_flag = 0;
 		}
 
-		// printf("i=%d\n",i );
-
-		////結合要素剛性マトリックス計算
-		//要素内であるとき,次を計算
+		// 結合要素剛性マトリックス計算
+		// 要素内であるとき, 次を計算
 		if (BDBJ_flag)
 		{
 			Total_BDBJ_flag++;
 			Same_BDBJ_flag[i]++;
-			// printf("BDBJ_flag\ti=%d\n",i );
-			//重なるグローバル要素のBマトリックス
+
+			// 重なるグローバル要素のBマトリックス
 			Make_B_Matrix(El_No_glo, BG, G_Gxi[i], XG, &J);
-			//ローカル要素のBマトリックス
+			// ローカル要素のBマトリックス
 			Make_B_Matrix(El_No_loc, B, Gxi[i], X, &J);
 			// BGTDBLの計算
 			coupled_BDBJ(B, D, BG, J, K1);
-			J_test += J;
 			for (k = 0; k < KIEL_SIZE; k++)
 			{
 				for (l = 0; l < KIEL_SIZE; l++)
 				{
 					K_EL[k][l] += w[i] * K1[k][l];
 				}
-			} // printf("w[%d]=%f\n",i,w[i]);
+			}
 		}
 	}
-	// printf("El_No:%d J_test=%e\n", El_No_loc, J_test);
-	// printf("G=%f\n",G );
-	/*for ( k = 0; k < KIEL_SIZE; k++) {
-		for ( l = 0; l < KIEL_SIZE; l++) {
-			printf("K_EL[%d][%d]:%le\n",k,l,K_EL[k][l]);
-		}
-	}*/
-
-	// if (i == GP_2D - 1)
-	// {
-	// 	printf("-------------------Total_BDBJ_flag=%d-------------------\n", Total_BDBJ_flag);
-	// }
 
 	return 0;
 }
@@ -5816,418 +5789,6 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	fclose(fp);
 }
 
-/*
-static void Calculation_at_GP(double E, double nu)
-{
-	//通常IGAでのガウス点での値
-	int i, j, k, e;
-
-	Make_gauss_array(1);
-
-	//メッシュ座標計算
-	int ele_glo_n = real_Total_Element_on_mesh[0];// グローバルメッシュの要素数
-
-	double U_temp[MAX_KIEL_SIZE];
-	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double J;
-
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		double X_temp[No_Control_point_ON_ELEMENT[Element_patch[e]]][DIMENSION];
-
-		// printf("ele = %d\n\n", e);
-
-		//strain_GPの初期化
-		for (i = 0; i < GP_2D; i++)
-		{
-			for (j = 0; j < 3; j++)
-			{
-				strain_GP[e][i][j] = 0.0;
-			}
-		}
-
-		// printf("x\ty\n");
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
-		{
-			for (k = 0; k < DIMENSION; k++)
-			{
-				U_temp[j * DIMENSION + k] = Displacement[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + j] * DIMENSION + k];
-				X_temp[j][k] = Node_Coordinate[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + j] * (DIMENSION + 1) + k];
-			}
-			// printf("%.15e\t%.15e\n", X_temp[j][0], X_temp[j][1]);
-		}
-		// printf("\n");
-
-		for (i = 0; i < GP_2D; i++)	//ガウス点のループ
-		{
-			double data_result_shape[2] = {0.0, 0.0};
-			double R_shape_func;
-
-			// printf("Gxi_x\t_Gxi_y\tR_shape_func\n");
-			for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
-			{
-				R_shape_func = Shape_func(j, Total_Control_Point_to_mesh[Total_mesh], Gxi[i], e);
-				for (k = 0; k < DIMENSION; k++)
-				{
-					data_result_shape[k] += R_shape_func * X_temp[j][k];
-				}
-			}
-
-			//物理座標[要素番号(ローカル内で0から始まる)][ガウス点番号][DIMENSION]
-			for (j = 0; j < DIMENSION; j++)
-			{
-				coordinate_GP[e][i][j] = data_result_shape[j];
-			}
-		}
-
-		for (i = 0; i < GP_2D; i++)	//ガウス点のループ
-		{
-			Make_B_Matrix(e, B, Gxi[i], X_temp, &J, Total_Control_Point_to_mesh[Total_mesh]);
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-			{
-				for (k = 0; k < KIEL_SIZE; k++)
-				{
-					strain_GP[e][i][j] += B[j][k] * U_temp[k];
-				}
-			}
-			Jac[e][i] = J;
-		}
-	}
-
-	//Dマトリクスの計算
-	double temp1;
-	double D_matrix[3][3] = {{0.0}};
-	if (DM == 0) { //平面応力状態
-		temp1 = E * (1.0 - nu * nu);
-		D_matrix[0][0] = temp1;
-		D_matrix[0][1] = nu * temp1;
-		D_matrix[1][0] = nu * temp1;
-		D_matrix[1][1] = temp1;
-		D_matrix[2][2] = (1.0 - nu) / 2.0 * temp1;
-	} else if (DM == 1) { //平面ひずみ状態(2Dの場合はこっち)
-		temp1 = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
-		D_matrix[0][0] = temp1;
-		D_matrix[0][1] = nu / (1.0 - nu) * temp1;
-		D_matrix[1][0] = nu / (1.0 - nu) * temp1;
-		D_matrix[1][1] = temp1;
-		D_matrix[2][2] = (1.0 - 2.0 * nu) / 2.0 / (1.0 - nu) * temp1;
-	}
-
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			stress_GP[e][i][0] = D_matrix[0][0] * strain_GP[e][i][0] + D_matrix[0][1] * strain_GP[e][i][1];
-			stress_GP[e][i][1] = D_matrix[1][0] * strain_GP[e][i][0] + D_matrix[1][1] * strain_GP[e][i][1];
-			stress_GP[e][i][2] = D_matrix[2][2] * strain_GP[e][i][2];
-		}
-	}
-
-	//座標変換
-	double theta = 0.0;
-
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			theta = atan2(coordinate_GP[e][i][1], coordinate_GP[e][i][0]);
-
-			stress_r_theta_GP[e][i][0] = stress_GP[e][i][0] * pow(cos(theta), 2.0)
-									   + stress_GP[e][i][1] * pow(sin(theta), 2.0)
-									   + 2.0 * stress_GP[e][i][2] * sin(theta) * cos(theta);
-			stress_r_theta_GP[e][i][1] = stress_GP[e][i][0] * pow(sin(theta), 2.0)
-									   + stress_GP[e][i][1] * pow(cos(theta), 2.0)
-									   - 2.0 * stress_GP[e][i][2] * cos(theta) * sin(theta);
-			stress_r_theta_GP[e][i][2] = (stress_GP[e][i][1] - stress_GP[e][i][0])
-									   * sin(theta) * cos(theta) + stress_GP[e][i][2]
-									   * (pow(cos(theta), 2.0) - pow(sin(theta), 2.0));
-		}
-	}
-
-	//厚肉円筒の理論解
-	double r_t = 0.0;
-
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			r_t = sqrt(pow(coordinate_GP[e][i][0], 2.0) + pow(coordinate_GP[e][i][1], 2.0));
-
-			stress_theory_r_theta[e][i][0] = (pow(r_t, 2.0) - 4.0) / (pow(r_t, 2.0) * 3.0);
-			stress_theory_r_theta[e][i][1] = (pow(r_t, 2.0) + 4.0) / (pow(r_t, 2.0) * 3.0);
-		}
-	}
-
-	//書き込み
-	fp = fopen("at_GP_overlay_data.txt", "w");
-	fprintf(fp, "e\tガウス番号\tx\ty\tstress_xx\tstress_yy\tstress_r\tstress_theta\n");
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			fprintf(fp, "%d\t%d\t%.15e\t%.15e\t%.15e\t%.15e\t%.15e\t%.15e\n", e, i, coordinate_GP[e][i][0], coordinate_GP[e][i][1], stress_GP[e][i][0], stress_GP[e][i][1], stress_r_theta_GP[e][i][0], stress_r_theta_GP[e][i][1]);
-		}
-	}
-	fclose(fp);
-
-	fp = fopen("at_GP_overlay_for_error_norm.txt", "w");
-	fprintf(fp, "e\tガウス番号\tx\ty\tstress_r-theory\tstress_theta-theory\n");
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			fprintf(fp, "%d\t%d\t%.15e\t%.15e\t%.15e\t%.15e\n", e, i, coordinate_GP[e][i][0], coordinate_GP[e][i][1], stress_r_theta_GP[e][i][0] - stress_theory_r_theta[e][i][0], stress_r_theta_GP[e][i][1] - stress_theory_r_theta[e][i][1]);
-		}
-	}
-	fclose(fp);
-
-
-	//error normを計算
-	//ガウス点で出したtheoryとの差の二乗を面積分
-	double temp2 = 0.0, temp3 = 0.0, temp4 = 0.0, temp5 = 0.0;
-	for (e = 0; e < ele_glo_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			temp2 += w[i] * pow((stress_r_theta_GP[e][i][0] - stress_theory_r_theta[e][i][0]), 2.0) * Jac[e][i];
-			temp3 += w[i] * pow((stress_r_theta_GP[e][i][1] - stress_theory_r_theta[e][i][1]), 2.0) * Jac[e][i];
-			temp4 += w[i] * pow(stress_r_theta_GP[e][i][0], 2.0) * Jac[e][i];
-			temp5 += w[i] * pow(stress_r_theta_GP[e][i][1], 2.0) * Jac[e][i];
-		}
-	}
-	fp = fopen("at_GP_overlay_for_error_norm_surface_integral.txt", "w");
-	fprintf(fp, "(stress_r-theory)^2_surface_integral\t(stress_theta-thory)^2_surface_integral\tstress_r^2_surface_integral\n");
-	fprintf(fp, "%.15e\t%.15e\t%.15e\t%.15e\n", temp2, temp3, temp4, temp5);
-	fclose(fp);
-}
-
-
-void Calculation_overlay_at_GP(double E, double nu,
-							   int order_xi_glo, int order_eta_glo,
-							   int knot_n_xi_glo, int knot_n_eta_glo,
-							   int cntl_p_n_xi_glo, int cntl_p_n_eta_glo,
-							   double *knot_vec_xi_glo, double *knot_vec_eta_glo,
-							   double *cntl_px_glo, double *cntl_py_glo,
-							   double *disp_cntl_px_glo, double *disp_cntl_py_glo,
-							   double *weight_glo)
-{
-	//s-IGAでのローカル上のガウス点での重ね合わせた値
-	int i, j, k, e;
-
-	double disp_glo[DIMENSION];
-	double strain_glo[D_MATRIX_SIZE];
-
-	Make_gauss_array(1);
-
-	double G_GP_knot[GP_2D][DIMENSION];
-
-	//メッシュ座標計算
-	int ele_glo_n = real_Total_Element_on_mesh[0];// グローバルメッシュの要素数
-	int ele_loc_n = real_Total_Element_to_mesh[Total_mesh] - real_Total_Element_on_mesh[0];// ローカルメッシュの要素数
-
-	double U_temp[MAX_KIEL_SIZE];
-	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double J;
-
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		int El_No_loc = ele_glo_n + e;
-		double X_temp[No_Control_point_ON_ELEMENT[Element_patch[El_No_loc]]][DIMENSION];
-
-		//strain_GPの初期化
-		for (i = 0; i < GP_2D; i++)
-		{
-			for (j = 0; j < 3; j++)
-			{
-				strain_GP[e][i][j] = 0.0;
-			}
-		}
-
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No_loc]]; j++)
-		{
-			for (k = 0; k < DIMENSION; k++)
-			{
-				U_temp[j * DIMENSION + k] = Displacement[Controlpoint_of_Element[El_No_loc * MAX_NO_CCpoint_ON_ELEMENT + j] * DIMENSION + k];
-				X_temp[j][k] = Node_Coordinate[Controlpoint_of_Element[El_No_loc * MAX_NO_CCpoint_ON_ELEMENT + j] * (DIMENSION + 1) + k];
-			}
-		}
-
-		for (i = 0; i < GP_2D; i++)	//ガウス点のループ
-		{
-			double data_result_shape[2] = {0.0, 0.0};
-			double R_shape_func;
-
-			for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No_loc]]; j++)
-			{
-				R_shape_func = Shape_func(j, Total_Control_Point_to_mesh[Total_mesh], Gxi[i], El_No_loc);
-				for (k = 0; k < DIMENSION; k++)
-				{
-					data_result_shape[k] += R_shape_func * X_temp[j][k];
-				}
-			}
-
-			for (j = 0; j < DIMENSION; j++)
-			{
-				coordinate_GP[e][i][j] = data_result_shape[j];
-			}
-		}
-
-		for (i = 0; i < GP_2D; i++)	//ガウス点のループ
-		{
-			Make_B_Matrix(El_No_loc, B, Gxi[i], X_temp, &J, Total_Control_Point_to_mesh[Total_mesh]);
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-			{
-				for (k = 0; k < KIEL_SIZE; k++)
-				{
-					strain_GP[e][i][j] += B[j][k] * U_temp[k];
-				}
-			}
-			Jac[e][i] = J;
-		}
-
-		for (i = 0; i < GP_2D; i++)	//ガウス点のループ
-		{
-			CalcXiEtaByNR(coordinate_GP[e][i][0], coordinate_GP[e][i][1],
-						  knot_vec_xi_glo, knot_vec_eta_glo,
-						  cntl_px_glo, cntl_py_glo,
-						  disp_cntl_px_glo, disp_cntl_py_glo,
-						  cntl_p_n_xi_glo, cntl_p_n_eta_glo,
-						  weight_glo, order_xi_glo, order_eta_glo,
-						  &G_GP_knot[i][0], &G_GP_knot[i][1],
-						  &disp_glo[0], &disp_glo[1],
-						  &strain_glo[0], &strain_glo[1], &strain_glo[2]);
-
-			//重ね合わせ
-			for (j = 0; j < 3; j++) //xx, yy, xyを重ね合わせる
-			{
-				strain_GP[e][i][j] += strain_glo[j];
-			}
-		}
-	}
-
-	//Dマトリクスの計算
-	double temp1;
-	double D_matrix[3][3] = {{0.0}};
-	if (DM == 0) { //平面応力状態
-		temp1 = E * (1.0 - nu * nu);
-		D_matrix[0][0] = temp1;
-		D_matrix[0][1] = nu * temp1;
-		D_matrix[1][0] = nu * temp1;
-		D_matrix[1][1] = temp1;
-		D_matrix[2][2] = (1.0 - nu) / 2.0 * temp1;
-	} else if (DM == 1) { //平面ひずみ状態(2Dの場合はこっち)
-		temp1 = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
-		D_matrix[0][0] = temp1;
-		D_matrix[0][1] = nu / (1.0 - nu) * temp1;
-		D_matrix[1][0] = nu / (1.0 - nu) * temp1;
-		D_matrix[1][1] = temp1;
-		D_matrix[2][2] = (1.0 - 2.0 * nu) / 2.0 / (1.0 - nu) * temp1;
-	}
-
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			stress_GP[e][i][0] = D_matrix[0][0] * strain_GP[e][i][0] + D_matrix[0][1] * strain_GP[e][i][1];
-			stress_GP[e][i][1] = D_matrix[1][0] * strain_GP[e][i][0] + D_matrix[1][1] * strain_GP[e][i][1];
-			stress_GP[e][i][2] = D_matrix[2][2] * strain_GP[e][i][2];
-		}
-	}
-
-	//座標変換
-	double theta = 0.0;
-
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			theta = atan2(coordinate_GP[e][i][1], coordinate_GP[e][i][0]);
-
-			stress_r_theta_GP[e][i][0] = stress_GP[e][i][0] * pow(cos(theta), 2.0)
-									   + stress_GP[e][i][1] * pow(sin(theta), 2.0)
-									   + 2.0 * stress_GP[e][i][2] * sin(theta) * cos(theta);
-			stress_r_theta_GP[e][i][1] = stress_GP[e][i][0] * pow(sin(theta), 2.0)
-									   + stress_GP[e][i][1] * pow(cos(theta), 2.0)
-									   - 2.0 * stress_GP[e][i][2] * cos(theta) * sin(theta);
-			stress_r_theta_GP[e][i][2] = (stress_GP[e][i][1] - stress_GP[e][i][0])
-									   * sin(theta) * cos(theta) + stress_GP[e][i][2]
-									   * (pow(cos(theta), 2.0) - pow(sin(theta), 2.0));
-		}
-	}
-
-	//円孔を有する無限平板の理論解
-	double r_t = 0.0, theta_t = 0.0;
-
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			r_t = sqrt(pow(coordinate_GP[e][i][0], 2.0) + pow(coordinate_GP[e][i][1], 2.0));
-			theta_t = atan2(coordinate_GP[e][i][1], coordinate_GP[e][i][0]);
-
-			// stress_theory_r_theta[e][i][0] = (10.0 / 2.0) * (1.0 - pow((1.0 / r_t), 2.0))
-			// 							   + (10.0 / 2.0) * (1.0 + 3.0 * pow((1.0 / r_t), 4.0)
-			// 							   - 4.0 * pow((1.0 / r_t), 2.0)) * cos(2.0 * theta_t);
-			// stress_theory_r_theta[e][i][1] = (10.0 / 2.0) * (1.0 + pow((1.0 / r_t), 2.0))
-			// 							   - (10.0 / 2.0) * (1.0 + 3.0 * pow((1.0 / r_t), 4.0))
-			// 							   * cos(2.0 * theta_t);
-			// stress_theory_r_theta[e][i][2] = - (10.0 / 2.0) * (1.0 - 3.0 * pow((1.0 / r_t), 4.0)
-			// 							   + 2.0 * pow((1.0 / r_t), 2.0)) * sin(2.0 * theta_t);
-			stress_theory_r_theta[e][i][0] = (10.0 / 2.0) * (1.0 - pow((1.0 / r_t), 2.0))
-										   - (10.0 / 2.0) * (1.0 + 3.0 * pow((1.0 / r_t), 4.0)
-										   - 4.0 * pow((1.0 / r_t), 2.0)) * cos(2.0 * theta_t);
-			stress_theory_r_theta[e][i][1] = (10.0 / 2.0) * (1.0 + pow((1.0 / r_t), 2.0))
-										   + (10.0 / 2.0) * (1.0 + 3.0 * pow((1.0 / r_t), 4.0))
-										   * cos(2.0 * theta_t);
-			stress_theory_r_theta[e][i][2] = (10.0 / 2.0) * (1.0 - 3.0 * pow((1.0 / r_t), 4.0)
-										   + 2.0 * pow((1.0 / r_t), 2.0)) * sin(2.0 * theta_t);
-		}
-	}
-
-	//書き込み
-	fp = fopen("at_GP_overlay_data.txt", "w");
-	fprintf(fp, "e\tガウス番号\tx\ty\tstress_xx\tstress_yy\tstress_r\tstress_theta\n");
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			fprintf(fp, "%d\t%d\t%.15e\t%.15e\t%.15e\t%.15e\t%.15e\t%.15e\n", e, i, coordinate_GP[e][i][0], coordinate_GP[e][i][1], stress_GP[e][i][0], stress_GP[e][i][1], stress_r_theta_GP[e][i][0], stress_r_theta_GP[e][i][1]);
-		}
-	}
-	fclose(fp);
-
-	fp = fopen("at_GP_overlay_for_error_norm.txt", "w");
-	fprintf(fp, "e\tガウス番号\tx\ty\tstress_r-theory\tstress_theta-theory\n");
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			fprintf(fp, "%d\t%d\t%.15e\t%.15e\t%.15e\t%.15e\n", e, i, coordinate_GP[e][i][0], coordinate_GP[e][i][1], stress_r_theta_GP[e][i][0] - stress_theory_r_theta[e][i][0], stress_r_theta_GP[e][i][1] - stress_theory_r_theta[e][i][1]);
-		}
-	}
-	fclose(fp);
-
-
-	//error normを計算
-	//ガウス点で出したtheoryとの差の二乗を面積分
-	double temp2 = 0.0, temp3 = 0.0, temp4 = 0.0, temp5 = 0.0, temp6 = 0.0;
-	for (e = 0; e < ele_loc_n; e++)
-	{
-		for (i = 0; i < GP_2D; i++)
-		{
-			temp2 += w[i] * pow((stress_r_theta_GP[e][i][0] - stress_theory_r_theta[e][i][0]), 2.0) * Jac[e][i];
-			temp3 += w[i] * pow((stress_r_theta_GP[e][i][1] - stress_theory_r_theta[e][i][1]), 2.0) * Jac[e][i];
-			temp4 += w[i] * pow(stress_r_theta_GP[e][i][0], 2.0) * Jac[e][i];
-			temp5 += w[i] * pow(stress_r_theta_GP[e][i][1], 2.0) * Jac[e][i];
-			temp6 += w[i] * Jac[e][i];
-		}
-	}
-	fp = fopen("at_GP_overlay_for_error_norm_surface_integral.txt", "w");
-	fprintf(fp, "(stress_r-theory)^2_surface_integral\t(stress_theta-thory)^2_surface_integral\tstress_r^2_surface_integral\tstress_theta^2_surface_integral\t面積(analysis)\n");
-	fprintf(fp, "%.15e\t%.15e\t%.15e\t%.15e\t%.15e\n", temp2, temp3, temp4, temp5, temp6);
-	fclose(fp);
-}
-*/
 
 void K_output_svg(int ndof)
 {

@@ -157,7 +157,13 @@ int main(int argc, char **argv)
 	// memory free
 	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
 
+	// memory allocation
+	double *Gauss_Coordinate = (double *)malloc();
+	double *Gauss_Coordinate_ex = ;
+	double *B_Matrix = ;
+
 	// Preprocessing
+	Preprocessing();
 	
 	// check_over_parameter
 	for (i = 1; i < Total_mesh; i++)
@@ -490,15 +496,6 @@ int main(int argc, char **argv)
 	}
 	fclose(fp);
 
-
-	if (Total_mesh == 1)
-	{
-		printf("start GP calc\n");
-		// Calculation_at_GP(E, nu);
-		printf("end GP calc\n");
-	}
-
-
 	// 重ね合わせをスキップしてJ積分を行う
 	if (SKIP_S_IGA != 1)
 	{
@@ -595,24 +592,6 @@ int main(int argc, char **argv)
 		fp = fopen("over_stress_vm_graph.txt", "w");
 		fprintf(fp, "xi\teta\tx\ty\tstress_vm\n");
 		fclose(fp);
-
-		// S-IGAでローカル上のガウス点で重ね合わせた値をデータ整理する場合に使う
-		if (Total_mesh >= 2)
-		{
-			printf("start GP calc\n");
-
-			// patch_n_glo = 0;
-			// Calculation_overlay_at_GP(E, nu,
-			// 						  order_xi[patch_n_glo],order_eta[patch_n_glo],
-			// 						  knot_n_xi[patch_n_glo], knot_n_eta[patch_n_glo],
-			// 						  cntl_p_n_xi[patch_n_glo], cntl_p_n_eta[patch_n_glo],
-			// 						  knot_vec_xi[patch_n_glo], knot_vec_eta[patch_n_glo],
-			// 						  cntl_px[patch_n_glo], cntl_py[patch_n_glo],
-			// 						  disp_cntl_px[patch_n_glo], disp_cntl_py[patch_n_glo],
-			// 						  weight[patch_n_glo]);
-
-			printf("end GP calc\n");
-		}
 
 		// 重ね合わせ
 		for (i = 0; i < patch_n; i++)
