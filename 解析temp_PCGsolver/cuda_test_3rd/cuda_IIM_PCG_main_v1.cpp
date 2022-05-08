@@ -26,7 +26,7 @@
 
 int main(int argc, char **argv)
 {
-	clock_t start, end, t1;
+	clock_t start, end;
 
 	int i, j, k;
 	
@@ -76,16 +76,16 @@ int main(int argc, char **argv)
 					Total_Load_to_mesh, Total_Constraint_to_mesh, Total_DistributeForce_to_mesh,
 					argv);
 	}
-
+	
 	// memory allocation
 	int *Order = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// Order[MAX_N_PATCH][DIMENSION]
 	int *No_knot = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// No_knot[MAX_N_PATCH][DIMENSION]
 	int *Total_Control_Point_to_patch = (int *)calloc((Total_Patch_to_mesh[Total_mesh] + 1), sizeof(int));	// Total_Control_Point_to_patch[MAX_N_PATCH]
 	int *Total_Knot_to_patch_dim = (int *)calloc((Total_Patch_to_mesh[Total_mesh] * DIMENSION + 1), sizeof(int));	// Total_Knot_to_patch_dim[MAX_N_PATCH][DIMENSION]
 	double *Position_Knots = (double *)malloc(sizeof(double) * Total_Knot_to_mesh[Total_mesh]);				// Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
-	int *No_Control_point = (int *)calloc((Total_Patch_to_mesh[Total_mesh] * DIMENSION), sizeof(int));		// Order[MAX_N_PATCH][DIMENSION]
-	int *No_Controlpoint_in_patch = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));			// No_Controlpoint_in_patch[MAX_N_PATCH]
-	int *Patch_controlpoint = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_controlpoint[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
+	int *No_Control_point = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * DIMENSION));		// Order[MAX_N_PATCH][DIMENSION]
+	int *No_Control_point_in_patch = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_in_patch[MAX_N_PATCH]
+	int *Patch_Control_point = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh]));		// Patch_Control_point[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
 	int *No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
 	double *Node_Coordinate = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh] * (DIMENSION + 1)));	// Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
 	double *Control_Coord_x = (double *)malloc(sizeof(double) * (Total_Control_Point_to_mesh[Total_mesh])); // Control_Coord[DIMENSION][MAX_N_NODE];
@@ -98,10 +98,9 @@ int main(int argc, char **argv)
 	int *iPatch_array = (int *)malloc(sizeof(int) * Total_DistributeForce_to_mesh[Total_mesh]);				// iPatch_array[MAX_N_DISTRIBUTE_FORCE]
 	int *iCoord_array = (int *)malloc(sizeof(int) * Total_DistributeForce_to_mesh[Total_mesh]);				// iCoord_array[MAX_N_DISTRIBUTE_FORCE]
 	int *type_load_array = (int *)malloc(sizeof(int) * Total_DistributeForce_to_mesh[Total_mesh]);			// type_load_array[MAX_N_DISTRIBUTE_FORCE]
-	double *val_Coord_array = (double *)calloc(Total_DistributeForce_to_mesh[Total_mesh], sizeof(double)); // val_Coord_array[MAX_N_DISTRIBUTE_FORCE]
+	double *val_Coord_array = (double *)calloc(Total_DistributeForce_to_mesh[Total_mesh], sizeof(double));	// val_Coord_array[MAX_N_DISTRIBUTE_FORCE]
 	double *Range_Coord_array = (double *)calloc((Total_DistributeForce_to_mesh[Total_mesh] * 2), sizeof(double));	// Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2]
 	double *Coeff_Dist_Load_array = (double *)calloc((Total_DistributeForce_to_mesh[Total_mesh] * 3), sizeof(double));	// Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3] 
-
 
 	// ファイル読み込み2回目
 	for (tm = 0; tm < Total_mesh; tm++)
@@ -110,8 +109,8 @@ int main(int argc, char **argv)
 					Total_Patch_to_mesh, Total_Control_Point_to_mesh,
 					Total_Element_on_mesh, Total_Element_to_mesh,
 					Total_Constraint_to_mesh, Total_Load_to_mesh, Total_DistributeForce_to_mesh,
-					Order, No_knot, No_Control_point, No_Controlpoint_in_patch,
-					Patch_controlpoint, Position_Knots, No_Control_point_ON_ELEMENT,
+					Order, No_knot, No_Control_point, No_Control_point_in_patch,
+					Patch_Control_point, Position_Knots, No_Control_point_ON_ELEMENT,
 					Node_Coordinate, Control_Coord_x, Control_Coord_y, Control_Weight,
 					Constraint_Node_Dir, Value_of_Constraint,
 					Load_Node_Dir, Value_of_Load,
@@ -134,15 +133,14 @@ int main(int argc, char **argv)
 	int *real_element_line = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * Total_Element_to_mesh[Total_mesh] * DIMENSION)); // real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION] ゼロエレメントではない要素列
 	int *real_element = (int *)malloc(sizeof(int) * Total_Element_to_mesh[Total_mesh]);					// real_element[MAX_N_ELEMENT] ゼロエレメントではない要素の番号
 	int *real_El_No_on_mesh = (int *)malloc(sizeof(int) * (Total_Patch_to_mesh[Total_mesh] * Total_Element_to_mesh[Total_mesh]));	// real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]
-	double *Equivalent_Nodal_Force = (double *)calloc(Total_Control_Point_to_mesh[Total_mesh] * DIMENSION, sizeof(double));	//Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION] Equivalent nodal forces arising from the distributed load
-
+	double *Equivalent_Nodal_Force = (double *)calloc(Total_Control_Point_to_mesh[Total_mesh] * DIMENSION, sizeof(double));	// Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION] Equivalent nodal forces arising from the distributed load
 
 	// INC 等の作成
 	Make_INC(tm, Total_Patch_on_mesh, Total_Patch_to_mesh,
 			 Total_Element_on_mesh, Total_Element_to_mesh,
 			 Total_Control_Point_on_mesh, Total_Control_Point_to_mesh,
 			 Total_DistributeForce_to_mesh,
-			 INC, Patch_controlpoint, Total_Control_Point_to_patch,
+			 INC, Patch_Control_point, Total_Control_Point_to_patch,
 			 No_Control_point, Controlpoint_of_Element,
 			 Element_patch, Element_mesh,
 			 difference, Total_Knot_to_patch_dim,
@@ -153,11 +151,47 @@ int main(int argc, char **argv)
 			 real_Total_Element_to_mesh, Equivalent_Nodal_Force,
 			 type_load_array, iPatch_array, iCoord_array,
 			 val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array,
-			 Order, No_knot);
+			 Order, No_knot, Total_Knot_to_mesh, Node_Coordinate,
+			 Position_Knots, No_Control_point_ON_ELEMENT);
 
 	// memory free
-	free(Patch_controlpoint);
-	free(real_element_line);
+	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
+
+	// memory allocation
+	if (DIMENSION == 2)
+	{
+		D_MATRIX_SIZE = 3;
+	}
+	else if (DIMENSION == 3)
+	{
+		D_MATRIX_SIZE = 6;
+	}
+	int *NNLOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh]);
+	int *NELOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
+	double *Gauss_Coordinate = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
+	double *Gauss_Coordinate_ex = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION, sizeof(double));
+	double *Jac = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng);
+	double *Jac_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended);
+	double *B_Matrix = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *B_Matrix_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *Loc_parameter_on_Glo = (double *)malloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION * sizeof(double));
+	double *Loc_parameter_on_Glo_ex = (double *)malloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION * sizeof(double));
+	
+	// check_over_parameter, NNLOVER の算出
+	for (i = 1; i < Total_mesh; i++)
+	{
+		int mesh_n_org = 0;
+		printf("mesh_n_org: 0\tmesh_n_over: %d\n", i);
+		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org, NNLOVER, NELOVER,
+												Gauss_Coordinate, Gauss_Coordinate_ex, Jac, Jac_ex, B_Matrix, B_Matrix_ex, Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex,
+												real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element,
+												INC, Element_patch, Order, No_Control_point_ON_ELEMENT, Position_Knots,
+												Total_Knot_to_patch_dim, No_knot, No_Control_point,
+												Control_Coord_x, Control_Coord_y, Control_Weight,
+												real_Total_Element_on_mesh, real_element, Total_Patch_on_mesh, line_No_Total_element);
+		Make_Loc_Glo(real_Total_Element_on_mesh, real_Total_Element_to_mesh, real_element, NNLOVER, NELOVER);
+	}
+
 
 	return 0;
 }

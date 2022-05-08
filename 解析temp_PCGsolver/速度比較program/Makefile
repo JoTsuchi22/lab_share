@@ -5,3 +5,6 @@ all_program:
 
 02:	IIM_PCG_v3_fast.c
 	gcc -o IIM_PCG_v3_fast.x IIM_PCG_v3_fast.c -O1 -lm -Wall -Wextra
+
+03:	IIM_PCG_v3_fast.c
+	gcc -o IIM_PCG_v3_fast.x IIM_PCG_v3_fast.c -O1 -lm -Wall -Wextra -mtune=native -march=native -mfpmath=both

@@ -9,7 +9,6 @@ double w[POW_Ng];                           // ガウス点での重み
 // double Gxi_ex[POW_Ng_extended * DIMENSION]; // ガウス点
 // double w_ex[POW_Ng_extended];               // ガウス点での重み
 
-int KIEL_SIZE;                          // 要素分割マトリックスの大きさ
 int Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT];
 double Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
 double Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION]; // Equivalent nodal forces arising from the distributed load
@@ -242,8 +241,13 @@ int check_over_parameter = 1; // 要素の重なりの判定(要素の物体上�
 
 double E, nu;
 
+// file pointer
 FILE *fp;
 
+int KIEL_SIZE;                          // 要素分割マトリックスの大きさ
 int D_MATRIX_SIZE = 0;
+int MAX_K_WHOLE_SIZE;
+int K_Whole_Size;
+int MAX_NON_ZERO;
 
 #endif

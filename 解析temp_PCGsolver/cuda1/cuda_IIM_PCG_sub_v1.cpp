@@ -384,7 +384,8 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 			  int *real_Total_Element_to_mesh, double *Equivalent_Nodal_Force,
 			  int *type_load_array, int *iPatch_array, int *iCoord_array,
 			  double *val_Coord_array, double *Range_Coord_array, double *Coeff_Dist_Load_array,
-			  int *Order, int *No_knot)
+			  int *Order, int *No_knot, int *Total_Knot_to_mesh, double *Node_Coordinate,
+			  double *Position_Knots, int *No_Control_point_ON_ELEMENT)
 {
 	// INC の計算(節点番号をξ, ηの番号で表す為の配列)
 	for (tm = 0; tm < Total_mesh; tm++)
@@ -490,7 +491,8 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 
 				for (kkk = Order[(l + Total_Patch_to_Now) * DIMENSION + j]; kkk < No_knot[(l + Total_Patch_to_Now) * DIMENSION + j] - Order[(l + Total_Patch_to_Now) * DIMENSION + j] - 1; kkk++)
 				{
-					difference[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - Order[(l + Total_Patch_to_Now) * DIMENSION + j]];
+					difference[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - Order[(l + Total_Patch_to_Now) * DIMENSION + j]]
+						= Position_Knots[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk + 1] - Position_Knots[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk];
 					if (difference[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - Order[(l + Total_Patch_to_Now) * DIMENSION + j]] != 0)
 					{
 						line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + j]++;
@@ -594,7 +596,13 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 			printf("type_load:%d\tiPatch:%d\tiCoord:%d\tval_coord:%lf\t", type_load, iPatch, iCoord, val_Coord);
 			printf("Range0:%lf\tRange1:%lf\t", Range_Coord[0], Range_Coord[1]);
 			printf("Coeff0:%lf\n", Coeff_Dist_Load[0]);
-			Setting_Dist_Load_2D(tm, iPatch, Total_Element_to_mesh[tm + 1], iCoord, val_Coord, Range_Coord, type_load, Coeff_Dist_Load);
+			Setting_Dist_Load_2D(tm, iPatch, Total_Element_to_mesh[tm + 1], iCoord, val_Coord,
+								 Range_Coord, type_load, Coeff_Dist_Load, Total_Knot_to_mesh,
+						  		 Controlpoint_of_Element, Order, No_knot, Total_element_all_ID,
+						  		 Total_Knot_to_patch_dim, Position_Knots, Equivalent_Nodal_Force,
+						  		 Total_Element_on_mesh, Total_Element_to_mesh, Element_patch, ENC,
+						  		 Node_Coordinate, INC, No_Control_point_ON_ELEMENT, Total_Control_Point_to_mesh,
+						  		 No_Control_point);
 		}
 	}
 }
@@ -810,21 +818,21 @@ int SearchForElement(int mesh_n, int iPatch, int iX, int iY, int *Total_Element_
 
 // for s_IGA, coupled matrix を求める, 要素の重なりを要素のガウス点から求める
 void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, int *NNLOVER, int *NELOVER,
-											 double *Gauss_Coordinate, double *Gauss_Coordinate_ex, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex,
-											 int *real_Total_Element_to_mesh, int *Node_Coordinate, int *Total_Control_Point_to_mesh, int *Controlpoint_of_Element,
+											 double *Gauss_Coordinate, double *Gauss_Coordinate_ex, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex,
+											 int *real_Total_Element_to_mesh, double *Node_Coordinate, int *Total_Control_Point_to_mesh, int *Controlpoint_of_Element,
 											 int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT, double *Position_Knots,
-											 int *Total_Knot_to_patch_dim, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+											 int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point,
+											 double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight,
+											 int *real_Total_Element_on_mesh, int *real_element, int *Total_Patch_on_mesh, int *line_No_Total_element)
 {
 	int re, e;
 	int i, j, k, m;
 	int b, l, ll;
 	int n_elements_over_point[POW_Ng_extended];
-	int patch_n = 0, itr_n = 0;
-
 	int MAX_NNLOVER = 0;
 
-	int *temp_element_n = (int *)malloc();
-	int *element_n_point = (int *)malloc();
+	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
+	int *element_n_point = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_ELEMENT);
 	int *Check_coupled_No = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER);
 
 	for (i = 0; i < MAX_N_ELEMENT_OVER; i++)
@@ -835,6 +843,19 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 	for (m = 0; m < 2; m++) // 最初 Ng 個のガウス点で重なりを求め, NNLOVER[e] >= 2 の e に対して, 再度 Ng_extended 個のガウス点で重なりを求める
 	{
 		Make_gauss_array(m);
+
+		// グローバルパッチの Preprocessing 作成
+		if (m == 0)
+		{
+			for (re = 0; re < real_Total_Element_on_mesh[mesh_n_org]; re++)
+			{
+				e = real_element[re + real_Total_Element_to_mesh[mesh_n_org]];
+				Preprocessing(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, B_Matrix, B_Matrix_ex,
+							  Jac, Jac_ex, real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh,
+							  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
+							  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+			}
+		}
 
 		// ローカルパッチ(mesh_n_over)各要素の頂点の物理座標算出
 		for (re = 0; re < real_Total_Element_on_mesh[mesh_n_over]; re++)
@@ -848,9 +869,9 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 			if (m == 0 || (m == 1 && NNLOVER[e] >= 2))
 			{
 				Preprocessing(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, B_Matrix, B_Matrix_ex,
-				   			  Jac, Jac_ex, real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh,
-				   			  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-				   			  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+							  Jac, Jac_ex, real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh,
+							  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
+							  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
 
 				if (m == 1)
 				{
@@ -865,56 +886,79 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 				k = 0;
 				ll = 0;
 
-				for (i_ee = 0; i_ee < GP_1dir; i_ee++)
+				// ローカルパッチ各要素のガウス点の物理座標のグローバルパッチでの(xi, eta)算出
+				for (i = 0; i < Total_Patch_on_mesh[mesh_n_org]; i++)
 				{
-					for (i_gg = 0; i_gg < GP_1dir; i_gg++)
-					{
-						int g_n = i_ee * GP_1dir + i_gg;
-						double data_result_shape[DIMENSION] = {0.0};
+					// グローバルパッチ i での各方向ノットベクトル
+					double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 0]);
+					double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 1]);
 
-						for (i = 0; i < DIMENSION; i++)
+					for (j = 0; j < No_knot[i * DIMENSION + 0]; j++)
+					{
+						temp_Position_Knots_xi[j] = Position_Knots[Total_Knot_to_patch_dim[i * DIMENSION + 0] + j];
+					}
+					for (j = 0; j < No_knot[i * DIMENSION + 1]; j++)
+					{
+						temp_Position_Knots_eta[j] = Position_Knots[Total_Knot_to_patch_dim[i * DIMENSION + 1] + j];
+					}
+
+					for (i_ee = 0; i_ee < GP_1dir; i_ee++)
+					{
+						for (i_gg = 0; i_gg < GP_1dir; i_gg++)
 						{
+							int g_n = i_ee * GP_1dir + i_gg;
+							double data_result_shape[DIMENSION] = {0.0};
+
+							for (l = 0; l < DIMENSION; l++)
+							{
+								if (m == 0)
+								{
+									data_result_shape[l] = Gauss_Coordinate[e * GP_2D * DIMENSION + g_n * DIMENSION + l];
+								}
+								else if (m == 1)
+								{
+									data_result_shape[l] = Gauss_Coordinate_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + l];
+								}
+							}
+							int itr_n = Calc_xi_eta(data_result_shape[0], data_result_shape[1],
+													temp_Position_Knots_xi, temp_Position_Knots_eta,
+													No_Control_point[i * DIMENSION + 0], No_Control_point[i * DIMENSION + 1], Order[i * DIMENSION + 0], Order[i * DIMENSION + 1],
+													&output_para[0], &output_para[1],
+													Position_Knots, Total_Knot_to_patch_dim,
+													No_Control_point, Order, Control_Coord_x, Control_Coord_y, Control_Weight, No_knot);
+							
 							if (m == 0)
 							{
-								data_result_shape[i] = Gauss_Coordinate[e * GP_2D * DIMENSION + g_n * DIMENSION + i];
+								Loc_parameter_on_Glo[e * GP_2D * DIMENSION + g_n * DIMENSION + 0] = output_para[0];
+								Loc_parameter_on_Glo[e * GP_2D * DIMENSION + g_n * DIMENSION + 1] = output_para[1];
 							}
 							else if (m == 1)
 							{
-								data_result_shape[i] = Gauss_Coordinate_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + i];
+								Loc_parameter_on_Glo_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + 0] = output_para[0];
+								Loc_parameter_on_Glo_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + 1] = output_para[1];
 							}
-						}
 
-						// 算出したローカルパッチ各要素の頂点の物理座標のグローバルパッチでの(xi, eta)算出
-						// from NURBSviewer/NURBS_view/clickcalc.c/func.:calcXiEtaByNR
-						for (i = 0; i < Total_Patch_on_mesh[mesh_n_org]; i++)
-						{
-							int ii = Calc_xi_eta(data_result_shape[0], data_result_shape[1],
-												 Position_Knots[i][0], Position_Knots[i][1],
-												 No_Control_point[i * DIMENSION + 0], No_Control_point[i * DIMENSION + 1], Order[i * DIMENSION + 0], Order[i * DIMENSION + 1],
-												 &output_para[0], &output_para[1]);
-							patch_n = i;
-							itr_n = ii;
+							// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
+							n_elements_over_point[k] = ele_check(i, output_para, No_Control_point, Position_Knots, Total_Knot_to_patch_dim, No_knot, Order, temp_element_n, line_No_Total_element);
+							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
+							{
+								n_elements_over_point[k] = 0;
+							}
+							Total_n_elements += n_elements_over_point[k];
+							for (l = 0; l < n_elements_over_point[k]; l++)
+							{
+								element_n_point[ll] = temp_element_n[l];
+								ll++;
+							}
+							k++;
 						}
-						// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
-						n_elements_over_point[k] = ele_check(patch_n, output_para);
-						if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
-						{
-							n_elements_over_point[k] = 0;
-						}
-						Total_n_elements += n_elements_over_point[k];
-						for (l = 0; l < n_elements_over_point[k]; l++)
-						{
-							element_n_point[ll] = temp_element_n[l];
-							ll++;
-						}
-						k++;
 					}
+					free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
 				}
-
 				// 昇順ソート
-				sort(Total_n_elements);
+				sort(Total_n_elements, element_n_point);
 				// 重複削除
-				NNLOVER[e] = duplicate_delete(Total_n_elements, e); // NNLOVER: 要素 e に重なる要素の総数
+				NNLOVER[e] = duplicate_delete(Total_n_elements, e, NELOVER, element_n_point); // NNLOVER: 要素 e に重なる要素の総数
 			}
 		}
 	}
@@ -922,7 +966,6 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 	for (re = 0; re < real_Total_Element_on_mesh[mesh_n_over]; re++)
 	{
 		e = real_element[re + real_Total_Element_to_mesh[mesh_n_over]];
-		printf("lement_No %d\n", e);
 
 		Check_coupled_No[NNLOVER[e]]++;
 
@@ -930,27 +973,21 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 		{
 			MAX_NNLOVER = NNLOVER[e];
 		}
-
-		printf("NNLOVER[%d] = %d\n", e, NNLOVER[e]);
-
-		for (i = 0; i < NNLOVER[e]; i++)
-		{
-			printf("\te = %d, NELOVER[%d] = %d\n", e, e * MAX_N_ELEMENT_OVER + i, NELOVER[e * MAX_N_ELEMENT_OVER + i]); //要素eに重なるi番目の要素番号
-		}
 	}
 
+	// 重なっている要素の割合
 	printf("MAX_NNLOVER = %d\n", MAX_NNLOVER);
 	for (i = 0; i <= MAX_NNLOVER; i++)
 	{
 		double Percent_Check_coupled_No = (double)Check_coupled_No[i] * 100.0 / (double)real_Total_Element_on_mesh[mesh_n_over];
-		printf("Check_coupled_No[%d] = %d\t\t%3.1lf %%\n", i, Check_coupled_No[i], Percent_Check_coupled_No);
+		printf("Check_coupled_No[%d] = %d\t\t%.2lf %%\n", i, Check_coupled_No[i], Percent_Check_coupled_No);
 	}
 	
 	free(element_n_point), free(temp_element_n), free(Check_coupled_No);
 }
 
 
-void Make_Loc_Glo()
+void Make_Loc_Glo(int *real_Total_Element_on_mesh, int *real_Total_Element_to_mesh, int *real_element, int *NNLOVER, int *NELOVER)
 {
 	int i, j, k;
 	int jj;
@@ -986,7 +1023,7 @@ void Make_Loc_Glo()
 
 
 // Newton Raphsonによって出力されたxi,etaから重なる要素を求める
-int ele_check(int patch_n, double para_coord[DIMENSION])
+int ele_check(int patch_n, double para_coord[DIMENSION], int *No_Control_point, double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *Order, int *temp_element_n, int *line_No_Total_element)
 {
 	int i, j, k, l;
 	int kk, ll;
@@ -1012,18 +1049,18 @@ int ele_check(int patch_n, double para_coord[DIMENSION])
 				break;
 
 			// Local要素の頂点がGlobalパッチ内にない場合
-			if (para_coord[j] < Position_Knots[patch_n][j][0] || para_coord[j] > Position_Knots[patch_n][j][No_knot[patch_n * DIMENSION + j] - 1])
+			if (para_coord[j] < Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + 0] || para_coord[j] > Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + No_knot[patch_n * DIMENSION + j] - 1])
 			{
 				RangeCheck_flag++;
 			}
 
 			// Local要素の頂点がGlobal要素内部にある場合
-			if (para_coord[j] < Position_Knots[patch_n][j][Order[patch_n * DIMENSION + j] + k])
+			if (para_coord[j] < Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k])
 			{
 				int kk = 0;
 				for (kk = 0; kk < k + 1; kk++)
 				{
-					if (para_coord[j] > Position_Knots[patch_n][j][Order[patch_n * DIMENSION + j] + k - kk])
+					if (para_coord[j] > Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k - kk])
 					{
 						temp_ad[j][l] = k - kk;
 						l++;
@@ -1034,17 +1071,17 @@ int ele_check(int patch_n, double para_coord[DIMENSION])
 			}
 
 			// Local要素の頂点がGlobal要素境界上にある場合
-			if (para_coord[j] == Position_Knots[patch_n][j][Order[patch_n * DIMENSION + j] + k])
+			if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k])
 			{
 				//頂点の座標がGlobalパッチの始点上にある場合
-				if (para_coord[j] == Position_Knots[patch_n][j][0])
+				if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + 0])
 				{
 					temp_ad[j][l] = k;
 					l++;
 					break;
 				}
 				//頂点の座標がGlobalパッチの終点上にある場合
-				if (para_coord[j] == Position_Knots[patch_n][j][No_knot[patch_n * DIMENSION + j] - 1])
+				if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + No_knot[patch_n * DIMENSION + j] - 1])
 				{
 					temp_ad[j][l] = k - 1;
 					l++;
@@ -1060,14 +1097,14 @@ int ele_check(int patch_n, double para_coord[DIMENSION])
 				}
 				for (kk = 0; kk < Order[patch_n * DIMENSION + j]; kk++)
 				{
-					if (para_coord[j] == Position_Knots[patch_n][j][Order[patch_n * DIMENSION + j] + k + kk + 1])
+					if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k + kk + 1])
 					// 多重ノット(次数分ループ)
 					{
 						printf("C0 continuity\n");
 						temp_ad[j][l] = k + kk;
 						l++;
 					}
-					if (para_coord[j] != Position_Knots[patch_n][j][Order[patch_n * DIMENSION + j] + k + kk + 1])
+					if (para_coord[j] != Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k + kk + 1])
 						break;
 				}
 				RangeCheck_flag++;
@@ -1094,7 +1131,7 @@ int ele_check(int patch_n, double para_coord[DIMENSION])
 
 
 //昇順ソート
-void sort(int total)
+void sort(int total, int *element_n_point)
 {
 	int i, j;
 	int temp;
@@ -1115,7 +1152,7 @@ void sort(int total)
 
 
 //重複削除
-int duplicate_delete(int total, int element_n)
+int duplicate_delete(int total, int element_n, int *NELOVER, int *element_n_point)
 {
 	int i, j;
 
@@ -1137,24 +1174,27 @@ int duplicate_delete(int total, int element_n)
 
 // Preprocessing
 void Preprocessing(int m, int e, double *Gauss_Coordinate, double *Gauss_Coordinate_ex, double *B_Matrix, double *B_Matrix_ex,
-				   double *Jac, double *Jac_ex, double *real_Total_Element_to_mesh, int *Node_Coordinate, int *Total_Control_Point_to_mesh,
+				   double *Jac, double *Jac_ex, int *real_Total_Element_to_mesh, double *Node_Coordinate, int *Total_Control_Point_to_mesh,
 				   int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
 				   double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
 {
-	double a_matrix[POW_Ng_extended * DIMENSION * DIMENSION];
-	double dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION], dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION];
+	double *a_matrix = (double *)malloc(sizeof(double) * POW_Ng_extended * DIMENSION * DIMENSION); // a_matrix[POW_Ng_extended * DIMENSION * DIMENSION]
+	double *dSF = (double *)malloc(sizeof(double) * POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
+	double *dSF_ex = (double *)malloc(sizeof(double) * POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
 
 	// ガウス点の物理座標を計算
 	Make_Gauss_Coordinate(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, Node_Coordinate, Total_Control_Point_to_mesh,
-						   Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-						   Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+						  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
+						  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
 
 	// ガウス点でのヤコビアン, Bマトリックスを計算
 	Make_dSF(m, e, dSF, dSF_ex, Element_patch, No_Control_point_ON_ELEMENT,
 			 Controlpoint_of_Element, Total_Control_Point_to_mesh, Node_Coordinate, INC, Order,
 			 Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
-	Make_Jac(m, e, Jac, Jac_ex, dSF, dSF_ex, a_matrix, Node_Coordinate, Controlpoint_of_Element);
+	Make_Jac(m, e, Jac, Jac_ex, dSF, dSF_ex, a_matrix, Node_Coordinate, Controlpoint_of_Element, No_Control_point_ON_ELEMENT, Element_patch);
 	Make_B_Matrix(m, e, B_Matrix, B_Matrix_ex, dSF, dSF_ex, a_matrix, No_Control_point_ON_ELEMENT, Element_patch);
+
+	free(a_matrix), free(dSF), free(dSF_ex);
 }
 
 
@@ -1168,8 +1208,8 @@ void Make_Gauss_Coordinate(int m, int e, double *Gauss_Coordinate, double *Gauss
 
 	for (i = 0; i < GP_2D; i++)
 	{
-		temp_coordinate[0] = Gxi[i * DIMENSION + 0];
-		temp_coordinate[1] = Gxi[i * DIMENSION + 1];
+		temp_coordinate[0] = Gxi[i][0];
+		temp_coordinate[1] = Gxi[i][1];
 		
 		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
 		{
@@ -1194,7 +1234,7 @@ void Make_Gauss_Coordinate(int m, int e, double *Gauss_Coordinate, double *Gauss
 
 
 void Make_dSF(int m, int e, double *dSF, double *dSF_ex, int *Element_patch, int *No_Control_point_ON_ELEMENT,
-			  int *Controlpoint_of_Element, int *Total_Control_Point_to_mesh, int *Node_Coordinate, int *INC, int *Order,
+			  int *Controlpoint_of_Element, int *Total_Control_Point_to_mesh, double *Node_Coordinate, int *INC, int *Order,
 			  double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
 {
 	int i, j, k;
@@ -1202,10 +1242,10 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, int *Element_patch, int
 
 	for (i = 0; i < GP_2D; i++)
 	{
-		temp_coordinate[0] = Gxi[i * DIMENSION + 0];
-		temp_coordinate[1] = Gxi[i * DIMENSION + 1];
+		temp_coordinate[0] = Gxi[i][0];
+		temp_coordinate[1] = Gxi[i][1];
 
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]; j++)
+		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
 		{
 			for (k = 0; k < DIMENSION; k++)
 			{
@@ -1227,7 +1267,7 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, int *Element_patch, int
 }
 
 
-void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dSF_ex, double *a_matrix, int *Node_Coordinate, int *Controlpoint_of_Element)
+void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dSF_ex, double *a_matrix, double *Node_Coordinate, int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT, int *Element_patch)
 {
 	int i, j, k, l;
 	double J;
@@ -1293,7 +1333,7 @@ void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dS
 void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *dSF, double *dSF_ex, double *a_matrix, int *No_Control_point_ON_ELEMENT, int *Element_patch)
 {
 	int i, j, k, l;
-	double b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT];
+	double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT);	// b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
 
 	for (i = 0; i < GP_2D; i++)
 	{
@@ -1301,16 +1341,16 @@ void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *
 		{
 			for (k = 0; k < No_Control_point_ON_ELEMENT[Element_patch[e]]; k++)
 			{
-				b[j][k] = 0.0;
+				b[j * MAX_NO_CCpoint_ON_ELEMENT + k] = 0.0;
 				for (l = 0; l < DIMENSION; l++)
 				{
 					if (m == 0)
 					{
-						b[j][k] += a_matrix[i * DIMENSION * DIMENSION + l * DIMENSION + j] * dSF[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + k * DIMENSION + l];
+						b[j * MAX_NO_CCpoint_ON_ELEMENT + k] += a_matrix[i * DIMENSION * DIMENSION + l * DIMENSION + j] * dSF[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + k * DIMENSION + l];
 					}
 					else if (m == 1)
 					{
-						b[j][k] += a_matrix[i * DIMENSION * DIMENSION + l * DIMENSION + j] * dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + k * DIMENSION + l];
+						b[j * MAX_NO_CCpoint_ON_ELEMENT + k] += a_matrix[i * DIMENSION * DIMENSION + l * DIMENSION + j] * dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + k * DIMENSION + l];
 					}
 				}
 			}
@@ -1321,27 +1361,810 @@ void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *
 		{
 			for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
 			{
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0][j];
+				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
 				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
 				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1][j];
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1][j];
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0][j];
+				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
 			}
 		}
 		else if (m == 1)
 		{
 			for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
 			{
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0][j];
+				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
 				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
 				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1][j];
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1][j];
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0][j];
+				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
 			}
 		}
 	}
+	free(b);
+}
+
+
+void Make_gauss_array(int select_GP)
+{
+	int i, j;
+
+	if (select_GP == 0)
+	{
+		GP_1dir = Ng;
+	}
+	else if (select_GP == 1)
+	{
+		GP_1dir = Ng_extended;
+	}
+
+	GP_2D = GP_1dir * GP_1dir;
+
+	if (GP_1dir == 3)
+	{
+		double G1 = pow((3.0 / 5.0), 0.5);
+		double G_vec[3] = {-G1, 0.0, G1};
+		double w1 = 8.0 / 9.0;
+		double w2 = 5.0 / 9.0;
+		double w_vec[3] = {w2, w1, w2};
+
+		for (i = 0; i < GP_1dir; i++)
+		{
+			for (j = 0; j < GP_1dir; j++)
+			{
+				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
+				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
+				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
+			}
+		}
+	}
+	else if (GP_1dir == 4)
+	{
+		double A = pow((6.0 / 5.0), 0.5);
+		double G1 = pow(((3.0 - 2.0 * A) / 7.0), 0.5);
+		double G2 = pow(((3.0 + 2.0 * A) / 7.0), 0.5);
+		double G_vec[4] = {-G2, -G1, G1, G2};
+		double B = pow(30.0, 0.5);
+		double w1 = (18.0 + B) / 36.0;
+		double w2 = (18.0 - B) / 36.0;
+		double w_vec[4] = {w2, w1, w1, w2};
+
+		for (i = 0; i < GP_1dir; i++)
+		{
+			for (j = 0; j < GP_1dir; j++)
+			{
+				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
+				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
+				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
+			}
+		}
+	}
+	else if (GP_1dir == 5)
+	{
+		double A = pow((10.0 / 7.0), 0.5);
+		double G1 = pow((5.0 - 2.0 * A), 0.5) / 3.0;
+		double G2 = pow((5.0 + 2.0 * A), 0.5) / 3.0;
+		double G_vec[5] = {-G2, -G1, 0.0, G1, G2};
+		double B = pow(70.0, 0.5);
+		double w1 = 128.0 / 225.0;
+		double w2 = (322.0 + 13.0 * B) / 900.0;
+		double w3 = (322.0 - 13.0 * B) / 900.0;
+		double w_vec[5] = {w3, w2, w1, w2, w3};
+
+		for (i = 0; i < GP_1dir; i++)
+		{
+			for (j = 0; j < GP_1dir; j++)
+			{
+				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
+				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
+				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
+			}
+		}
+	}
+	else if (GP_1dir == 10)
+	{
+		double G_vec[10];
+		double w_vec[10];
+
+		G_vec[0] = -0.9739065285171717;
+		G_vec[1] = -0.8650633666889845;
+		G_vec[2] = -0.6794095682990244;
+		G_vec[3] = -0.4333953941292472;
+		G_vec[4] = -0.1488743389816312;
+		G_vec[5] = 0.1488743389816312;
+		G_vec[6] = 0.4333953941292472;
+		G_vec[7] = 0.6794095682990244;
+		G_vec[8] = 0.8650633666889845;
+		G_vec[9] = 0.9739065285171717;
+
+		w_vec[0] = 0.0666713443086881;
+		w_vec[1] = 0.1494513491505804;
+		w_vec[2] = 0.2190863625159820;
+		w_vec[3] = 0.2692667193099965;
+		w_vec[4] = 0.2955242247147530;
+		w_vec[5] = 0.2955242247147530;
+		w_vec[6] = 0.2692667193099965;
+		w_vec[7] = 0.2190863625159820;
+		w_vec[8] = 0.1494513491505804;
+		w_vec[9] = 0.0666713443086881;
+
+		for (i = 0; i < GP_1dir; i++)
+		{
+			for (j = 0; j < GP_1dir; j++)
+			{
+				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
+				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
+				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
+			}
+		}
+	}
+}
+
+
+// K matrix
+// 応力歪マトリックス
+void Make_D_Matrix(double *D)
+{
+	int i, j;
+
+	// 2次元
+	if (DIMENSION == 2)
+	{
+		if (DM == 0) // 平面応力状態
+		{
+			double Eone = E / (1.0 - nu * nu);
+			double D1[D_MATRIX_SIZE][D_MATRIX_SIZE] = {{Eone, nu * Eone, 0}, {nu * Eone, Eone, 0}, {0, 0, (1 - nu) / 2 * Eone}};
+
+			for (i = 0; i < D_MATRIX_SIZE; i++)
+				for (j = 0; j < D_MATRIX_SIZE; j++)
+					D[i * D_MATRIX_SIZE + j] = D1[i][j];
+		}
+
+		else if (DM == 1) // 平面ひずみ状態(2Dの場合はこっち)
+		{
+			double Eone = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
+			double D1[D_MATRIX_SIZE][D_MATRIX_SIZE] = {{Eone, nu / (1.0 - nu) * Eone, 0}, {nu / (1.0 - nu) * Eone, Eone, 0}, {0, 0, (1 - 2 * nu) / 2 / (1.0 - nu) * Eone}};
+
+			for (i = 0; i < D_MATRIX_SIZE; i++)
+				for (j = 0; j < D_MATRIX_SIZE; j++)
+					D[i * D_MATRIX_SIZE + j] = D1[i][j];
+		}
+	}
+}
+
+
+// 拘束されている行数を省いた行列の番号の制作
+void Make_Index_Dof(int *Total_Control_Point_to_mesh, int *Total_Constraint_to_mesh, int *Constraint_Node_Dir, int *Index_Dof)
+{
+	int i, k = 0;
+
+	// 拘束されている自由度(Degree Of free)をERRORにする
+	for (i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
+	{
+		Index_Dof[Constraint_Node_Dir[i * 2 + 0] * DIMENSION + Constraint_Node_Dir[i * 2 + 1]] = ERROR;
+	}
+	// ERROR以外に番号を付ける
+	for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh] * DIMENSION; i++)
+	{
+		if (Index_Dof[i] != ERROR)
+		{
+			Index_Dof[i] = k;
+			k++;
+		}
+	}
+
+	K_Whole_Size = k;
+	printf("K_Whole_Size=%d\n", k);
+}
+
+
+void Make_K_Whole_Ptr_Col(int *K_Whole_Ptr, int *Total_Element_to_mesh, int *Total_Control_Point_to_mesh, int *Total_Control_Point_To_Node,
+						  int *No_Control_point_ON_ELEMENT, int *Element_patch, int *Controlpoint_of_Element, int *Node_To_Node, int *NNLOVER,
+						  int *NELOVER, int *Index_Dof, int *K_Whole_Ptr, int *K_Whole_Col)
+{
+	int i, j, k, ii, jj;
+	int N, NE, i_index, j_index;
+
+	// 初期化
+	for (i = 0; i < K_Whole_Size + 1; i++)
+		K_Whole_Ptr[i] = 0;
+
+	// 大きく分割するためのループ
+	for (N = 0; N < Total_Control_Point_to_mesh[Total_mesh]; N += K_DIVISION_LENGE)
+	{
+		// 各節点に接する節点を取得
+		for (i = 0; i < K_DIVISION_LENGE; i++)
+		{
+			Total_Control_Point_To_Node[i] = 0;
+		}
+		for (i = 0; i < Total_Element_to_mesh[Total_mesh]; i++)
+		{
+			for (ii = 0; ii < No_Control_point_ON_ELEMENT[Element_patch[i]]; ii++)
+			{
+				NE = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + ii] - N;
+				if (0 <= NE && NE < K_DIVISION_LENGE)
+				{
+					for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[i]]; j++) //ローカル要素
+					{
+						// 数字がない時
+						if (Total_Control_Point_To_Node[NE] == 0)
+						{
+							// 節点番号を取得
+							Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + 0] = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
+							Total_Control_Point_To_Node[NE]++;
+						}
+						// 同じものがあったら
+						// k > 0 以降の取得
+						// kのカウント
+						for (k = 0; k < Total_Control_Point_To_Node[NE]; k++)
+						{
+							if (Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] == Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j])
+							{
+								break;
+							}
+						}
+						// 未設定のNode_To_Node取得
+						if (k == Total_Control_Point_To_Node[NE])
+						{
+							Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
+							Total_Control_Point_To_Node[NE]++;
+						}
+					}
+					// 別メッシュとの重なりを考慮
+					if (NNLOVER[i] > 0)
+					{
+						for (jj = 0; jj < NNLOVER[i]; jj++)
+						{
+							for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++) //ローカル要素
+							{
+								// 数字がない時
+								if (Total_Control_Point_To_Node[NE] == 0)
+								{
+									// 節点番号を取得
+									Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + 0] = Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
+									Total_Control_Point_To_Node[NE]++;
+								}
+
+								// 同じものがあったら
+								// k > 0 以降の取得
+								// kのカウント
+								for (k = 0; k < Total_Control_Point_To_Node[NE]; k++)
+								{
+									if (Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] == Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j])
+									{
+										break;
+									}
+								}
+								// 未設定のNode_To_Node取得
+								if (k == Total_Control_Point_To_Node[NE])
+								{
+									Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] = Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
+									Total_Control_Point_To_Node[NE]++;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		// 順番に並び替える
+		for (i = 0; i < K_DIVISION_LENGE; i++)
+		{
+			if (N + i < Total_Control_Point_to_mesh[Total_mesh])
+			{
+				for (j = 0; j < Total_Control_Point_To_Node[i]; j++)
+				{
+					int Min = Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + j], No = j;
+					for (k = j; k < Total_Control_Point_To_Node[i]; k++)
+					{
+						if (Min > Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k])
+						{
+							Min = Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k];
+							No = k;
+						}
+					}
+					for (k = No; k > j; k--)
+					{
+						Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k] = Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k - 1];
+					}
+					Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + j] = Min;
+				}
+			}
+		}
+
+		// 節点からcol ptrを求める
+		ii = 0;
+		k = 0;
+		for (i = 0; i < K_DIVISION_LENGE; i++)
+		{
+			for (ii = 0; ii < DIMENSION; ii++)
+			{
+				if (N + i < Total_Control_Point_to_mesh[Total_mesh])
+				{
+					i_index = Index_Dof[(N + i) * DIMENSION + ii];
+					k = 0;
+					if (i_index >= 0)
+					{
+						K_Whole_Ptr[i_index + 1] = K_Whole_Ptr[i_index];
+						for (j = 0; j < Total_Control_Point_To_Node[i]; j++)
+						{
+							for (jj = 0; jj < DIMENSION; jj++)
+							{
+								j_index = Index_Dof[Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + j] * DIMENSION + jj];
+								if (j_index >= 0 && j_index >= i_index)
+								{
+									K_Whole_Ptr[i_index + 1]++;
+									K_Whole_Col[K_Whole_Ptr[i_index] + k] = j_index;
+									k++;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+// valを求める
+void Make_K_Whole_Val(double *K_Whole_Val, int *real_Total_Element_to_mesh, int *real_element, int *Element_mesh, int *NNLOVER,
+					  int *No_Control_point_ON_ELEMENT, int *Element_patch, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex,
+					  double *D, int *Index_Dof, int *Controlpoint_of_Element, int *K_Whole_Ptr, int *K_Whole_Col, double *K_Whole_Val, int *NELOVER)
+{
+	int i, j, j1, j2, k1, k2, l;
+	int a, b, re;
+
+	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
+	double *coupled_K_EL= (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);		// coupled_K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
+
+	for (re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++)
+	{
+		i = real_element[re];
+
+		if (Element_mesh[i] == 0 && re == 0) // 2つめの条件は効率化のため
+		{
+			GP_2D = POW_Ng;
+		}
+		else if (Element_mesh[i] > 0)
+		{
+			if (NNLOVER[i] == 1 && (NNLOVER[real_element[re - 1]] != 1 || Element_mesh[real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
+			{
+				GP_2D = POW_Ng;
+			}
+			else if (NNLOVER[i] >= 2 && (NNLOVER[real_element[re - 1]] == 1 || Element_mesh[real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
+			{
+				GP_2D = POW_Ng_extended;
+			}
+		}
+
+		// 各要素のK_ELを求める
+		Make_K_EL(i, K_EL, No_Control_point_ON_ELEMENT, Element_patch, Jac, Jac_ex, B_Matrix, B_Matrix_ex, D);
+
+		// Valを求める
+		for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; j1++)
+		{
+			for (j2 = 0; j2 < DIMENSION; j2++)
+			{
+				a = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
+				if (a >= 0)
+				{
+					for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; k1++)
+					{
+						for (k2 = 0; k2 < DIMENSION; k2++)
+						{
+							b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
+							if (b >= 0 && b >= a)
+							{
+								for (l = K_Whole_Ptr[a]; l < K_Whole_Ptr[a + 1]; l++)
+								{
+									if (K_Whole_Col[l] == b)
+									{
+										K_Whole_Val[l] += K_EL[(j1 * DIMENSION + j2) * MAX_KIEL_SIZE + k1 * DIMENSION + k2];
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (Element_mesh[i] > 0 && NNLOVER[i] > 0) // ローカルメッシュ上の要素について, 重なっている要素が存在するとき
+		{
+			for (j = 0; j < NNLOVER[i]; j++)
+			{
+				// 各要素のcoupled_K_ELを求める
+				Make_coupled_K_EL(i, NELOVER[i * MAX_N_ELEMENT_OVER + j], coupled_K_EL,
+				);
+
+				// Valを求める
+				for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + j]]]; j1++)
+				{
+					for (j2 = 0; j2 < DIMENSION; j2++)
+					{
+						a = Index_Dof[Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + j] * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
+						if (a >= 0)
+						{
+							for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; k1++)
+							{
+								for (k2 = 0; k2 < DIMENSION; k2++)
+								{
+									b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
+									if (b >= 0 && b >= a)
+									{
+										for (l = K_Whole_Ptr[a]; l < K_Whole_Ptr[a + 1]; l++)
+										{
+											if (K_Whole_Col[l] == b)
+											{
+												K_Whole_Val[l] += coupled_K_EL[(j1 * DIMENSION + j2) * MAX_KIEL_SIZE + k1 * DIMENSION + k2];
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	free(K_EL), free(coupled_K_EL);
+}
+
+
+// 要素合成マトリックス
+void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *Element_patch,
+			   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D)
+{
+	int i, j, k, l;
+	
+	int KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[El_No]] * DIMENSION;
+
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
+	double J;
+
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < KIEL_SIZE; j++)
+		{
+			K_EL[i * MAX_KIEL_SIZE + j] = 0.0;
+		}
+	}
+
+	for (i = 0; i < GP_2D; i++)
+	{
+		// J, B の作成
+		if (GP_2D == POW_Ng)
+		{
+			J = Jac[El_No * GP_2D + i];
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				{
+					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+				}
+			}
+		}
+		else if (GP_2D == POW_Ng_extended)
+		{
+			J = Jac_ex[El_No * GP_2D + i];
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				{
+					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+				}
+			}
+		}
+
+		BDBJ(KIEL_SIZE, B, D, J, K1);
+		for (k = 0; k < KIEL_SIZE; k++)
+		{
+			for (l = 0; l < KIEL_SIZE; l++)
+			{
+				K_EL[k * MAX_KIEL_SIZE + l] += w[i] * K1[k * MAX_KIEL_SIZE + l];
+			}
+		}
+	}
+
+	free(B), free(K1);
+}
+
+
+// BGマトリックスを求める関数
+void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT,
+					int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC, int *Order, double *Position_Knots,
+					int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+{
+	double a[DIMENSION][DIMENSION];
+	double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT); // b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
+
+	int i, j, k;
+
+	for (i = 0; i < DIMENSION; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+			a[i][j] = 0.0;
+			for (k = 0; k < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; k++)
+			{
+				a[i][j] += dShape_func(k, j, Local_coord, El_No, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
+									   Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
+									   Total_Knot_to_patch_dim, No_knot, No_Control_point)
+						 * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + k] * (DIMENSION + 1) + i];
+			}
+		}
+	}
+
+	InverseMatrix_2x2(a);
+
+	for (i = 0; i < DIMENSION; i++)
+	{
+		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; j++)
+		{
+			b[i * MAX_NO_CCpoint_ON_ELEMENT + j] = 0.0;
+			for (k = 0; k < DIMENSION; k++)
+			{
+				b[i * MAX_NO_CCpoint_ON_ELEMENT + j] += a[k][i]
+													  * dShape_func(j, k, Local_coord, El_No, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
+																	Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
+																	Total_Knot_to_patch_dim, No_knot, No_Control_point);
+			}
+		}
+	}
+
+	// 2次元
+	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
+	{
+		BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
+		BG[1 * MAX_KIEL_SIZE + 2 * i] = 0.0;
+		BG[1 * MAX_KIEL_SIZE + 2 * i + 1] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		BG[2 * MAX_KIEL_SIZE + 2 * i] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+	}
+
+	free(b);
+}
+
+
+// 結合要素剛性マトリックス
+void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *No_Control_point_ON_ELEMENT, 
+					   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D,
+					   double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots,
+					   int *Total_Knot_to_patch_dim, int *Order, int *ENC, int *Controlpoint_of_Element,
+					   int *Total_Control_Point_to_mesh, int *Element_patch, int *Node_Coordinate, int *INC,
+					   int *No_knot, int *No_Control_point)
+{
+	int i, j, jj, k, l;
+
+	int BDBJ_flag;
+	int KIEL_SIZE = No_Control_point_ON_ELEMENT[El_No_glo] * DIMENSION;
+
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
+	double J;
+
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < KIEL_SIZE; j++)
+		{
+			coupled_K_EL[i * MAX_KIEL_SIZE + j] = 0.0;
+		}
+	}
+
+	for (i = 0; i < GP_2D; i++)
+	{
+		// J, B, BG の作成
+		double para[DIMENSION];
+		double G_Gxi[DIMENSION];
+
+		if (GP_2D == POW_Ng)
+		{
+			J = Jac[El_No_loc * GP_2D + i];
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				{
+					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+				}
+			}
+			para[0] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
+			para[1] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
+		}
+		else if (GP_2D == POW_Ng_extended)
+		{
+			J = Jac_ex[El_No_loc * GP_2D + i];
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				{
+					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+				}
+			}
+			para[0] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
+			para[1] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
+		}
+
+		// 要素内外判定
+		if (para[0] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]] &&
+			para[0] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] &&
+			para[1] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]] &&
+			para[1] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1])
+		{
+			BDBJ_flag = 1;
+
+			// 親要素座標の算出
+			G_Gxi[0] = -1.0 + 2.0 * (para[0] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]])
+						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]]);
+			G_Gxi[1] = -1.0 + 2.0 * (para[1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]])
+						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]]);
+		}
+		else
+		{
+			BDBJ_flag = 0;
+		}
+
+		// 要素内であるとき, 結合要素剛性マトリックス計算
+		if (BDBJ_flag)
+		{
+			// 重なるグローバル要素のBマトリックス
+			Make_BG_Matrix(El_No_glo, BG, G_Gxi, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
+						   Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
+						   Total_Knot_to_patch_dim, No_knot, No_Control_point);
+			// BGTDBLJの計算
+			coupled_BDBJ(KIEL_SIZE, B, D, BG, J, K1);
+			for (k = 0; k < KIEL_SIZE; k++)
+			{
+				for (l = 0; l < KIEL_SIZE; l++)
+				{
+					coupled_K_EL[k * MAX_KIEL_SIZE + l] += w[i] * K1[k * MAX_KIEL_SIZE + l];
+				}
+			}
+		}
+	}
+
+	free(B), free(BG), free(K1);
+}
+
+
+
+// ガウスの数値積分
+void BDBJ(int *KIEL_SIZE, double *B, double *D, double J, double *K_EL)
+{
+	int i, j, k;
+	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
+
+	// [B]T[D][B]Jの計算
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < D_MATRIX_SIZE; j++)
+		{
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				BD[i * D_MATRIX_SIZE + j] += B[k * MAX_KIEL_SIZE + i] * D[k * D_MATRIX_SIZE + j];
+			}
+		}
+	}
+
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < KIEL_SIZE; j++)
+		{
+			K_EL[i * MAX_KIEL_SIZE + j] = 0.0;
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				K_EL[i * MAX_KIEL_SIZE + j] += BD[i * D_MATRIX_SIZE + k] * B[k * MAX_KIEL_SIZE + j];
+			}
+			K_EL[i * MAX_KIEL_SIZE + j] *= J;
+		}
+	}
+
+	free(BD);
+}
+
+
+// 結合ガウスの数値積分
+void coupled_BDBJ(int *KIEL_SIZE, double *B, double *D, double *BG, double J, double *K_EL)
+{
+	int i, j, k;
+	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
+
+	//[B]T[D][B]Jの計算
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < D_MATRIX_SIZE; j++)
+		{
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				BD[i * D_MATRIX_SIZE + j] += BG[k * MAX_KIEL_SIZE + i] * D[k * D_MATRIX_SIZE + j];
+			}
+		}
+	}
+
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < KIEL_SIZE; j++)
+		{
+			K_EL[i * MAX_KIEL_SIZE + j] = 0.0;
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				K_EL[i * MAX_KIEL_SIZE + j] += BD[i * D_MATRIX_SIZE + k] * B[k * MAX_KIEL_SIZE + j];
+			}
+			K_EL[i * MAX_KIEL_SIZE + j] *= J;
+		}
+	}
+
+	free(BD);
+}
+
+
+// F vector
+
+
+// CG solver
+
+
+// PCG solver
+
+
+// tool
+// 逆行列を元の行列に代入
+double InverseMatrix_2x2(double M[DIMENSION][DIMENSION])
+{
+	int i, j;
+	double a[2][2];
+	double det = M[0][0] * M[1][1] - M[0][1] * M[1][0];
+
+	if (det == 0)
+		return ERROR;
+
+	for (i = 0; i < 2; i++)
+	{
+		for (j = 0; j < 2; j++)
+			a[i][j] = M[i][j];
+	}
+	M[0][0] = a[1][1] / det;
+	M[0][1] = a[0][1] * (-1) / det;
+	M[1][0] = a[1][0] * (-1) / det;
+	M[1][1] = a[0][0] / det;
+
+	return det;
+}
+
+
+double InverseMatrix_3x3(double M[DIMENSION][DIMENSION])
+{
+	int i, j;
+	double a[3][3];
+	double det = M[0][0] * M[1][1] * M[2][2] + M[1][0] * M[2][1] * M[0][2] + M[2][0] * M[0][1] * M[1][2] - M[0][0] * M[2][1] * M[1][2] - M[2][0] * M[1][1] * M[0][2] - M[1][0] * M[0][1] * M[2][2];
+
+	if (det == 0)
+		return ERROR;
+
+	for (i = 0; i < 3; i++)
+	{
+		for (j = 0; j < 3; j++)
+			a[i][j] = M[i][j];
+	}
+	M[0][0] = (a[1][1] * a[2][2] - a[1][2] * a[2][1]) / det;
+	M[0][1] = (a[0][2] * a[2][1] - a[0][1] * a[2][2]) / det;
+	M[0][2] = (a[0][1] * a[1][2] - a[0][2] * a[1][1]) / det;
+	M[1][0] = (a[1][2] * a[2][0] - a[1][0] * a[2][2]) / det;
+	M[1][1] = (a[0][0] * a[2][2] - a[0][2] * a[2][0]) / det;
+	M[1][2] = (a[0][2] * a[1][0] - a[0][0] * a[1][2]) / det;
+	M[2][0] = (a[1][0] * a[2][1] - a[1][1] * a[2][0]) / det;
+	M[2][1] = (a[0][1] * a[2][0] - a[0][0] * a[2][1]) / det;
+	M[2][2] = (a[0][0] * a[1][1] - a[0][1] * a[1][0]) / det;
+
+	return det;
 }
 
 
@@ -1354,10 +2177,10 @@ double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *No
 	double R, weight_func = 0.0;
 
 	double Position_Data_param[DIMENSION];
-	double shape_func[MAX_NO_CCpoint_ON_ELEMENT * DIMENSION];
 
+	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
 	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double  *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
+	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CCpoint_ON_ELEMENT; i++)
 	{
@@ -1370,19 +2193,20 @@ double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *No
 		{
 			ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, INC, Position_Knots, Total_Knot_to_patch_dim, Controlpoint_of_Element, Element_patch);
 			ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, No_knot, Total_Control_Point_to_mesh, Position_Knots, Total_Knot_to_patch_dim, Element_patch, Order, No_Control_point);
-			shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] *= Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + j]];
+			shape_func[i] *= Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + j]];
 		}
-		weight_func += shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		weight_func += shape_func[i] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
 	}
 
 	free(Shape), free(dShape);
 
 	if (I_No < No_Control_point_ON_ELEMENT[Element_patch[El_No]])
-		R = shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No] * (DIMENSION + 1) + DIMENSION] / weight_func;
+		R = shape_func[I_No] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No] * (DIMENSION + 1) + DIMENSION] / weight_func;
 
 	else
 		R = ERROR;
 
+	free(shape_func);
 	return R;
 }
 
@@ -1477,7 +2301,7 @@ void ShapeFunction1D(double Position_Data_param[DIMENSION], int j, int e, double
 
 
 double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No, int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT,
-				   int *Total_Control_Point_to_mesh, int *Element_patch, int *Node_Coordinate, int *INC, int *Order, double *Position_Knots,
+				   int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC, int *Order, double *Position_Knots,
 				   int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
 {
 	double dR;
@@ -1496,12 +2320,12 @@ double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No, 
 		if (xez == 0)
 		{
 			dR = dShape_func1[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]]
-			   * dShapeFunc_from_paren(xez, El_No, INC, Controlpoint_of_Element, Position_Knots, Position_Knots, Total_Knot_to_patch_dim, Element_patch);
+			   * dShapeFunc_from_paren(xez, El_No, INC, Controlpoint_of_Element, Position_Knots, Total_Knot_to_patch_dim, Element_patch);
 		}
 		else if (xez == 1)
 		{
 			dR = dShape_func2[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]]
-			   * dShapeFunc_from_paren(xez, El_No, INC, Controlpoint_of_Element, Position_Knots, Position_Knots, Total_Knot_to_patch_dim, Element_patch);
+			   * dShapeFunc_from_paren(xez, El_No, INC, Controlpoint_of_Element, Position_Knots, Total_Knot_to_patch_dim, Element_patch);
 		}
 	}
 	else
@@ -1523,10 +2347,10 @@ void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordina
 	double dWeight_func2 = 0.0;
 
 	double Position_Data_param[DIMENSION];
-	double shape_func[MAX_NO_CCpoint_ON_ELEMENT * DIMENSION];
 
+	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
 	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double  *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
+	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CCpoint_ON_ELEMENT; i++)
 	{
@@ -1539,27 +2363,26 @@ void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordina
 		{
 			ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, INC, Position_Knots, Total_Knot_to_patch_dim, Controlpoint_of_Element, Element_patch);
 			ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, No_knot, Total_Control_Point_to_mesh, Position_Knots, Total_Knot_to_patch_dim, Element_patch, Order, No_Control_point);
-			shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] *= Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + j]];
+			shape_func[i] *= Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + j]];
 		}
-		weight_func += shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		weight_func += shape_func[i] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
 	}
 	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
 	{
-		dWeight_func1 += dShape[0 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 1]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]][DIMENSION];
-		dWeight_func2 += Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]][DIMENSION];
+		dWeight_func1 += dShape[0 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 1]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		dWeight_func2 += Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
 	}
 	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
 	{
-		dShape_func1[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * dShape[0 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 1]] - dWeight_func1 * shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]]) / (weight_func * weight_func);
-		dShape_func2[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] - dWeight_func2 * shape_func[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]]) / (weight_func * weight_func);
+		dShape_func1[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * dShape[0 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 1]] - dWeight_func1 * shape_func[i]) / (weight_func * weight_func);
+		dShape_func2[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
 	}
 
-	free(Shape), free(dShape);
+	free(Shape), free(dShape), free(shape_func);
 }
 
 
-double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Element, double *Position_Knots,
-							 double *Position_Knots, int *Total_Knot_to_patch_dim, int *Element_patch)
+double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Element, double *Position_Knots, int *Total_Knot_to_patch_dim, int *Element_patch)
 {
 	int i;
 	double dPosition_Data_param;
@@ -1571,361 +2394,955 @@ double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Elemen
 }
 
 
-
-
-
-
-
-
-
-// 拘束されている行数を省いた行列の番号の制作
-int Make_Index_Dof(int Total_Control_Point, int Total_Constraint, int Constraint_Node_Dir[MAX_N_CONSTRAINT][2])
+// Newton-Raphson法, from NURBSviewer
+double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
+				 double *output, double *d_output)
 {
-	int i, k = 0;
+	int p, j;
+	double sum1 = 0.0;
+	double sum2 = 0.0;
+	double temp_basis[MAX_ORDER][MAX_ORDER];
+	(*output) = 0.0;
+	(*d_output) = 0.0;
 
-	// Index_Dofの初期化(複数メッシュ読み込みのため)
-	for (i = 0; i < Total_Control_Point * 2; i++)
+	if (knot_vec[knot_index] <= xi && knot_vec[knot_index + order + 1] >= xi)
 	{
-		Index_Dof[i] = 0;
-	}
-	// 拘束されている自由度(Degree Of free)をERRORにする
-	for (i = 0; i < Total_Constraint; i++)
-	{
-		Index_Dof[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = ERROR;
-	}
-	// ERROR以外に番号を付ける
-	for (i = 0; i < Total_Control_Point * DIMENSION; i++)
-	{
-		if (Index_Dof[i] != ERROR)
+		for (j = 0; j <= order; j++)
 		{
-			Index_Dof[i] = k;
-			k++;
-		}
-	}
-	printf("Max_Index_Dof = %d\n", k);
-	return k;
-}
-
-void Make_K_Whole_Ptr_Col(int Total_Element,
-						  int Total_Control_Point,
-						  int K_Whole_Size)
-{
-	int i, ii, j, jj, k;
-	int NE;
-	int N, i_index, j_index;
-
-	// 初期化
-	for (i = 0; i < K_Whole_Size + 1; i++)
-		K_Whole_Ptr[i] = 0;
-
-	// 大きく分割するためのループ
-	for (N = 0; N < Total_Control_Point; N += K_DIVISION_LENGE)
-	{
-		// 各節点に接する節点を取得
-		for (i = 0; i < K_DIVISION_LENGE; i++)
-		{
-			Total_Control_Point_To_Node[i] = 0;
-		}
-		for (i = 0; i < Total_Element; i++)
-		{
-			for (ii = 0; ii < No_Control_point_ON_ELEMENT[Element_patch[i]]; ii++)
+			if ((knot_vec[knot_index + j] <= xi) && (xi <= knot_vec[knot_index + j + 1]))
 			{
-				NE = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + ii] - N;
-				if (0 <= NE && NE < K_DIVISION_LENGE)
-				{
-					for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[i]]; j++) //ローカル要素
-					{
-						// 数字がない時
-						if (Total_Control_Point_To_Node[NE] == 0)
-						{
-							// 節点番号を取得
-							Node_To_Node[NE][0] = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
-							Total_Control_Point_To_Node[NE]++;
-						}
-						// 同じものがあったら
-						// k > 0 以降の取得
-						// kのカウント
-						for (k = 0; k < Total_Control_Point_To_Node[NE]; k++)
-						{
-							if (Node_To_Node[NE][k] == Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j])
-							{
-								break;
-							}
-						}
-						// 未設定のNode_To_Node取得
-						if (k == Total_Control_Point_To_Node[NE])
-						{
-							Node_To_Node[NE][k] = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
-							Total_Control_Point_To_Node[NE]++;
-						}
-					}
-					// 別メッシュとの重なりを考慮
-					if (NNLOVER[i] > 0)
-					{
-						for (jj = 0; jj < NNLOVER[i]; jj++)
-						{
-							for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++) //ローカル要素
-							{
-								// 数字がない時
-								if (Total_Control_Point_To_Node[NE] == 0)
-								{
-									// 節点番号を取得
-									Node_To_Node[NE][0] = Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
-									Total_Control_Point_To_Node[NE]++;
-								}
+				temp_basis[j][0] = 1.0;
+			}
+			else
+			{
+				temp_basis[j][0] = 0.0;
+			}
+		}
 
-								// 同じものがあったら
-								// k > 0 以降の取得
-								// kのカウント
-								for (k = 0; k < Total_Control_Point_To_Node[NE]; k++)
-								{
-									if (Node_To_Node[NE][k] == Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j])
-									{
-										break;
-									}
-								}
-								// 未設定のNode_To_Node取得
-								if (k == Total_Control_Point_To_Node[NE])
-								{
-									Node_To_Node[NE][k] = Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
-									Total_Control_Point_To_Node[NE]++;
-								}
-							}
-						}
+		if (order > 0)
+		{
+			for (p = 1; p <= order; p++)
+			{
+				for (j = 0; j <= order - p; j++)
+				{
+					sum1 = 0.0;
+					sum2 = 0.0;
+					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
+					{
+						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
 					}
+					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
+					{
+						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
+					}
+					temp_basis[j][p] = sum1 + sum2;
 				}
 			}
-		}
-		// 順番に並び替える
-		for (i = 0; i < K_DIVISION_LENGE; i++)
-		{
-			if (N + i < Total_Control_Point)
+			sum1 = 0.0;
+			sum2 = 0.0;
+			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
 			{
-				for (j = 0; j < Total_Control_Point_To_Node[i]; j++)
-				{
-					int Min = Node_To_Node[i][j], No = j;
-					for (k = j; k < Total_Control_Point_To_Node[i]; k++)
-					{
-						if (Min > Node_To_Node[i][k])
-						{
-							Min = Node_To_Node[i][k];
-							No = k;
-						}
-					}
-					for (k = No; k > j; k--)
-					{
-						Node_To_Node[i][k] = Node_To_Node[i][k - 1];
-					}
-					Node_To_Node[i][j] = Min;
-				}
+				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
+			}
+			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
+			{
+				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
 			}
 		}
-
-		// 節点からcol ptrを求める
-		ii = 0;
-		k = 0;
-		for (i = 0; i < K_DIVISION_LENGE; i++)
-		{
-			for (ii = 0; ii < DIMENSION; ii++)
-			{
-				if (N + i < Total_Control_Point)
-				{
-					i_index = Index_Dof[(N + i) * DIMENSION + ii];
-					k = 0;
-					if (i_index >= 0)
-					{
-						K_Whole_Ptr[i_index + 1] = K_Whole_Ptr[i_index];
-						for (j = 0; j < Total_Control_Point_To_Node[i]; j++)
-						{
-							for (jj = 0; jj < DIMENSION; jj++)
-							{
-								j_index = Index_Dof[Node_To_Node[i][j] * DIMENSION + jj];
-								if (j_index >= 0 && j_index >= i_index)
-								{
-									K_Whole_Ptr[i_index + 1]++;
-									K_Whole_Col[K_Whole_Ptr[i_index] + k] = j_index;
-									k++;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		(*output) = temp_basis[0][order];
+		(*d_output) = sum1 - sum2;
 	}
-}
-
-// valを求める
-void Make_K_Whole_Val(double E, double nu, int Total_Element, int DM)
-{
-	int i, j, j1, j2, k1, k2, l;
-	int a, b, re;
-
-	for (i = 0; i < MAX_NON_ZERO; i++)
-	{
-		K_Whole_Val[i] = 0.0;
-	}
-
-	for (re = 0; re < Total_Element; re++)
-	{
-		i = real_element[re];
-		Check_BDBJ_flag[i] = 0;
-	}
-
-	for (re = 0; re < Total_Element; re++)
-	{
-		// if(i==real_element[re]){
-		// printf("re=%d\n",re);
-		i = real_element[re];
-		// printf("El_No;i=%d\n", real_element[re]);
-
-		if (Element_mesh[i] == 0 && re == 0) // 2つめの条件は効率化のため
-		{
-			Make_gauss_array(0);
-		}
-		else if (Element_mesh[i] > 0)
-		{
-			printf("NNLOVER[%d]:%d\tNNLOVER[%d]:%d\tElement_mesh[%d]:%d\n", i, NNLOVER[i], real_element[re - 1], NNLOVER[real_element[re - 1]], real_element[re - 1], Element_mesh[real_element[re - 1]]);
-			if (NNLOVER[i] == 1 && (NNLOVER[real_element[re - 1]] != 1 || Element_mesh[real_element[re - 1]] == 0)) /*2つめ以降の条件は効率化のため*/
-			{
-				Make_gauss_array(0);
-			}
-			else if (NNLOVER[i] >= 2 && (NNLOVER[real_element[re - 1]] == 1 || Element_mesh[real_element[re - 1]] == 0)) /*2つめ以降の条件は効率化のため*/
-			{
-				Make_gauss_array(1);
-			}
-		}
-		// printf("i= %d\tGaussPt_3D=%d\n",i ,GaussPt_3D);
-
-		for (j = 0; j < GP_2D; j++)
-		{
-			Same_BDBJ_flag[j] = 0;
-		}
-
-		KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[i]] * DIMENSION;
-		double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-		// printf("Total_Element=%d\tre=%d\tEl_No=%d\n", Total_Element, re, i);
-		//各要素のKelを求める
-		for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; j1++)
-		{
-			for (j2 = 0; j2 < DIMENSION; j2++)
-			{
-				X[j1][j2] = Node_Coordinate[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j1] * (DIMENSION + 1) + j2];
-			}
-		}
-
-		Make_K_EL(i, X, K_EL, E, nu, DM);
-
-		// Valを求める
-		// for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[El_No_on_mesh[tm][i]]]; j1++)
-		for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; j1++)
-		{
-			for (j2 = 0; j2 < DIMENSION; j2++)
-			{
-				a = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
-				if (a >= 0)
-				{
-					// for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[El_No_on_mesh[tm][i]]]; k1++)
-					for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; k1++)
-					{
-						for (k2 = 0; k2 < DIMENSION; k2++)
-						{
-							b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
-							if (b >= 0 && b >= a)
-							{
-								for (l = K_Whole_Ptr[a]; l < K_Whole_Ptr[a + 1]; l++)
-								{
-									if (K_Whole_Col[l] == b)
-									{
-										K_Whole_Val[l] += K_EL[j1 * DIMENSION + j2][k1 * DIMENSION + k2];
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (Element_mesh[i] > 0) //ローカルメッシュ上の要素について
-		{
-			if (NNLOVER[i] > 0) //重なっている要素が存在するとき
-			{
-				for (j = 0; j < NNLOVER[i]; j++)
-				{
-					double XG[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION];
-					KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + j]]] * DIMENSION;
-					double coupled_K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-					for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + j]]]; j1++)
-					{
-						for (j2 = 0; j2 < DIMENSION; j2++)
-						{
-							XG[j1][j2] = Node_Coordinate[Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + j] * MAX_NO_CCpoint_ON_ELEMENT + j1] * (DIMENSION + 1) + j2];
-							//重なっている要素の物理座標取得
-						}
-					}
-					Make_coupled_K_EL(i, NELOVER[i * MAX_N_ELEMENT_OVER + j],
-									  X,
-									  XG,
-									  coupled_K_EL,
-									  E, nu, DM);
-
-					Check_BDBJ_flag[i] += Total_BDBJ_flag;
-					if (j == NNLOVER[i] - 1)
-					{
-						for (j1 = 0; j1 < GP_2D; j1++)
-						{
-							// printf("Same_BDBJ_flag[%d]=%d\n",j1,Same_BDBJ_flag[j1]);
-							if (Same_BDBJ_flag[j1] != 1)
-							{
-								printf("ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR\n");
-							}
-						}
-						printf("-------------------------Check_BDBJ_flag[%d]=%d-------------------------\n", i, Check_BDBJ_flag[i]);
-						if (Check_BDBJ_flag[i] != GP_2D)
-						{
-							printf("ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR-ERROR\n");
-						}
-					}
-
-					// Valを求める
-					for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + j]]]; j1++)
-					{
-						for (j2 = 0; j2 < DIMENSION; j2++)
-						{
-							a = Index_Dof[Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + j] * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
-							if (a >= 0)
-							{
-								for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; k1++)
-								{
-									for (k2 = 0; k2 < DIMENSION; k2++)
-									{
-										b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
-										if (b >= 0 && b >= a)
-										{
-											for (l = K_Whole_Ptr[a]; l < K_Whole_Ptr[a + 1]; l++)
-											{
-												if (K_Whole_Col[l] == b)
-												{
-													K_Whole_Val[l] += coupled_K_EL[j1 * DIMENSION + j2][k1 * DIMENSION + k2];
-													break;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	return (*output);
 }
 
 
-//分布荷重の等価節点力を足す
+double rBasisFunc(double *knot_vec, int knot_index,
+				  int order, double xi,
+				  double *output, double *d_output)
+{
+	int p, j;
+	double sum1 = 0.0;
+	double sum2 = 0.0;
+	double temp_basis[MAX_ORDER][MAX_ORDER];
+	(*output) = 0.0;
+	(*d_output) = 0.0;
+
+	if (knot_vec[knot_index] <= xi && xi <= knot_vec[knot_index + order + 1])
+	{
+		if (knot_index == 0)
+		{
+			for (j = 0; j <= order; j++)
+			{
+				if ((knot_vec[j] <= xi) && (xi <= knot_vec[j + 1]))
+				{
+					temp_basis[j][0] = 1.0;
+				}
+				else
+				{
+					temp_basis[j][0] = 0.0;
+				}
+			}
+		}
+		else
+		{
+			for (j = 0; j <= order; j++)
+			{
+				if ((knot_vec[knot_index + j] < xi) && (xi <= knot_vec[knot_index + j + 1]))
+				{
+					temp_basis[j][0] = 1.0;
+				}
+				else
+				{
+					temp_basis[j][0] = 0.0;
+				}
+			}
+		}
+
+		if (order > 0)
+		{
+			for (p = 1; p <= order; p++)
+			{
+				for (j = 0; j <= order - p; j++)
+				{
+					sum1 = 0.0;
+					sum2 = 0.0;
+					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
+					{
+						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
+					}
+					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
+					{
+						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
+					}
+					temp_basis[j][p] = sum1 + sum2;
+				}
+			}
+			sum1 = 0.0;
+			sum2 = 0.0;
+
+			// for (int temp_i = 0; temp_i < No_knot[0][0]; temp_i++)
+			// {
+			// 	printf("knot_vec[%d] = %f\n", temp_i, knot_vec[temp_i]);
+			// }
+
+			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
+			{
+				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
+			}
+			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
+			{
+				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
+			}
+		}
+		(*output) = temp_basis[0][order];
+		(*d_output) = sum1 - sum2;
+	}
+	return (*output);
+}
+
+
+double lBasisFunc(double *knot_vec, int knot_index,
+				  int cntl_p_n, int order, double xi,
+				  double *output, double *d_output)
+{
+	int p, j;
+	double sum1 = 0.0;
+	double sum2 = 0.0;
+	double temp_basis[MAX_ORDER][MAX_ORDER];
+	(*output) = 0.0;
+	(*d_output) = 0.0;
+
+	if (knot_vec[knot_index] <= xi && xi <= knot_vec[knot_index + order + 1])
+	{
+		if (knot_index == cntl_p_n - 1)
+		{
+			for (j = 0; j <= order; j++)
+			{
+				if ((knot_vec[cntl_p_n - 1 + j] <= xi) && (xi <= knot_vec[cntl_p_n + j]))
+				{
+					temp_basis[j][0] = 1.0;
+				}
+				else
+				{
+					temp_basis[j][0] = 0.0;
+				}
+			}
+		}
+		else
+		{
+			for (j = 0; j <= order; j++)
+			{
+				if ((knot_vec[knot_index + j] <= xi) && (xi < knot_vec[knot_index + j + 1]))
+				{
+					temp_basis[j][0] = 1.0;
+				}
+				else
+				{
+					temp_basis[j][0] = 0.0;
+				}
+			}
+		}
+
+		if (order > 0)
+		{
+			for (p = 1; p <= order; p++)
+			{
+				for (j = 0; j <= order - p; j++)
+				{
+					sum1 = 0.0;
+					sum2 = 0.0;
+					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
+					{
+						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
+					}
+					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
+					{
+						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
+					}
+					temp_basis[j][p] = sum1 + sum2;
+				}
+			}
+			sum1 = 0.0;
+			sum2 = 0.0;
+			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
+			{
+				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
+			}
+			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
+			{
+				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
+			}
+		}
+		(*output) = temp_basis[0][order];
+		(*d_output) = sum1 - sum2;
+	}
+	return (*output);
+}
+
+
+double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
+					 double *cntl_px, double *cntl_py,
+					 int cntl_p_n_xi, int cntl_p_n_eta,
+					 double *weight, int order_xi, int order_eta,
+					 double xi, double eta,
+					 double *output_x, double *output_y,
+					 double *output_dxi_x, double *output_deta_x,
+					 double *output_dxi_y, double *output_deta_y)
+{
+	int i, j, temp_index;
+	double temp1, temp2, temp3;
+	double molecule_x, molecule_y;
+	double dxi_molecule_x, dxi_molecule_y;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
+	double temp_output_xi, temp_output_eta;
+	double temp_d_output_xi, temp_d_output_eta;
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	denominator = 0.0;
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
+
+	int index_min_xi = 0;
+	// int index_max_xi = cntl_p_n_xi; //2020_09_12
+	int index_max_xi = cntl_p_n_xi - 1; // 2020_09_12
+	int index_min_eta = 0;
+	// int index_max_eta = cntl_p_n_eta; //2020_09_12
+	int index_max_eta = cntl_p_n_eta - 1; // 2020_09_12
+
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if (input_knot_vec_xi[i + 1] > xi)
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+	if (index_min_xi < 0)
+		index_min_xi = 0;
+	if (index_max_xi > cntl_p_n_xi)
+		index_max_xi = cntl_p_n_xi; // 2020_09_12
+
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if (input_knot_vec_eta[i + 1] > eta)
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+		index_min_eta = 0;
+	if (index_max_eta > cntl_p_n_eta)
+		index_max_eta = cntl_p_n_eta; // 2020_09_12
+
+	for (i = index_min_xi; i <= index_max_xi; i++)
+	{
+		BasisFunc(input_knot_vec_xi, i, order_xi, xi,
+				  &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j <= index_max_eta; j++)
+		{
+			BasisFunc(input_knot_vec_eta, j, order_eta, eta,
+					  &temp_output_eta, &temp_d_output_eta);
+			temp_index = i + j * cntl_p_n_xi;
+			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
+			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
+			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
+			molecule_x += temp1 * cntl_px[temp_index];
+			molecule_y += temp1 * cntl_py[temp_index];
+			denominator += temp1;
+			dxi_molecule_x += temp2 * cntl_px[temp_index];
+			dxi_molecule_y += temp2 * cntl_py[temp_index];
+			dxi_denominator += temp2;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
+		}
+	}
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+
+	temp1 = denominator * denominator;
+	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
+	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
+	return denominator;
+}
+
+
+double rNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
+					  double *cntl_px, double *cntl_py,
+					  int cntl_p_n_xi, int cntl_p_n_eta,
+					  double *weight, int order_xi, int order_eta,
+					  double xi, double eta,
+					  double *output_x, double *output_y,
+					  double *output_dxi_x, double *output_deta_x,
+					  double *output_dxi_y, double *output_deta_y)
+{
+	int i, j, temp_index;
+	double temp1, temp2, temp3;
+	double molecule_x, molecule_y;
+	double dxi_molecule_x, dxi_molecule_y;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
+	double temp_output_xi, temp_output_eta;
+	double temp_d_output_xi, temp_d_output_eta;
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	denominator = 0.0;
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
+
+	int index_min_xi = 0;
+	int index_max_xi = cntl_p_n_xi - 1;
+	int index_min_eta = 0;
+	int index_max_eta = cntl_p_n_eta - 1;
+
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if (input_knot_vec_xi[i + 1] >= xi)
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+	if (index_min_xi < 0)
+		index_min_xi = 0;
+	if (index_max_xi > cntl_p_n_xi)
+		index_max_xi = cntl_p_n_xi;
+
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if (input_knot_vec_eta[i + 1] >= eta)
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+		index_min_eta = 0;
+	if (index_max_eta > cntl_p_n_eta)
+		index_max_eta = cntl_p_n_eta;
+
+	for (i = index_min_xi; i <= index_max_xi; i++)
+	{
+		rBasisFunc(input_knot_vec_xi, i, order_xi, xi,
+				   &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j <= index_max_eta; j++)
+		{
+			rBasisFunc(input_knot_vec_eta, j, order_eta, eta,
+					   &temp_output_eta, &temp_d_output_eta);
+			temp_index = i + j * cntl_p_n_xi;
+			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
+			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
+			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
+			molecule_x += temp1 * cntl_px[temp_index];
+			molecule_y += temp1 * cntl_py[temp_index];
+			denominator += temp1;
+			dxi_molecule_x += temp2 * cntl_px[temp_index];
+			dxi_molecule_y += temp2 * cntl_py[temp_index];
+			dxi_denominator += temp2;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
+		}
+	}
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+
+	temp1 = denominator * denominator;
+	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
+	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
+	return denominator;
+}
+
+
+double lNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
+					  double *cntl_px, double *cntl_py,
+					  int cntl_p_n_xi, int cntl_p_n_eta,
+					  double *weight, int order_xi, int order_eta,
+					  double xi, double eta,
+					  double *output_x, double *output_y,
+					  double *output_dxi_x, double *output_deta_x,
+					  double *output_dxi_y, double *output_deta_y)
+{
+	int i, j, temp_index;
+	double temp1, temp2, temp3;
+	double molecule_x, molecule_y;
+	double dxi_molecule_x, dxi_molecule_y;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
+	double temp_output_xi, temp_output_eta;
+	double temp_d_output_xi, temp_d_output_eta;
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	denominator = 0.0;
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
+
+	int index_min_xi = 0;
+	int index_max_xi = cntl_p_n_xi - 1;
+	int index_min_eta = 0;
+	int index_max_eta = cntl_p_n_eta - 1;
+
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if (input_knot_vec_xi[i + 1] >= xi)
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+	if (index_min_xi < 0)
+		index_min_xi = 0;
+	if (index_max_xi > cntl_p_n_xi)
+		index_max_xi = cntl_p_n_xi;
+
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if (input_knot_vec_eta[i + 1] >= eta)
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+		index_min_eta = 0;
+	if (index_max_eta > cntl_p_n_eta)
+		index_max_eta = cntl_p_n_eta;
+
+	for (i = index_min_xi; i <= index_max_xi; i++)
+	{
+		lBasisFunc(input_knot_vec_xi, i,
+				   cntl_p_n_xi, order_xi, xi,
+				   &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j <= index_max_eta; j++)
+		{
+			lBasisFunc(input_knot_vec_eta, j,
+					   cntl_p_n_eta, order_eta, eta,
+					   &temp_output_eta, &temp_d_output_eta);
+			temp_index = i + j * cntl_p_n_xi;
+			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
+			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
+			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
+			molecule_x += temp1 * cntl_px[temp_index];
+			molecule_y += temp1 * cntl_py[temp_index];
+			denominator += temp1;
+			dxi_molecule_x += temp2 * cntl_px[temp_index];
+			dxi_molecule_y += temp2 * cntl_py[temp_index];
+			dxi_denominator += temp2;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
+		}
+	}
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+
+	temp1 = denominator * denominator;
+	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
+	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
+	return denominator;
+}
+
+
+double rlNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
+					   double *cntl_px, double *cntl_py,
+					   int cntl_p_n_xi, int cntl_p_n_eta,
+					   double *weight, int order_xi, int order_eta,
+					   double xi, double eta,
+					   double *output_x, double *output_y,
+					   double *output_dxi_x, double *output_deta_x,
+					   double *output_dxi_y, double *output_deta_y)
+{
+	int i, j, temp_index;
+	double temp1, temp2, temp3;
+	double molecule_x, molecule_y;
+	double dxi_molecule_x, dxi_molecule_y;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
+	double temp_output_xi, temp_output_eta;
+	double temp_d_output_xi, temp_d_output_eta;
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	denominator = 0.0;
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
+
+	int index_min_xi = 0;
+	int index_max_xi = cntl_p_n_xi - 1;
+	int index_min_eta = 0;
+	int index_max_eta = cntl_p_n_eta - 1;
+
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if (input_knot_vec_xi[i + 1] >= xi)
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+	if (index_min_xi < 0)
+		index_min_xi = 0;
+	if (index_max_xi > cntl_p_n_xi)
+		index_max_xi = cntl_p_n_xi;
+
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if (input_knot_vec_eta[i + 1] >= eta)
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+		index_min_eta = 0;
+	if (index_max_eta > cntl_p_n_eta)
+		index_max_eta = cntl_p_n_eta;
+
+	for (i = index_min_xi; i <= index_max_xi; i++)
+	{
+		rBasisFunc(input_knot_vec_xi, i, order_xi, xi,
+				   &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j <= index_max_eta; j++)
+		{
+			lBasisFunc(input_knot_vec_eta, j,
+					   cntl_p_n_eta, order_eta, eta,
+					   &temp_output_eta, &temp_d_output_eta);
+			temp_index = i + j * cntl_p_n_xi;
+			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
+			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
+			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
+			molecule_x += temp1 * cntl_px[temp_index];
+			molecule_y += temp1 * cntl_py[temp_index];
+			denominator += temp1;
+			dxi_molecule_x += temp2 * cntl_px[temp_index];
+			dxi_molecule_y += temp2 * cntl_py[temp_index];
+			dxi_denominator += temp2;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
+		}
+	}
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+
+	temp1 = denominator * denominator;
+	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
+	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
+	return denominator;
+}
+
+
+double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
+					   double *cntl_px, double *cntl_py,
+					   int cntl_p_n_xi, int cntl_p_n_eta,
+					   double *weight, int order_xi, int order_eta,
+					   double xi, double eta,
+					   double *output_x, double *output_y,
+					   double *output_dxi_x, double *output_deta_x,
+					   double *output_dxi_y, double *output_deta_y)
+{
+	int i, j, temp_index;
+	double temp1, temp2, temp3;
+	double molecule_x, molecule_y;
+	double dxi_molecule_x, dxi_molecule_y;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
+	double temp_output_xi, temp_output_eta;
+	double temp_d_output_xi, temp_d_output_eta;
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	denominator = 0.0;
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
+
+	int index_min_xi = 0;
+	int index_max_xi = cntl_p_n_xi - 1;
+	int index_min_eta = 0;
+	int index_max_eta = cntl_p_n_eta - 1;
+
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if (input_knot_vec_xi[i + 1] >= xi)
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+	if (index_min_xi < 0)
+		index_min_xi = 0;
+	if (index_max_xi > cntl_p_n_xi)
+		index_max_xi = cntl_p_n_xi;
+
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if (input_knot_vec_eta[i + 1] >= eta)
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+		index_min_eta = 0;
+	if (index_max_eta > cntl_p_n_eta)
+		index_max_eta = cntl_p_n_eta;
+
+	for (i = index_min_xi; i <= index_max_xi; i++)
+	{
+		lBasisFunc(input_knot_vec_xi, i,
+				   cntl_p_n_xi, order_xi, xi,
+				   &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j <= index_max_eta; j++)
+		{
+			rBasisFunc(input_knot_vec_eta, j, order_eta, eta,
+					   &temp_output_eta, &temp_d_output_eta);
+			temp_index = i + j * cntl_p_n_xi;
+			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
+			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
+			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
+			molecule_x += temp1 * cntl_px[temp_index];
+			molecule_y += temp1 * cntl_py[temp_index];
+			denominator += temp1;
+			dxi_molecule_x += temp2 * cntl_px[temp_index];
+			dxi_molecule_y += temp2 * cntl_py[temp_index];
+			dxi_denominator += temp2;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
+		}
+	}
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+
+	temp1 = denominator * denominator;
+	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
+	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
+	return denominator;
+}
+
+
+//算出したローカルパッチ各要素の頂点の物理座標のグローバルパッチでの(xi,eta)算出
+int Calc_xi_eta(double px, double py,
+				double *input_knot_vec_xi, double *input_knot_vec_eta,
+				int cntl_p_n_xi, int cntl_p_n_eta, int order_xi, int order_eta,
+				double *output_xi, double *output_eta,
+				double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_Control_point, int *Order,
+				double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight, int *No_knot)
+{
+	double temp_xi, temp_eta;
+	double temp_x, temp_y;
+	double temp_matrix[2][2];
+	double temp_dxi, temp_deta;
+	double temp_tol_x, temp_tol_y;
+
+	(*output_xi) = 0;
+	(*output_eta) = 0;
+
+	int i;
+	// int repeat = 1000;
+	// double tol = 10e-8;
+	int repeat = 100;
+	double tol = 10e-14;
+
+	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * No_knot[0 * DIMENSION + 0]);
+	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * No_knot[0 * DIMENSION + 1]);
+	for (i = 0; i < No_knot[0 * DIMENSION + 0]; i++)
+	{
+		temp_Position_Knots_xi[i] = Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + i];
+	}
+	for (i = 0; i < No_knot[0 * DIMENSION + 1]; i++)
+	{
+		temp_Position_Knots_eta[i] = Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + i];
+	}
+
+	// 初期値の設定
+	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
+	temp_xi *= 0.5;
+	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	temp_eta *= 0.5;
+
+	for (i = 0; i < repeat; i++)
+	{
+		rNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+					   Control_Coord_x, Control_Coord_y,
+					   No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
+					   Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+					   temp_xi, temp_eta,
+					   &temp_x, &temp_y,
+					   &temp_matrix[0][0], &temp_matrix[0][1],
+					   &temp_matrix[1][0], &temp_matrix[1][1]);
+
+		temp_tol_x = px - temp_x;
+		temp_tol_x *= temp_tol_x;
+		temp_tol_y = py - temp_y;
+		temp_tol_y *= temp_tol_y;
+
+		// 収束した場合
+		if (temp_tol_x + temp_tol_y < tol)
+		{
+			(*output_xi) = temp_xi;
+			(*output_eta) = temp_eta;
+			return i;
+		}
+
+		InverseMatrix_2x2(temp_matrix);
+
+		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_xi = temp_xi + temp_dxi;
+		temp_eta = temp_eta + temp_deta;
+		if (temp_xi < input_knot_vec_xi[0])
+			temp_xi = input_knot_vec_xi[0];
+		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
+			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
+		if (temp_eta < input_knot_vec_eta[0])
+			temp_eta = input_knot_vec_eta[0];
+		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
+			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	}
+
+	// 初期値の設定
+	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
+	temp_xi *= 0.5;
+	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	temp_eta *= 0.5;
+
+	for (i = 0; i < repeat; i++)
+	{
+		lNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+					   Control_Coord_x, Control_Coord_y,
+					   No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
+					   Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+					   temp_xi, temp_eta,
+					   &temp_x, &temp_y,
+					   &temp_matrix[0][0], &temp_matrix[0][1],
+					   &temp_matrix[1][0], &temp_matrix[1][1]);
+
+		temp_tol_x = px - temp_x;
+		temp_tol_x *= temp_tol_x;
+		temp_tol_y = py - temp_y;
+		temp_tol_y *= temp_tol_y;
+
+		// 収束した場合
+		if (temp_tol_x + temp_tol_y < tol)
+		{
+			(*output_xi) = temp_xi;
+			(*output_eta) = temp_eta;
+			return i;
+		}
+
+		InverseMatrix_2x2(temp_matrix);
+
+		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_xi = temp_xi + temp_dxi;
+		temp_eta = temp_eta + temp_deta;
+		if (temp_xi < input_knot_vec_xi[0])
+			temp_xi = input_knot_vec_xi[0];
+		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
+			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
+		if (temp_eta < input_knot_vec_eta[0])
+			temp_eta = input_knot_vec_eta[0];
+		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
+			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	}
+
+	// 初期値の設定
+	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
+	temp_xi *= 0.5;
+	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	temp_eta *= 0.5;
+
+	for (i = 0; i < repeat; i++)
+	{
+		rlNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+						Control_Coord_x, Control_Coord_y,
+						No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
+						Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+						temp_xi, temp_eta,
+						&temp_x, &temp_y,
+						&temp_matrix[0][0], &temp_matrix[0][1],
+						&temp_matrix[1][0], &temp_matrix[1][1]);
+
+		temp_tol_x = px - temp_x;
+		temp_tol_x *= temp_tol_x;
+		temp_tol_y = py - temp_y;
+		temp_tol_y *= temp_tol_y;
+
+		// 収束した場合
+		if (temp_tol_x + temp_tol_y < tol)
+		{
+			(*output_xi) = temp_xi;
+			(*output_eta) = temp_eta;
+			return i;
+		}
+
+		InverseMatrix_2x2(temp_matrix);
+
+		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_xi = temp_xi + temp_dxi;
+		temp_eta = temp_eta + temp_deta;
+		if (temp_xi < input_knot_vec_xi[0])
+			temp_xi = input_knot_vec_xi[0];
+		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
+			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
+		if (temp_eta < input_knot_vec_eta[0])
+			temp_eta = input_knot_vec_eta[0];
+		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
+			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	}
+
+	// 初期値の設定
+	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
+	temp_xi *= 0.5;
+	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	temp_eta *= 0.5;
+
+	for (i = 0; i < repeat; i++)
+	{
+		lrNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+						Control_Coord_x, Control_Coord_y,
+						No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
+						Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+						temp_xi, temp_eta,
+						&temp_x, &temp_y,
+						&temp_matrix[0][0], &temp_matrix[0][1],
+						&temp_matrix[1][0], &temp_matrix[1][1]);
+
+		temp_tol_x = px - temp_x;
+		temp_tol_x *= temp_tol_x;
+		temp_tol_y = py - temp_y;
+		temp_tol_y *= temp_tol_y;
+
+		// 収束した場合
+		if (temp_tol_x + temp_tol_y < tol)
+		{
+			(*output_xi) = temp_xi;
+			(*output_eta) = temp_eta;
+			return i;
+		}
+
+		InverseMatrix_2x2(temp_matrix);
+
+		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_xi = temp_xi + temp_dxi;
+		temp_eta = temp_eta + temp_deta;
+		if (temp_xi < input_knot_vec_xi[0])
+			temp_xi = input_knot_vec_xi[0];
+		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
+			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
+		if (temp_eta < input_knot_vec_eta[0])
+			temp_eta = input_knot_vec_eta[0];
+		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
+			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
+	}
+
+	free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 分布荷重の等価節点力を足す
 void Add_Equivalent_Nodal_Forec_to_F_Vec(int *Total_Control_Point, double *Equivalent_Nodal_Force)
 {
 	int i, j, index;
@@ -1956,7 +3373,7 @@ void Make_F_Vec(int Total_Load, int Load_Node_Dir[MAX_N_LOAD][2], double Value_o
 	}
 }
 
-//強制変位対策
+// 強制変位対策
 void Make_F_Vec_disp_const(int Mesh_No, int Total_Constraint,
 						   int Constraint_Node_Dir[MAX_N_CONSTRAINT][2],
 						   double Value_of_Constraint[MAX_N_CONSTRAINT],
@@ -2469,1277 +3886,12 @@ void PCG_Solver(int ndof, int max_itetarion, double eps)
 
 
 
-// tool
-// 逆行列を元の行列に代入
-double InverseMatrix_2x2(double M[DIMENSION][DIMENSION])
-{
-	int i, j;
-	double a[2][2];
-	double det = M[0][0] * M[1][1] - M[0][1] * M[1][0];
 
-	if (det == 0)
-		return ERROR;
 
-	for (i = 0; i < 2; i++)
-	{
-		for (j = 0; j < 2; j++)
-			a[i][j] = M[i][j];
-	}
-	M[0][0] = a[1][1] / det;
-	M[0][1] = a[0][1] * (-1) / det;
-	M[1][0] = a[1][0] * (-1) / det;
-	M[1][1] = a[0][0] / det;
 
-	return det;
-}
 
-double InverseMatrix_3x3(double M[DIMENSION][DIMENSION])
-{
-	int i, j;
-	double a[3][3];
-	double det = M[0][0] * M[1][1] * M[2][2] + M[1][0] * M[2][1] * M[0][2] + M[2][0] * M[0][1] * M[1][2] - M[0][0] * M[2][1] * M[1][2] - M[2][0] * M[1][1] * M[0][2] - M[1][0] * M[0][1] * M[2][2];
 
-	if (det == 0)
-		return ERROR;
 
-	for (i = 0; i < 3; i++)
-	{
-		for (j = 0; j < 3; j++)
-			a[i][j] = M[i][j];
-	}
-	M[0][0] = (a[1][1] * a[2][2] - a[1][2] * a[2][1]) / det;
-	M[0][1] = (a[0][2] * a[2][1] - a[0][1] * a[2][2]) / det;
-	M[0][2] = (a[0][1] * a[1][2] - a[0][2] * a[1][1]) / det;
-	M[1][0] = (a[1][2] * a[2][0] - a[1][0] * a[2][2]) / det;
-	M[1][1] = (a[0][0] * a[2][2] - a[0][2] * a[2][0]) / det;
-	M[1][2] = (a[0][2] * a[1][0] - a[0][0] * a[1][2]) / det;
-	M[2][0] = (a[1][0] * a[2][1] - a[1][1] * a[2][0]) / det;
-	M[2][1] = (a[0][1] * a[2][0] - a[0][0] * a[2][1]) / det;
-	M[2][2] = (a[0][0] * a[1][1] - a[0][1] * a[1][0]) / det;
-
-	return det;
-}
-
-// Newton-Raphson法
-// from NURBSviewer
-double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
-				 double *output, double *d_output)
-{
-	int p, j;
-	double sum1 = 0.0;
-	double sum2 = 0.0;
-	double temp_basis[MAX_ORDER][MAX_ORDER];
-	(*output) = 0.0;
-	(*d_output) = 0.0;
-
-	if (knot_vec[knot_index] <= xi && knot_vec[knot_index + order + 1] >= xi)
-	{
-		for (j = 0; j <= order; j++)
-		{
-			if ((knot_vec[knot_index + j] <= xi) && (xi <= knot_vec[knot_index + j + 1]))
-			{
-				temp_basis[j][0] = 1.0;
-			}
-			else
-			{
-				temp_basis[j][0] = 0.0;
-			}
-		}
-
-		if (order > 0)
-		{
-			for (p = 1; p <= order; p++)
-			{
-				for (j = 0; j <= order - p; j++)
-				{
-					sum1 = 0.0;
-					sum2 = 0.0;
-					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
-					{
-						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
-					}
-					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
-					{
-						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
-					}
-					temp_basis[j][p] = sum1 + sum2;
-				}
-			}
-			sum1 = 0.0;
-			sum2 = 0.0;
-			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
-			{
-				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
-			}
-			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
-			{
-				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
-			}
-		}
-		(*output) = temp_basis[0][order];
-		(*d_output) = sum1 - sum2;
-	}
-	return (*output);
-}
-
-double rBasisFunc(double *knot_vec, int knot_index,
-				  int order, double xi,
-				  double *output, double *d_output)
-{
-	int p, j;
-	double sum1 = 0.0;
-	double sum2 = 0.0;
-	double temp_basis[MAX_ORDER][MAX_ORDER];
-	(*output) = 0.0;
-	(*d_output) = 0.0;
-
-	if (knot_vec[knot_index] <= xi && xi <= knot_vec[knot_index + order + 1])
-	{
-		if (knot_index == 0)
-		{
-			for (j = 0; j <= order; j++)
-			{
-				if ((knot_vec[j] <= xi) && (xi <= knot_vec[j + 1]))
-				{
-					temp_basis[j][0] = 1.0;
-				}
-				else
-				{
-					temp_basis[j][0] = 0.0;
-				}
-			}
-		}
-		else
-		{
-			for (j = 0; j <= order; j++)
-			{
-				if ((knot_vec[knot_index + j] < xi) && (xi <= knot_vec[knot_index + j + 1]))
-				{
-					temp_basis[j][0] = 1.0;
-				}
-				else
-				{
-					temp_basis[j][0] = 0.0;
-				}
-			}
-		}
-
-		if (order > 0)
-		{
-			for (p = 1; p <= order; p++)
-			{
-				for (j = 0; j <= order - p; j++)
-				{
-					sum1 = 0.0;
-					sum2 = 0.0;
-					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
-					{
-						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
-					}
-					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
-					{
-						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
-					}
-					temp_basis[j][p] = sum1 + sum2;
-				}
-			}
-			sum1 = 0.0;
-			sum2 = 0.0;
-
-			// for (int temp_i = 0; temp_i < No_knot[0][0]; temp_i++)
-			// {
-			// 	printf("knot_vec[%d] = %f\n", temp_i, knot_vec[temp_i]);
-			// }
-
-			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
-			{
-				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
-			}
-			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
-			{
-				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
-			}
-		}
-		(*output) = temp_basis[0][order];
-		(*d_output) = sum1 - sum2;
-	}
-	return (*output);
-}
-
-double lBasisFunc(double *knot_vec, int knot_index,
-				  int cntl_p_n, int order, double xi,
-				  double *output, double *d_output)
-{
-	int p, j;
-	double sum1 = 0.0;
-	double sum2 = 0.0;
-	double temp_basis[MAX_ORDER][MAX_ORDER];
-	(*output) = 0.0;
-	(*d_output) = 0.0;
-
-	if (knot_vec[knot_index] <= xi && xi <= knot_vec[knot_index + order + 1])
-	{
-		if (knot_index == cntl_p_n - 1)
-		{
-			for (j = 0; j <= order; j++)
-			{
-				if ((knot_vec[cntl_p_n - 1 + j] <= xi) && (xi <= knot_vec[cntl_p_n + j]))
-				{
-					temp_basis[j][0] = 1.0;
-				}
-				else
-				{
-					temp_basis[j][0] = 0.0;
-				}
-			}
-		}
-		else
-		{
-			for (j = 0; j <= order; j++)
-			{
-				if ((knot_vec[knot_index + j] <= xi) && (xi < knot_vec[knot_index + j + 1]))
-				{
-					temp_basis[j][0] = 1.0;
-				}
-				else
-				{
-					temp_basis[j][0] = 0.0;
-				}
-			}
-		}
-
-		if (order > 0)
-		{
-			for (p = 1; p <= order; p++)
-			{
-				for (j = 0; j <= order - p; j++)
-				{
-					sum1 = 0.0;
-					sum2 = 0.0;
-					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
-					{
-						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
-					}
-					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
-					{
-						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
-					}
-					temp_basis[j][p] = sum1 + sum2;
-				}
-			}
-			sum1 = 0.0;
-			sum2 = 0.0;
-			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
-			{
-				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
-			}
-			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
-			{
-				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
-			}
-		}
-		(*output) = temp_basis[0][order];
-		(*d_output) = sum1 - sum2;
-	}
-	return (*output);
-}
-
-double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
-					 double *cntl_px, double *cntl_py,
-					 int cntl_p_n_xi, int cntl_p_n_eta,
-					 double *weight, int order_xi, int order_eta,
-					 double xi, double eta,
-					 double *output_x, double *output_y,
-					 double *output_dxi_x, double *output_deta_x,
-					 double *output_dxi_y, double *output_deta_y)
-{
-	int i, j, temp_index;
-	double temp1, temp2, temp3;
-	double molecule_x, molecule_y;
-	double dxi_molecule_x, dxi_molecule_y;
-	double deta_molecule_x, deta_molecule_y;
-	double denominator, dxi_denominator, deta_denominator;
-	double temp_output_xi, temp_output_eta;
-	double temp_d_output_xi, temp_d_output_eta;
-	molecule_x = 0.0;
-	molecule_y = 0.0;
-	denominator = 0.0;
-	dxi_molecule_x = 0.0;
-	dxi_molecule_y = 0.0;
-	dxi_denominator = 0.0;
-	deta_molecule_x = 0.0;
-	deta_molecule_y = 0.0;
-	deta_denominator = 0.0;
-
-	int index_min_xi = 0;
-	// int index_max_xi = cntl_p_n_xi; //2020_09_12
-	int index_max_xi = cntl_p_n_xi - 1; // 2020_09_12
-	int index_min_eta = 0;
-	// int index_max_eta = cntl_p_n_eta; //2020_09_12
-	int index_max_eta = cntl_p_n_eta - 1; // 2020_09_12
-
-	for (i = 0; i < cntl_p_n_xi; i++)
-	{
-		if (input_knot_vec_xi[i + 1] > xi)
-		{
-			index_min_xi = i - order_xi;
-			index_max_xi = i + 1;
-			break;
-		}
-	}
-	if (index_min_xi < 0)
-		index_min_xi = 0;
-	if (index_max_xi > cntl_p_n_xi)
-		index_max_xi = cntl_p_n_xi; // 2020_09_12
-
-	for (i = 0; i < cntl_p_n_eta; i++)
-	{
-		if (input_knot_vec_eta[i + 1] > eta)
-		{
-			index_min_eta = i - order_eta;
-			index_max_eta = i + 1;
-			break;
-		}
-	}
-	if (index_min_eta < 0)
-		index_min_eta = 0;
-	if (index_max_eta > cntl_p_n_eta)
-		index_max_eta = cntl_p_n_eta; // 2020_09_12
-
-	for (i = index_min_xi; i <= index_max_xi; i++)
-	{
-		BasisFunc(input_knot_vec_xi, i, order_xi, xi,
-				  &temp_output_xi, &temp_d_output_xi);
-		for (j = index_min_eta; j <= index_max_eta; j++)
-		{
-			BasisFunc(input_knot_vec_eta, j, order_eta, eta,
-					  &temp_output_eta, &temp_d_output_eta);
-			temp_index = i + j * cntl_p_n_xi;
-			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
-			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
-			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
-			molecule_x += temp1 * cntl_px[temp_index];
-			molecule_y += temp1 * cntl_py[temp_index];
-			denominator += temp1;
-			dxi_molecule_x += temp2 * cntl_px[temp_index];
-			dxi_molecule_y += temp2 * cntl_py[temp_index];
-			dxi_denominator += temp2;
-			deta_molecule_x += temp3 * cntl_px[temp_index];
-			deta_molecule_y += temp3 * cntl_py[temp_index];
-			deta_denominator += temp3;
-		}
-	}
-	(*output_x) = molecule_x / denominator;
-	(*output_y) = molecule_y / denominator;
-
-	temp1 = denominator * denominator;
-	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
-	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
-	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
-	return denominator;
-}
-
-double rNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
-					  double *cntl_px, double *cntl_py,
-					  int cntl_p_n_xi, int cntl_p_n_eta,
-					  double *weight, int order_xi, int order_eta,
-					  double xi, double eta,
-					  double *output_x, double *output_y,
-					  double *output_dxi_x, double *output_deta_x,
-					  double *output_dxi_y, double *output_deta_y)
-{
-	int i, j, temp_index;
-	double temp1, temp2, temp3;
-	double molecule_x, molecule_y;
-	double dxi_molecule_x, dxi_molecule_y;
-	double deta_molecule_x, deta_molecule_y;
-	double denominator, dxi_denominator, deta_denominator;
-	double temp_output_xi, temp_output_eta;
-	double temp_d_output_xi, temp_d_output_eta;
-	molecule_x = 0.0;
-	molecule_y = 0.0;
-	denominator = 0.0;
-	dxi_molecule_x = 0.0;
-	dxi_molecule_y = 0.0;
-	dxi_denominator = 0.0;
-	deta_molecule_x = 0.0;
-	deta_molecule_y = 0.0;
-	deta_denominator = 0.0;
-
-	int index_min_xi = 0;
-	int index_max_xi = cntl_p_n_xi - 1;
-	int index_min_eta = 0;
-	int index_max_eta = cntl_p_n_eta - 1;
-
-	for (i = 0; i < cntl_p_n_xi; i++)
-	{
-		if (input_knot_vec_xi[i + 1] >= xi)
-		{
-			index_min_xi = i - order_xi;
-			index_max_xi = i + 1;
-			break;
-		}
-	}
-	if (index_min_xi < 0)
-		index_min_xi = 0;
-	if (index_max_xi > cntl_p_n_xi)
-		index_max_xi = cntl_p_n_xi;
-
-	for (i = 0; i < cntl_p_n_eta; i++)
-	{
-		if (input_knot_vec_eta[i + 1] >= eta)
-		{
-			index_min_eta = i - order_eta;
-			index_max_eta = i + 1;
-			break;
-		}
-	}
-	if (index_min_eta < 0)
-		index_min_eta = 0;
-	if (index_max_eta > cntl_p_n_eta)
-		index_max_eta = cntl_p_n_eta;
-
-	for (i = index_min_xi; i <= index_max_xi; i++)
-	{
-		rBasisFunc(input_knot_vec_xi, i, order_xi, xi,
-				   &temp_output_xi, &temp_d_output_xi);
-		for (j = index_min_eta; j <= index_max_eta; j++)
-		{
-			rBasisFunc(input_knot_vec_eta, j, order_eta, eta,
-					   &temp_output_eta, &temp_d_output_eta);
-			temp_index = i + j * cntl_p_n_xi;
-			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
-			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
-			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
-			molecule_x += temp1 * cntl_px[temp_index];
-			molecule_y += temp1 * cntl_py[temp_index];
-			denominator += temp1;
-			dxi_molecule_x += temp2 * cntl_px[temp_index];
-			dxi_molecule_y += temp2 * cntl_py[temp_index];
-			dxi_denominator += temp2;
-			deta_molecule_x += temp3 * cntl_px[temp_index];
-			deta_molecule_y += temp3 * cntl_py[temp_index];
-			deta_denominator += temp3;
-		}
-	}
-	(*output_x) = molecule_x / denominator;
-	(*output_y) = molecule_y / denominator;
-
-	temp1 = denominator * denominator;
-	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
-	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
-	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
-	return denominator;
-}
-
-double lNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
-					  double *cntl_px, double *cntl_py,
-					  int cntl_p_n_xi, int cntl_p_n_eta,
-					  double *weight, int order_xi, int order_eta,
-					  double xi, double eta,
-					  double *output_x, double *output_y,
-					  double *output_dxi_x, double *output_deta_x,
-					  double *output_dxi_y, double *output_deta_y)
-{
-	int i, j, temp_index;
-	double temp1, temp2, temp3;
-	double molecule_x, molecule_y;
-	double dxi_molecule_x, dxi_molecule_y;
-	double deta_molecule_x, deta_molecule_y;
-	double denominator, dxi_denominator, deta_denominator;
-	double temp_output_xi, temp_output_eta;
-	double temp_d_output_xi, temp_d_output_eta;
-	molecule_x = 0.0;
-	molecule_y = 0.0;
-	denominator = 0.0;
-	dxi_molecule_x = 0.0;
-	dxi_molecule_y = 0.0;
-	dxi_denominator = 0.0;
-	deta_molecule_x = 0.0;
-	deta_molecule_y = 0.0;
-	deta_denominator = 0.0;
-
-	int index_min_xi = 0;
-	int index_max_xi = cntl_p_n_xi - 1;
-	int index_min_eta = 0;
-	int index_max_eta = cntl_p_n_eta - 1;
-
-	for (i = 0; i < cntl_p_n_xi; i++)
-	{
-		if (input_knot_vec_xi[i + 1] >= xi)
-		{
-			index_min_xi = i - order_xi;
-			index_max_xi = i + 1;
-			break;
-		}
-	}
-	if (index_min_xi < 0)
-		index_min_xi = 0;
-	if (index_max_xi > cntl_p_n_xi)
-		index_max_xi = cntl_p_n_xi;
-
-	for (i = 0; i < cntl_p_n_eta; i++)
-	{
-		if (input_knot_vec_eta[i + 1] >= eta)
-		{
-			index_min_eta = i - order_eta;
-			index_max_eta = i + 1;
-			break;
-		}
-	}
-	if (index_min_eta < 0)
-		index_min_eta = 0;
-	if (index_max_eta > cntl_p_n_eta)
-		index_max_eta = cntl_p_n_eta;
-
-	for (i = index_min_xi; i <= index_max_xi; i++)
-	{
-		lBasisFunc(input_knot_vec_xi, i,
-				   cntl_p_n_xi, order_xi, xi,
-				   &temp_output_xi, &temp_d_output_xi);
-		for (j = index_min_eta; j <= index_max_eta; j++)
-		{
-			lBasisFunc(input_knot_vec_eta, j,
-					   cntl_p_n_eta, order_eta, eta,
-					   &temp_output_eta, &temp_d_output_eta);
-			temp_index = i + j * cntl_p_n_xi;
-			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
-			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
-			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
-			molecule_x += temp1 * cntl_px[temp_index];
-			molecule_y += temp1 * cntl_py[temp_index];
-			denominator += temp1;
-			dxi_molecule_x += temp2 * cntl_px[temp_index];
-			dxi_molecule_y += temp2 * cntl_py[temp_index];
-			dxi_denominator += temp2;
-			deta_molecule_x += temp3 * cntl_px[temp_index];
-			deta_molecule_y += temp3 * cntl_py[temp_index];
-			deta_denominator += temp3;
-		}
-	}
-	(*output_x) = molecule_x / denominator;
-	(*output_y) = molecule_y / denominator;
-
-	temp1 = denominator * denominator;
-	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
-	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
-	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
-	return denominator;
-}
-
-double rlNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
-					   double *cntl_px, double *cntl_py,
-					   int cntl_p_n_xi, int cntl_p_n_eta,
-					   double *weight, int order_xi, int order_eta,
-					   double xi, double eta,
-					   double *output_x, double *output_y,
-					   double *output_dxi_x, double *output_deta_x,
-					   double *output_dxi_y, double *output_deta_y)
-{
-	int i, j, temp_index;
-	double temp1, temp2, temp3;
-	double molecule_x, molecule_y;
-	double dxi_molecule_x, dxi_molecule_y;
-	double deta_molecule_x, deta_molecule_y;
-	double denominator, dxi_denominator, deta_denominator;
-	double temp_output_xi, temp_output_eta;
-	double temp_d_output_xi, temp_d_output_eta;
-	molecule_x = 0.0;
-	molecule_y = 0.0;
-	denominator = 0.0;
-	dxi_molecule_x = 0.0;
-	dxi_molecule_y = 0.0;
-	dxi_denominator = 0.0;
-	deta_molecule_x = 0.0;
-	deta_molecule_y = 0.0;
-	deta_denominator = 0.0;
-
-	int index_min_xi = 0;
-	int index_max_xi = cntl_p_n_xi - 1;
-	int index_min_eta = 0;
-	int index_max_eta = cntl_p_n_eta - 1;
-
-	for (i = 0; i < cntl_p_n_xi; i++)
-	{
-		if (input_knot_vec_xi[i + 1] >= xi)
-		{
-			index_min_xi = i - order_xi;
-			index_max_xi = i + 1;
-			break;
-		}
-	}
-	if (index_min_xi < 0)
-		index_min_xi = 0;
-	if (index_max_xi > cntl_p_n_xi)
-		index_max_xi = cntl_p_n_xi;
-
-	for (i = 0; i < cntl_p_n_eta; i++)
-	{
-		if (input_knot_vec_eta[i + 1] >= eta)
-		{
-			index_min_eta = i - order_eta;
-			index_max_eta = i + 1;
-			break;
-		}
-	}
-	if (index_min_eta < 0)
-		index_min_eta = 0;
-	if (index_max_eta > cntl_p_n_eta)
-		index_max_eta = cntl_p_n_eta;
-
-	for (i = index_min_xi; i <= index_max_xi; i++)
-	{
-		rBasisFunc(input_knot_vec_xi, i, order_xi, xi,
-				   &temp_output_xi, &temp_d_output_xi);
-		for (j = index_min_eta; j <= index_max_eta; j++)
-		{
-			lBasisFunc(input_knot_vec_eta, j,
-					   cntl_p_n_eta, order_eta, eta,
-					   &temp_output_eta, &temp_d_output_eta);
-			temp_index = i + j * cntl_p_n_xi;
-			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
-			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
-			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
-			molecule_x += temp1 * cntl_px[temp_index];
-			molecule_y += temp1 * cntl_py[temp_index];
-			denominator += temp1;
-			dxi_molecule_x += temp2 * cntl_px[temp_index];
-			dxi_molecule_y += temp2 * cntl_py[temp_index];
-			dxi_denominator += temp2;
-			deta_molecule_x += temp3 * cntl_px[temp_index];
-			deta_molecule_y += temp3 * cntl_py[temp_index];
-			deta_denominator += temp3;
-		}
-	}
-	(*output_x) = molecule_x / denominator;
-	(*output_y) = molecule_y / denominator;
-
-	temp1 = denominator * denominator;
-	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
-	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
-	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
-	return denominator;
-}
-
-double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
-					   double *cntl_px, double *cntl_py,
-					   int cntl_p_n_xi, int cntl_p_n_eta,
-					   double *weight, int order_xi, int order_eta,
-					   double xi, double eta,
-					   double *output_x, double *output_y,
-					   double *output_dxi_x, double *output_deta_x,
-					   double *output_dxi_y, double *output_deta_y)
-{
-	int i, j, temp_index;
-	double temp1, temp2, temp3;
-	double molecule_x, molecule_y;
-	double dxi_molecule_x, dxi_molecule_y;
-	double deta_molecule_x, deta_molecule_y;
-	double denominator, dxi_denominator, deta_denominator;
-	double temp_output_xi, temp_output_eta;
-	double temp_d_output_xi, temp_d_output_eta;
-	molecule_x = 0.0;
-	molecule_y = 0.0;
-	denominator = 0.0;
-	dxi_molecule_x = 0.0;
-	dxi_molecule_y = 0.0;
-	dxi_denominator = 0.0;
-	deta_molecule_x = 0.0;
-	deta_molecule_y = 0.0;
-	deta_denominator = 0.0;
-
-	int index_min_xi = 0;
-	int index_max_xi = cntl_p_n_xi - 1;
-	int index_min_eta = 0;
-	int index_max_eta = cntl_p_n_eta - 1;
-
-	for (i = 0; i < cntl_p_n_xi; i++)
-	{
-		if (input_knot_vec_xi[i + 1] >= xi)
-		{
-			index_min_xi = i - order_xi;
-			index_max_xi = i + 1;
-			break;
-		}
-	}
-	if (index_min_xi < 0)
-		index_min_xi = 0;
-	if (index_max_xi > cntl_p_n_xi)
-		index_max_xi = cntl_p_n_xi;
-
-	for (i = 0; i < cntl_p_n_eta; i++)
-	{
-		if (input_knot_vec_eta[i + 1] >= eta)
-		{
-			index_min_eta = i - order_eta;
-			index_max_eta = i + 1;
-			break;
-		}
-	}
-	if (index_min_eta < 0)
-		index_min_eta = 0;
-	if (index_max_eta > cntl_p_n_eta)
-		index_max_eta = cntl_p_n_eta;
-
-	for (i = index_min_xi; i <= index_max_xi; i++)
-	{
-		lBasisFunc(input_knot_vec_xi, i,
-				   cntl_p_n_xi, order_xi, xi,
-				   &temp_output_xi, &temp_d_output_xi);
-		for (j = index_min_eta; j <= index_max_eta; j++)
-		{
-			rBasisFunc(input_knot_vec_eta, j, order_eta, eta,
-					   &temp_output_eta, &temp_d_output_eta);
-			temp_index = i + j * cntl_p_n_xi;
-			temp1 = temp_output_xi * temp_output_eta * weight[temp_index];
-			temp2 = temp_d_output_xi * temp_output_eta * weight[temp_index];
-			temp3 = temp_output_xi * temp_d_output_eta * weight[temp_index];
-			molecule_x += temp1 * cntl_px[temp_index];
-			molecule_y += temp1 * cntl_py[temp_index];
-			denominator += temp1;
-			dxi_molecule_x += temp2 * cntl_px[temp_index];
-			dxi_molecule_y += temp2 * cntl_py[temp_index];
-			dxi_denominator += temp2;
-			deta_molecule_x += temp3 * cntl_px[temp_index];
-			deta_molecule_y += temp3 * cntl_py[temp_index];
-			deta_denominator += temp3;
-		}
-	}
-	(*output_x) = molecule_x / denominator;
-	(*output_y) = molecule_y / denominator;
-
-	temp1 = denominator * denominator;
-	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
-	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
-	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
-	return denominator;
-}
-
-//算出したローカルパッチ各要素の頂点の物理座標のグローバルパッチでの(xi,eta)算出
-int Calc_xi_eta(double px, double py,
-				double *input_knot_vec_xi, double *input_knot_vec_eta,
-				int cntl_p_n_xi, int cntl_p_n_eta, int order_xi, int order_eta,
-				double *output_xi, double *output_eta)
-{
-	double temp_xi, temp_eta;
-	double temp_x, temp_y;
-	double temp_matrix[2][2];
-	double temp_dxi, temp_deta;
-	double temp_tol_x, temp_tol_y;
-
-	(*output_xi) = 0;
-	(*output_eta) = 0;
-
-	int i;
-	// int repeat = 1000;
-	// double tol = 10e-8;
-	int repeat = 100;
-	double tol = 10e-14;
-
-	// 初期値の設定
-	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
-	temp_xi *= 0.5;
-	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	temp_eta *= 0.5;
-
-	for (i = 0; i < repeat; i++)
-	{
-		rNURBS_surface(Position_Knots[0][0], Position_Knots[0][1],
-					   Control_Coord[0], Control_Coord[1],
-					   No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-					   Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
-					   temp_xi, temp_eta,
-					   &temp_x, &temp_y,
-					   &temp_matrix[0][0], &temp_matrix[0][1],
-					   &temp_matrix[1][0], &temp_matrix[1][1]);
-
-		temp_tol_x = px - temp_x;
-		temp_tol_x *= temp_tol_x;
-		temp_tol_y = py - temp_y;
-		temp_tol_y *= temp_tol_y;
-
-		// 収束した場合
-		if (temp_tol_x + temp_tol_y < tol)
-		{
-			(*output_xi) = temp_xi;
-			(*output_eta) = temp_eta;
-			return i;
-		}
-
-		InverseMatrix_2x2(temp_matrix);
-
-		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
-		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_deta;
-		if (temp_xi < input_knot_vec_xi[0])
-			temp_xi = input_knot_vec_xi[0];
-		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
-			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
-		if (temp_eta < input_knot_vec_eta[0])
-			temp_eta = input_knot_vec_eta[0];
-		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
-			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	}
-
-	// 初期値の設定
-	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
-	temp_xi *= 0.5;
-	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	temp_eta *= 0.5;
-
-	for (i = 0; i < repeat; i++)
-	{
-		lNURBS_surface(Position_Knots[0][0], Position_Knots[0][1],
-					   Control_Coord[0], Control_Coord[1],
-					   No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-					   Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
-					   temp_xi, temp_eta,
-					   &temp_x, &temp_y,
-					   &temp_matrix[0][0], &temp_matrix[0][1],
-					   &temp_matrix[1][0], &temp_matrix[1][1]);
-
-		temp_tol_x = px - temp_x;
-		temp_tol_x *= temp_tol_x;
-		temp_tol_y = py - temp_y;
-		temp_tol_y *= temp_tol_y;
-
-		// 収束した場合
-		if (temp_tol_x + temp_tol_y < tol)
-		{
-			(*output_xi) = temp_xi;
-			(*output_eta) = temp_eta;
-			return i;
-		}
-
-		InverseMatrix_2x2(temp_matrix);
-
-		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
-		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_deta;
-		if (temp_xi < input_knot_vec_xi[0])
-			temp_xi = input_knot_vec_xi[0];
-		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
-			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
-		if (temp_eta < input_knot_vec_eta[0])
-			temp_eta = input_knot_vec_eta[0];
-		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
-			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	}
-
-	// 初期値の設定
-	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
-	temp_xi *= 0.5;
-	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	temp_eta *= 0.5;
-
-	for (i = 0; i < repeat; i++)
-	{
-		rlNURBS_surface(Position_Knots[0][0], Position_Knots[0][1],
-						Control_Coord[0], Control_Coord[1],
-						No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-						Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
-						temp_xi, temp_eta,
-						&temp_x, &temp_y,
-						&temp_matrix[0][0], &temp_matrix[0][1],
-						&temp_matrix[1][0], &temp_matrix[1][1]);
-
-		temp_tol_x = px - temp_x;
-		temp_tol_x *= temp_tol_x;
-		temp_tol_y = py - temp_y;
-		temp_tol_y *= temp_tol_y;
-
-		// 収束した場合
-		if (temp_tol_x + temp_tol_y < tol)
-		{
-			(*output_xi) = temp_xi;
-			(*output_eta) = temp_eta;
-			return i;
-		}
-
-		InverseMatrix_2x2(temp_matrix);
-
-		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
-		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_deta;
-		if (temp_xi < input_knot_vec_xi[0])
-			temp_xi = input_knot_vec_xi[0];
-		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
-			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
-		if (temp_eta < input_knot_vec_eta[0])
-			temp_eta = input_knot_vec_eta[0];
-		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
-			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	}
-
-	// 初期値の設定
-	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
-	temp_xi *= 0.5;
-	temp_eta = input_knot_vec_eta[0] + input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	temp_eta *= 0.5;
-
-	for (i = 0; i < repeat; i++)
-	{
-		lrNURBS_surface(Position_Knots[0][0], Position_Knots[0][1],
-						Control_Coord[0], Control_Coord[1],
-						No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-						Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
-						temp_xi, temp_eta,
-						&temp_x, &temp_y,
-						&temp_matrix[0][0], &temp_matrix[0][1],
-						&temp_matrix[1][0], &temp_matrix[1][1]);
-
-		temp_tol_x = px - temp_x;
-		temp_tol_x *= temp_tol_x;
-		temp_tol_y = py - temp_y;
-		temp_tol_y *= temp_tol_y;
-
-		// 収束した場合
-		if (temp_tol_x + temp_tol_y < tol)
-		{
-			(*output_xi) = temp_xi;
-			(*output_eta) = temp_eta;
-			return i;
-		}
-
-		InverseMatrix_2x2(temp_matrix);
-
-		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
-		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_deta;
-		if (temp_xi < input_knot_vec_xi[0])
-			temp_xi = input_knot_vec_xi[0];
-		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
-			temp_xi = input_knot_vec_xi[cntl_p_n_xi + order_xi];
-		if (temp_eta < input_knot_vec_eta[0])
-			temp_eta = input_knot_vec_eta[0];
-		if (temp_eta > input_knot_vec_eta[cntl_p_n_eta + order_eta])
-			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
-	}
-
-	return 0;
-}
-
-
-// 要素剛性マトリックス
-int Jacobian(int El_No, double a[DIMENSION][DIMENSION], double Local_coord[DIMENSION], double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION])
-{
-	int i, j, k;
-	for (i = 0; i < DIMENSION; i++)
-	{
-		for (j = 0; j < DIMENSION; j++)
-		{
-			a[i][j] = 0.0;
-			for (k = 0; k < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; k++)
-			{
-				a[i][j] += dShape_func(k, j, Local_coord, El_No) * X[k][i];
-			}
-		}
-	}
-
-	return 0;
-}
-
-// Bマトリックスを求める関数
-int Make_BG_Matrix(int El_No,
-				   double B[D_MATRIX_SIZE][MAX_KIEL_SIZE],
-				   double Local_coord[DIMENSION],
-				   double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION],
-				   double *J)
-{
-	double a[DIMENSION][DIMENSION], b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT];
-
-	int i, j, k;
-
-	Jacobian(El_No, a, Local_coord, X);
-
-	*J = InverseMatrix_2x2(a);
-
-	if (*J <= 0)
-		return -999;
-
-	for (i = 0; i < DIMENSION; i++)
-	{
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; j++)
-		{
-			b[i][j] = 0.0;
-			for (k = 0; k < DIMENSION; k++)
-			{
-				b[i][j] += a[k][i] * dShape_func(j, k, Local_coord, El_No);
-			}
-		}
-	}
-
-	// 2次元
-	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
-	{
-		B[0][2 * i] = b[0][i];
-		B[0][2 * i + 1] = 0.0;
-		B[1][2 * i] = 0.0;
-		B[1][2 * i + 1] = b[1][i];
-		B[2][2 * i] = b[1][i];
-		B[2][2 * i + 1] = b[0][i];
-	}
-
-	return 0;
-}
-
-
-//応力歪マトリックス
-int Make_D_Matrix_2D(double D[D_MATRIX_SIZE][D_MATRIX_SIZE], double E, double nu, int DM)
-{
-	int i, j;
-
-	if (DM == 0) //平面応力状態
-	{
-		// printf("E:%le nu:%le\n",E,nu);
-		double Eone = E / (1.0 - nu * nu);
-		double D1[D_MATRIX_SIZE][D_MATRIX_SIZE] = {{Eone, nu * Eone, 0}, {nu * Eone, Eone, 0}, {0, 0, (1 - nu) / 2 * Eone}};
-
-		for (i = 0; i < D_MATRIX_SIZE; i++)
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-				D[i][j] = D1[i][j];
-	}
-
-	else if (DM == 1) //平面ひずみ状態(2Dの場合はこっち)
-	{
-		// printf("E:%le nu:%le\n",E,nu);
-		double Eone = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
-		double D1[D_MATRIX_SIZE][D_MATRIX_SIZE] = {{Eone, nu / (1.0 - nu) * Eone, 0}, {nu / (1.0 - nu) * Eone, Eone, 0}, {0, 0, (1 - 2 * nu) / 2 / (1.0 - nu) * Eone}};
-
-		for (i = 0; i < D_MATRIX_SIZE; i++)
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-				D[i][j] = D1[i][j];
-	}
-
-	else
-		return ERROR;
-
-	return 0;
-}
-
-
-// ガウスの数値積分
-int BDBJ(double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], double D[D_MATRIX_SIZE][D_MATRIX_SIZE], double J, double K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE])
-{
-	int i, j, k;
-	double BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
-
-	//[B]T[D][B]Jの計算
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < D_MATRIX_SIZE; j++)
-		{
-			BD[i][j] = 0;
-			for (k = 0; k < D_MATRIX_SIZE; k++)
-			{
-				// printf("B[%d][%d]=%le D[%d][%d]=%le\n", k,i,B[k][i],k,j,D[k][j] );
-				// printf("B[%d][%d]=%le\n", k,i,B[k][i]);
-				BD[i][j] += B[k][i] * D[k][j];
-				// printf("BD[%d][%d]=%e\n",i,j,BD[i][j] );
-			}
-		}
-	}
-	// for( j = 0; j < D_MATRIX_SIZE; j++ )for( i = 0; i < KIEL_SIZE; i++ )printf("B[%d][%d]=%le\n",j,i,B[j][i] );
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < KIEL_SIZE; j++)
-		{
-			K_EL[i][j] = 0;
-			for (k = 0; k < D_MATRIX_SIZE; k++)
-			{
-				K_EL[i][j] += BD[i][k] * B[k][j];
-			}
-			K_EL[i][j] *= J;
-		}
-	}
-	return 0;
-}
-
-
-// 結合ガウスの数値積分
-int coupled_BDBJ(double B[D_MATRIX_SIZE][MAX_KIEL_SIZE],
-				 double D[D_MATRIX_SIZE][D_MATRIX_SIZE],
-				 double BG[D_MATRIX_SIZE][MAX_KIEL_SIZE],
-				 double J, double K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE])
-{
-	int i, j, k;
-	double BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
-
-	//[B]T[D][B]Jの計算
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < D_MATRIX_SIZE; j++)
-		{
-			BD[i][j] = 0;
-			for (k = 0; k < D_MATRIX_SIZE; k++)
-			{
-				// printf("B[%d][%d]=%le D[%d][%d]=%le\n", k,i,B[k][i],k,j,D[k][j] );
-				// printf("B[%d][%d]=%le\n", k,i,B[k][i]);
-				BD[i][j] += BG[k][i] * D[k][j];
-				// printf("BD[%d][%d]=%e\n",i,j,BD[i][j] );
-			}
-		}
-	}
-	// for( j = 0; j < D_MATRIX_SIZE; j++ )for( i = 0; i < KIEL_SIZE; i++ )printf("B[%d][%d]=%le\n",j,i,B[j][i] );
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < KIEL_SIZE; j++)
-		{
-			K_EL[i][j] = 0;
-			for (k = 0; k < D_MATRIX_SIZE; k++)
-			{
-				K_EL[i][j] += BD[i][k] * B[k][j];
-			}
-			K_EL[i][j] *= J;
-		}
-	}
-	return 0;
-}
-
-//要素合成マトリックス
-int Make_K_EL(int El_No, double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], double K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE], double E, double nu, int DM)
-{
-	int i, j, k, l;
-
-	double K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE], B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double D[D_MATRIX_SIZE][D_MATRIX_SIZE];
-	double J = 0.0;
-
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < KIEL_SIZE; j++)
-		{
-			K_EL[i][j] = 0.0;
-		}
-	}
-
-	Make_D_Matrix_2D(D, E, nu, DM);
-
-	for (i = 0; i < GP_2D; i++)
-	{
-		Make_B_Matrix(El_No, B, Gxi[i], X, &J);
-
-		BDBJ(B, D, J, K1);
-		for (k = 0; k < KIEL_SIZE; k++)
-		{
-			for (l = 0; l < KIEL_SIZE; l++)
-			{
-				K_EL[k][l] += w[i] * K1[k][l];
-			}
-		}
-	}
-	return 0;
-}
-
-//結合要素剛性マトリックス
-int Make_coupled_K_EL(int El_No_loc, int El_No_glo,
-					  double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION],
-					  double XG[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION],
-					  double K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE],
-					  double E, double nu, int DM)
-{
-	int i, j, jj, k, l;
-	int BDBJ_flag;
-
-	double K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double D[D_MATRIX_SIZE][D_MATRIX_SIZE];
-	double J = 0.0;
-	double G_Gxi[POW_Ng_extended][DIMENSION]; //グローバルパッチ上での親要素内座標xi_bar, eta_bar
-
-	Total_BDBJ_flag = 0;
-
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < KIEL_SIZE; j++)
-		{
-			K_EL[i][j] = 0.0;
-		}
-	}
-
-	Make_D_Matrix_2D(D, E, nu, DM);
-
-	for (i = 0; i < GP_2D; i++) // ガウス点のループ(local)
-	{
-		// ローカルガウス点がグローバル要素に含まれているかの判定
-		// ローカル要素ガウス点の物理座標算出
-		double data_result_shape[2] = {0.0};
-		double output_xi, output_eta;
-		int patch_n = 0;
-
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No_loc]]; j++)
-		{
-			double R_shape_func = Shape_func(j, Gxi[i], El_No_loc);
-
-			for (jj = 0; jj < DIMENSION; jj++)
-			{
-				data_result_shape[jj] += R_shape_func * X[j][jj];
-			}
-		}
-
-		// ローカル要素ガウス点のグローバルパッチ上のパラメータ空間座標算出
-		for (j = 0; j < Total_Patch_on_mesh[0]; j++) // グローバルメッシュ[0]上
-		{
-			Calc_xi_eta(data_result_shape[0], data_result_shape[1],
-						Position_Knots[j][0], Position_Knots[j][1],
-						No_Control_point[j][0], No_Control_point[j][1], Order[j][0], Order[j][1],
-						&output_xi, &output_eta);
-			patch_n = j;
-		}
-
-		// 要素内外判定
-		if (output_xi >= Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0]] &&
-			output_xi < Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0] + 1] &&
-			output_eta >= Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1]] &&
-			output_eta < Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1] + 1])
-		{
-			BDBJ_flag = 1;
-
-			// 親要素座標の算出
-			G_Gxi[i][0] = -1.0 + 2.0 * (output_xi - Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0]]) /
-									 (Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0] + 1] - Position_Knots[patch_n][0][Order[patch_n][0] + ENC[patch_n][El_No_glo][0]]);
-			G_Gxi[i][1] = -1.0 + 2.0 * (output_eta - Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1]]) /
-									 (Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1] + 1] - Position_Knots[patch_n][1][Order[patch_n][1] + ENC[patch_n][El_No_glo][1]]);
-		}
-		else // 要素外であるとき
-		{
-			BDBJ_flag = 0;
-		}
-
-		// 結合要素剛性マトリックス計算
-		// 要素内であるとき, 次を計算
-		if (BDBJ_flag)
-		{
-			Total_BDBJ_flag++;
-			Same_BDBJ_flag[i]++;
-
-			// 重なるグローバル要素のBマトリックス
-			Make_BG_Matrix(El_No_glo, BG, G_Gxi[i], XG, &J);
-			// ローカル要素のBマトリックス
-			Make_B_Matrix(El_No_loc, B, Gxi[i], X, &J);
-			// BGTDBLの計算
-			coupled_BDBJ(B, D, BG, J, K1);
-			for (k = 0; k < KIEL_SIZE; k++)
-			{
-				for (l = 0; l < KIEL_SIZE; l++)
-				{
-					K_EL[k][l] += w[i] * K1[k][l];
-				}
-			}
-		}
-	}
-
-	return 0;
-}
 
 
 // 歪と応力, ひずみエネルギ密度, 変位勾配
@@ -5945,119 +6097,6 @@ void K_output_svg(int ndof)
 	fclose(fp);
 }
 
-void Make_gauss_array(int select_GP)
-{
-	int i, j;
 
-	if (select_GP == 0)
-	{
-		GP_1dir = Ng;
-	}
-	else if (select_GP == 1)
-	{
-		GP_1dir = Ng_extended;
-	}
-
-	GP_2D = GP_1dir * GP_1dir;
-
-	if (GP_1dir == 3)
-	{
-		double G1 = pow((3.0 / 5.0), 0.5);
-		double G_vec[3] = {-G1, 0.0, G1};
-		double w1 = 8.0 / 9.0;
-		double w2 = 5.0 / 9.0;
-		double w_vec[3] = {w2, w1, w2};
-
-		for (i = 0; i < GP_1dir; i++)
-		{
-			for (j = 0; j < GP_1dir; j++)
-			{
-				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
-				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
-				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
-			}
-		}
-	}
-	else if (GP_1dir == 4)
-	{
-		double A = pow((6.0 / 5.0), 0.5);
-		double G1 = pow(((3.0 - 2.0 * A) / 7.0), 0.5);
-		double G2 = pow(((3.0 + 2.0 * A) / 7.0), 0.5);
-		double G_vec[4] = {-G2, -G1, G1, G2};
-		double B = pow(30.0, 0.5);
-		double w1 = (18.0 + B) / 36.0;
-		double w2 = (18.0 - B) / 36.0;
-		double w_vec[4] = {w2, w1, w1, w2};
-
-		for (i = 0; i < GP_1dir; i++)
-		{
-			for (j = 0; j < GP_1dir; j++)
-			{
-				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
-				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
-				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
-			}
-		}
-	}
-	else if (GP_1dir == 5)
-	{
-		double A = pow((10.0 / 7.0), 0.5);
-		double G1 = pow((5.0 - 2.0 * A), 0.5) / 3.0;
-		double G2 = pow((5.0 + 2.0 * A), 0.5) / 3.0;
-		double G_vec[5] = {-G2, -G1, 0.0, G1, G2};
-		double B = pow(70.0, 0.5);
-		double w1 = 128.0 / 225.0;
-		double w2 = (322.0 + 13.0 * B) / 900.0;
-		double w3 = (322.0 - 13.0 * B) / 900.0;
-		double w_vec[5] = {w3, w2, w1, w2, w3};
-
-		for (i = 0; i < GP_1dir; i++)
-		{
-			for (j = 0; j < GP_1dir; j++)
-			{
-				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
-				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
-				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
-			}
-		}
-	}
-	else if (GP_1dir == 10)
-	{
-		double G_vec[10];
-		double w_vec[10];
-
-		G_vec[0] = -0.9739065285171717;
-		G_vec[1] = -0.8650633666889845;
-		G_vec[2] = -0.6794095682990244;
-		G_vec[3] = -0.4333953941292472;
-		G_vec[4] = -0.1488743389816312;
-		G_vec[5] = 0.1488743389816312;
-		G_vec[6] = 0.4333953941292472;
-		G_vec[7] = 0.6794095682990244;
-		G_vec[8] = 0.8650633666889845;
-		G_vec[9] = 0.9739065285171717;
-
-		w_vec[0] = 0.0666713443086881;
-		w_vec[1] = 0.1494513491505804;
-		w_vec[2] = 0.2190863625159820;
-		w_vec[3] = 0.2692667193099965;
-		w_vec[4] = 0.2955242247147530;
-		w_vec[5] = 0.2955242247147530;
-		w_vec[6] = 0.2692667193099965;
-		w_vec[7] = 0.2190863625159820;
-		w_vec[8] = 0.1494513491505804;
-		w_vec[9] = 0.0666713443086881;
-
-		for (i = 0; i < GP_1dir; i++)
-		{
-			for (j = 0; j < GP_1dir; j++)
-			{
-				w[j + (GP_1dir * i)] = w_vec[i] * w_vec[j];
-				Gxi[j + (GP_1dir * i)][0] = G_vec[j];
-				Gxi[j + (GP_1dir * i)][1] = G_vec[i];
-			}
-		}
-	}
-}
 
 // about J integral

@@ -29,9 +29,6 @@ int main(int argc, char **argv)
 	clock_t start, end;
 
 	int i, j, k;
-	
-	int K_Whole_Size = 0;
-	double element_loc[DIMENSION];
 
 	Total_mesh = argc - 1;
 
@@ -121,6 +118,8 @@ int main(int argc, char **argv)
 					argv);
 	}
 
+	printf("\nFinish Get Input data\n\n");
+
 	// memory allocation
 	int *INC = (int *)malloc(sizeof(int) * (Total_Control_Point_to_mesh[Total_mesh] * DIMENSION));		// INC[MAX_N_NODE][DIMENSION]
 	int *Controlpoint_of_Element = (int *)malloc(sizeof(int) * (Total_Element_to_mesh[Total_mesh] * MAX_NO_CCpoint_ON_ELEMENT)); // Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT]
@@ -152,10 +151,38 @@ int main(int argc, char **argv)
 			 real_Total_Element_to_mesh, Equivalent_Nodal_Force,
 			 type_load_array, iPatch_array, iCoord_array,
 			 val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array,
-			 Order, No_knot);
+			 Order, No_knot, Total_Knot_to_mesh, Node_Coordinate,
+			 Position_Knots, No_Control_point_ON_ELEMENT);
 
 	// memory free
 	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
+
+	// memory allocation
+	int *NNLOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh]);
+	int *NELOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
+	double *Gauss_Coordinate = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
+	double *Gauss_Coordinate_ex = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION, sizeof(double));
+	double *Jac = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng);
+	double *Jac_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended);
+	double *B_Matrix = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *B_Matrix_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *Loc_parameter_on_Glo = (double *)malloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION * sizeof(double));
+	double *Loc_parameter_on_Glo_ex = (double *)malloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION * sizeof(double));
+	
+	// check_over_parameter, NNLOVER の算出
+	for (i = 1; i < Total_mesh; i++)
+	{
+		int mesh_n_org = 0;
+		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org, NNLOVER, NELOVER,
+												Gauss_Coordinate, Gauss_Coordinate_ex, Jac, Jac_ex, B_Matrix, B_Matrix_ex, Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex,
+												real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element,
+												INC, Element_patch, Order, No_Control_point_ON_ELEMENT, Position_Knots,
+												Total_Knot_to_patch_dim, No_knot, No_Control_point,
+												Control_Coord_x, Control_Coord_y, Control_Weight,
+												real_Total_Element_on_mesh, real_element, Total_Patch_on_mesh, line_No_Total_element);
+		Make_Loc_Glo(real_Total_Element_on_mesh, real_Total_Element_to_mesh, real_element, NNLOVER, NELOVER);
+	}
+	printf("\nFinish check_over_parameter\n\n");
 
 	// memory allocation
 	if (DIMENSION == 2)
@@ -166,37 +193,30 @@ int main(int argc, char **argv)
 	{
 		D_MATRIX_SIZE = 6;
 	}
-	int *NNLOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh]);
-	int *NELOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
-	double *Gauss_Coordinate = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
-	double *Gauss_Coordinate_ex = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION, sizeof(double));
-	double *Jac = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng);
-	double *Jac_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended);
-	double *B_Matrix = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	double *B_Matrix_ex = (double *)malloc(sizeof(double) * real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	
-	// check_over_parameter
-	for (i = 1; i < Total_mesh; i++)
-	{
-		int mesh_n_org = 0;
-		printf("mesh_n_org: 0\tmesh_n_over: %d\n", i);
-		// NNLOVER の算出
-		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org);
-		Make_Loc_Glo();
-	}
+	MAX_K_WHOLE_SIZE = Total_Control_Point_to_mesh[Total_mesh] * DIMENSION;
+	MAX_NON_ZERO = MAX_K_WHOLE_SIZE * (MAX_K_WHOLE_SIZE / 2) + MAX_K_WHOLE_SIZE;
+	double *D = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * D_MATRIX_SIZE);
+	int *Node_To_Node = (int *)malloc(sizeof(int) * K_DIVISION_LENGE * Total_Control_Point_to_mesh[Total_mesh]);	// Node_To_Node[K_DIVISION_LENGE][10000]
+	int *Total_Control_Point_To_Node = (int *)malloc(sizeof(int) * K_DIVISION_LENGE);								// Total_Control_Point_To_Node[K_DIVISION_LENGE] ある節点に関係する節点番号
+	int *Index_Dof = (int *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));			// Index_Dof[MAX_K_WHOLE_SIZE];
+	int *K_Whole_Ptr = (int *)calloc(MAX_K_WHOLE_SIZE + 1, sizeof(int));	// K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1]
+	int *K_Whole_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);			// K_Whole_Col[MAX_NON_ZERO]
+	double *K_Whole_Val = (double *)calloc(MAX_NON_ZERO, sizeof(double));	// K_Whole_Val[MAX_NON_ZERO]
+
+	double *sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// sol_vec[MAX_K_WHOLE_SIZE]
+	double *rhs_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// rhs_vec[MAX_K_WHOLE_SIZE]
 
     // 全体剛性マトリックスの制作
-	K_Whole_Size = Make_Index_Dof(Total_Control_Point_to_mesh[Total_mesh],
-								  Total_Constraint_to_mesh[Total_mesh],
-								  Constraint_Node_Dir);
-
-    printf("K_Whole_Size=%d\n",K_Whole_Size);
-    Make_K_Whole_Ptr_Col(Total_Element_to_mesh[Total_mesh], Total_Control_Point_to_mesh[Total_mesh], K_Whole_Size);
+	Make_D_Matrix(D);
+	Make_Index_Dof(Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Constraint_Node_Dir, Index_Dof);
+	Make_K_Whole_Ptr_Col(K_Whole_Ptr, Total_Element_to_mesh, Total_Control_Point_to_mesh, Total_Control_Point_To_Node,
+						 No_Control_point_ON_ELEMENT, Element_patch, Controlpoint_of_Element, Node_To_Node, NNLOVER,
+						 NELOVER, Index_Dof, K_Whole_Ptr, K_Whole_Col);
     Make_K_Whole_Val(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
-    printf("Finish Make_K_Whole\n");
+    printf("\nFinish Make_K_Whole\n\n");
 
 	// memory free
-	free(ENC);
+	free(ENC), free(Node_To_Node), free(Total_Control_Point_To_Node);
 
 	// for s-IGA　複数メッシュのループ内に移動
 	// 荷重ベクトルの算出部分
@@ -204,11 +224,10 @@ int main(int argc, char **argv)
 	{
 		printf("Value_of_Load;%.20e\n", Value_of_Load[i]);
 	}
-	printf("pp\n");
 	Make_F_Vec(Total_Load_to_mesh[Total_mesh], Load_Node_Dir, Value_of_Load, K_Whole_Size);
 	Make_F_Vec_disp_const(tm, Total_Constraint_to_mesh[Total_mesh], Constraint_Node_Dir, Value_of_Constraint, E, nu, DM);
 	Add_Equivalent_Nodal_Forec_to_F_Vec(Total_Control_Point_to_mesh[Total_mesh]);
-    printf("Finish Make_K_Whole\n");
+    printf("\nFinish Make_F_Vec\n\n");
 
 	// memory free
 	free(Equivalent_Nodal_Force);
@@ -220,17 +239,12 @@ int main(int argc, char **argv)
     // 反復回数の設定
     int max_itr = K_Whole_Size;
 
-	// CG法
-	// Diag_Scaling_CG_pre(K_Whole_Size, 0);
-    // printf("Finish 1st Diag_Scaling_CG_Pre\n");
-	// CG_Solver(K_Whole_Size, max_itr, EPS, 0);
-	// Diag_Scaling_CG_pre(K_Whole_Size, 1);
-	// printf("Finish CG_Solver\n");
-
 	// PCG法
-    printf("\nStart PCG solver\n");
+    printf("\nStart PCG solver\n\n");
 	PCG_Solver(K_Whole_Size, max_itr, EPS);
-	printf("Finish PCG solver\n\n");
+	printf("\nFinish PCG solver\n\n");
+
+	// memory free
 
 	// 変位と歪と応力
     for(i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)

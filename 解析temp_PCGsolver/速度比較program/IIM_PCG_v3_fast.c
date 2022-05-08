@@ -4320,7 +4320,7 @@ void ShapeFunction1D(double Position_Data_param[DIMENSION], int j, int e)
 		}
 		else
 			Shape[j][ii][0] = 0.0;
-		//printf("Shape[%d][%d][0]=%le   ",j,ii,Shape[j][ii][0]);
+		// printf("Shape[%d][%d][0]=%le   ",j,ii,Shape[j][ii][0]);
 	}
 
 	for (ii = 0; ii < No_knot[Element_patch[e]][j]; ii++)

@@ -10,9 +10,12 @@ double w[POW_Ng_extended];              // ガウス点での重み
 // for s-IGA
 int Total_mesh;
 
-//重ね合わせの結果
 double E;                      // ヤング率(GPa)
 double nu;                     // ポアソン比(-)
+
+int D_MATRIX_SIZE;
+
+// file pointer
 FILE *fp;
 
 #endif
