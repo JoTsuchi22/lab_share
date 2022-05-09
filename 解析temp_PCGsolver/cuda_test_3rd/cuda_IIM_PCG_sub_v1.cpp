@@ -34,7 +34,7 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int No_Patch = temp_i;
-	int CP[temp_i * DIMENSION];
+	int *CP = (int *)malloc(sizeof(int) * temp_i * DIMENSION);
 	printf("No_Patch: %d\n", temp_i);
 	Total_Patch_on_mesh[tm] = temp_i;
 	Total_Patch_to_mesh[tm + 1] = Total_Patch_to_mesh[tm] + temp_i;
@@ -103,6 +103,7 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	printf("Total_DistributedForce = %d\n", Total_DistributeForce);
 
 	fclose(fp);
+	free(CP);
 }
 
 
@@ -846,7 +847,6 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 		// グローバルパッチの Preprocessing 作成
 		if (m == 0)
 		{
-			double AAA = 0.0;
 			for (re = 0; re < real_Total_Element_on_mesh[mesh_n_org]; re++)
 			{
 				e = real_element[re + real_Total_Element_to_mesh[mesh_n_org]];
@@ -1178,13 +1178,9 @@ void Preprocessing(int m, int e, double *Gauss_Coordinate, double *Gauss_Coordin
 				   int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
 				   double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
 {
-	// double *a_matrix = (double *)malloc(sizeof(double) * POW_Ng_extended * DIMENSION * DIMENSION); // a_matrix[POW_Ng_extended * DIMENSION * DIMENSION]
-	// double *dSF = (double *)malloc(sizeof(double) * POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
-	// double *dSF_ex = (double *)malloc(sizeof(double) * POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
-
-	static double a_matrix[POW_Ng_extended * DIMENSION * DIMENSION];
-	static double dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION];
-	static double dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION];
+	double *a_matrix = (double *)malloc(sizeof(double) * POW_Ng_extended * DIMENSION * DIMENSION); // a_matrix[POW_Ng_extended * DIMENSION * DIMENSION]
+	double *dSF = (double *)malloc(sizeof(double) * POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
+	double *dSF_ex = (double *)malloc(sizeof(double) * POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
 
 	// ガウス点の物理座標を計算
 	Make_Gauss_Coordinate(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, Node_Coordinate, Total_Control_Point_to_mesh,
@@ -1198,7 +1194,7 @@ void Preprocessing(int m, int e, double *Gauss_Coordinate, double *Gauss_Coordin
 	Make_Jac(m, e, Jac, Jac_ex, dSF, dSF_ex, a_matrix, Node_Coordinate, Controlpoint_of_Element, No_Control_point_ON_ELEMENT, Element_patch);
 	Make_B_Matrix(m, e, B_Matrix, B_Matrix_ex, dSF, dSF_ex, a_matrix, No_Control_point_ON_ELEMENT, Element_patch);
 
-	// free(a_matrix), free(dSF), free(dSF_ex);
+	free(a_matrix), free(dSF), free(dSF_ex);
 }
 
 
@@ -1337,8 +1333,7 @@ void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dS
 void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *dSF, double *dSF_ex, double *a_matrix, int *No_Control_point_ON_ELEMENT, int *Element_patch)
 {
 	int i, j, k, l;
-	// double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT);	// b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
-	static double b[DIMENSION * MAX_NO_CCpoint_ON_ELEMENT];
+	double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT);	// b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
 
 	for (i = 0; i < GP_2D; i++)
 	{
@@ -1387,7 +1382,7 @@ void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *
 			}
 		}
 	}
-	// free(b);
+	free(b);
 }
 
 
@@ -1998,8 +1993,7 @@ void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *C
 					int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
 {
 	double a[DIMENSION][DIMENSION];
-	// double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT); // b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
-	static double b[DIMENSION * MAX_NO_CCpoint_ON_ELEMENT];
+	double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT); // b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
 
 	int i, j, k;
 
@@ -2046,7 +2040,7 @@ void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *C
 		BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
 	}
 
-	// free(b);
+	free(b);
 }
 
 
@@ -2240,6 +2234,10 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 	double *y = (double *)malloc(sizeof(double) * ndof);
 	double *r2 = (double *)calloc(ndof, sizeof(double));
 
+	double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
+	double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
+	double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
+
 	// 初期化
 	for (i = 0; i < ndof; i++)
 		sol_vec[i] = 0.0;
@@ -2276,7 +2274,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 	// }
 
 	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし,p_0 = (LDL^T)^-1 r_0 = M^-1 r_0
-	CG(ndof, p, M, M_Ptr, M_Col, r);
+	CG(ndof, p, M, M_Ptr, M_Col, r, gg, dd, pp);
 
 	// double rr0 = inner_product(ndof, r, p), rr1;
 	double rr0;
@@ -2326,7 +2324,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 		}
 
 		// (r*r)_(k+1)の計算
-		CG(ndof, r2, M, M_Ptr, M_Col, r);
+		CG(ndof, r2, M, M_Ptr, M_Col, r, gg, dd, pp);
 
 		// rr1 = inner_product(ndof, r, r2); // 旧
 		// rr1 = inner_product(ndof, y, r2); // 新
@@ -2388,6 +2386,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 
 	free(r), free(p), free(y), free(r2);
 	free(M), free(M_Ptr), free(M_Col);
+	free(gg), free(dd), free(pp);
 }
 
 
@@ -2436,12 +2435,12 @@ void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Poin
 }
 
 
-void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec)
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec, double *gg, double *dd, double *pp)
 {
 	// CG solver
-	double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
-	double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
-	double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
+	// double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
+	// double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
+	// double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
 	double qqq, ppp, rrr;
 	double alphak, betak;
 	int i, ii, itr, istop;
@@ -2478,7 +2477,7 @@ void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, doubl
 			break;
 	}
 	printf("\titr %d\n", itr);
-	free(gg), free(dd), free(pp);
+	// free(gg), free(dd), free(pp);
 }
 
 
@@ -2609,13 +2608,9 @@ double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *No
 
 	double Position_Data_param[DIMENSION];
 
-	// double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
+	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
 	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
 	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
-
-	static double shape_func[MAX_NO_CCpoint_ON_ELEMENT];
-	// static double Shape[DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER];
-	// static double dShape[DIMENSION * Total_Control_Point_to_mesh[Total_mesh]];
 
 	for (i = 0; i < MAX_NO_CCpoint_ON_ELEMENT; i++)
 	{
@@ -2641,7 +2636,7 @@ double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *No
 	else
 		R = ERROR;
 
-	// free(shape_func);
+	free(shape_func);
 	return R;
 }
 
@@ -2744,9 +2739,6 @@ double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No, 
 	double *dShape_func1 = (double *)malloc(sizeof(double) * Total_Control_Point_to_mesh[Total_mesh]); // dShape_func1[MAX_N_NODE];
 	double *dShape_func2 = (double *)malloc(sizeof(double) * Total_Control_Point_to_mesh[Total_mesh]); // dShape_func2[MAX_N_NODE];
 
-	// static double dShape_func1[Total_Control_Point_to_mesh[Total_mesh]];
-	// static double dShape_func2[Total_Control_Point_to_mesh[Total_mesh]];
-
 	NURBS_deriv(Local_coord, El_No, Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
 				Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point, dShape_func1, dShape_func2);
 
@@ -2786,13 +2778,9 @@ void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordina
 
 	double Position_Data_param[DIMENSION];
 
-	// double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
+	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
 	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
 	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
-
-	static double shape_func[MAX_NO_CCpoint_ON_ELEMENT];
-	// static double Shape[DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER];
-	// static double dShape[DIMENSION * Total_Control_Point_to_mesh[Total_mesh]];
 
 	for (i = 0; i < MAX_NO_CCpoint_ON_ELEMENT; i++)
 	{
@@ -2820,8 +2808,7 @@ void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordina
 		dShape_func2[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
 	}
 
-	// free(Shape), free(dShape), free(shape_func);
-	free(Shape), free(dShape);
+	free(Shape), free(dShape), free(shape_func);
 }
 
 

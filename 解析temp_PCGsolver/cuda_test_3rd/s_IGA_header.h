@@ -146,7 +146,7 @@ double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Elemen
 // PCG solver
 void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, double *sol_vec, double *rhs_vec, int *Total_Control_Point_on_mesh, int *Index_Dof);
 void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Point_on_mesh, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, int *Index_Dof);
-void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec);
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec, double *gg, double *dd, double *pp);
 void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof);
 double inner_product(int ndof, double *vec1, double *vec2);
 int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);

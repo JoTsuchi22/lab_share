@@ -35,7 +35,7 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int No_Patch = temp_i;
-	int CP[temp_i * DIMENSION];
+	int *CP = (int *)malloc(sizeof(int) * temp_i * DIMENSION);
 	printf("No_Patch: %d\n", temp_i);
 	Total_Patch_on_mesh[tm] = temp_i;
 	Total_Patch_to_mesh[tm + 1] = Total_Patch_to_mesh[tm] + temp_i;
@@ -104,6 +104,7 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	printf("Total_DistributedForce = %d\n", Total_DistributeForce);
 
 	fclose(fp);
+	free(CP);
 }
 
 
@@ -2229,6 +2230,10 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 	double *y = (double *)malloc(sizeof(double) * ndof);
 	double *r2 = (double *)calloc(ndof, sizeof(double));
 
+	double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
+	double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
+	double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
+
 	// 初期化
 	for (i = 0; i < ndof; i++)
 		sol_vec[i] = 0.0;
@@ -2265,7 +2270,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 	// }
 
 	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし,p_0 = (LDL^T)^-1 r_0 = M^-1 r_0
-	CG(ndof, p, M, M_Ptr, M_Col, r);
+	CG(ndof, p, M, M_Ptr, M_Col, r, gg, dd, pp);
 
 	// double rr0 = inner_product(ndof, r, p), rr1;
 	double rr0;
@@ -2315,7 +2320,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 		}
 
 		// (r*r)_(k+1)の計算
-		CG(ndof, r2, M, M_Ptr, M_Col, r);
+		CG(ndof, r2, M, M_Ptr, M_Col, r, gg, dd, pp);
 
 		// rr1 = inner_product(ndof, r, r2); // 旧
 		// rr1 = inner_product(ndof, y, r2); // 新
@@ -2377,6 +2382,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 
 	free(r), free(p), free(y), free(r2);
 	free(M), free(M_Ptr), free(M_Col);
+	free(gg), free(dd), free(pp);
 }
 
 
@@ -2425,12 +2431,12 @@ void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Poin
 }
 
 
-void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec)
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec, double *gg, double *dd, double *pp)
 {
 	// CG solver
-	double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
-	double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
-	double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
+	// double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
+	// double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
+	// double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
 	double qqq, ppp, rrr;
 	double alphak, betak;
 	int i, ii, itr, istop;
@@ -2467,7 +2473,7 @@ void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, doubl
 			break;
 	}
 	printf("\titr %d\n", itr);
-	free(gg), free(dd), free(pp);
+	// free(gg), free(dd), free(pp);
 }
 
 
