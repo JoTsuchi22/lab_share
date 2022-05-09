@@ -8,8 +8,8 @@ extern double Gxi[POW_Ng_extended][DIMENSION]; // ガウス点
 extern double w[POW_Ng_extended];              // ガウス点での重み
 
 
-
 extern double Displacement[MAX_K_WHOLE_SIZE];
+
 extern double Strain[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 extern double Strain_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 extern double Strain_overlay[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
@@ -41,15 +41,6 @@ extern double Disp_grad_aux_mode1[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DI
 extern double Disp_grad_aux_mode2_local[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION];
 extern double Disp_grad_aux_mode2[MAX_N_ELEMENT][POW_Ng_extended][DIMENSION * DIMENSION];
 extern double ReactionForce[MAX_K_WHOLE_SIZE];
-
-
-extern int Constraint_ID[MAX_N_NODE * DIMENSION];
-
-
-// extern int Check_BDBJ_flag[MAX_N_ELEMENT];
-// extern int Total_BDBJ_flag;
-// extern int Same_BDBJ_flag[POW_Ng_extended];
-
 
 //重ね合わせの結果
 extern int patch_n;                   // パッチ数

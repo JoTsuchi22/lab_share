@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 		Get_Input_1(tm, Total_Knot_to_mesh,
 					Total_Patch_on_mesh, Total_Patch_to_mesh,
 					Total_Control_Point_on_mesh, Total_Control_Point_to_mesh,
-					Total_Load_to_mesh, Total_Constraint_to_mesh, Total_DistributeForce_to_mesh,
+					Total_Constraint_to_mesh, Total_Load_to_mesh, Total_DistributeForce_to_mesh,
 					argv);
 	}
 	
@@ -158,6 +158,14 @@ int main(int argc, char **argv)
 	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
 
 	// memory allocation
+	if (DIMENSION == 2)
+	{
+		D_MATRIX_SIZE = 3;
+	}
+	else if (DIMENSION == 3)
+	{
+		D_MATRIX_SIZE = 6;
+	}
 	int *NNLOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh]);
 	int *NELOVER = (int *)malloc(sizeof(int) * real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
 	double *Gauss_Coordinate = (double *)calloc(real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
@@ -185,14 +193,6 @@ int main(int argc, char **argv)
 	printf("\nFinish check_over_parameter\n\n");
 
 	// memory allocation
-	if (DIMENSION == 2)
-	{
-		D_MATRIX_SIZE = 3;
-	}
-	else if (DIMENSION == 3)
-	{
-		D_MATRIX_SIZE = 6;
-	}
 	MAX_K_WHOLE_SIZE = Total_Control_Point_to_mesh[Total_mesh] * DIMENSION;
 	MAX_NON_ZERO = MAX_K_WHOLE_SIZE * (MAX_K_WHOLE_SIZE / 2) + MAX_K_WHOLE_SIZE;
 	double *D = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * D_MATRIX_SIZE);
@@ -203,45 +203,50 @@ int main(int argc, char **argv)
 	int *K_Whole_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);			// K_Whole_Col[MAX_NON_ZERO]
 	double *K_Whole_Val = (double *)calloc(MAX_NON_ZERO, sizeof(double));	// K_Whole_Val[MAX_NON_ZERO]
 
-	double *sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// sol_vec[MAX_K_WHOLE_SIZE]
-	double *rhs_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// rhs_vec[MAX_K_WHOLE_SIZE]
-
     // 全体剛性マトリックスの制作
 	Make_D_Matrix(D);
 	Make_Index_Dof(Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Constraint_Node_Dir, Index_Dof);
-	Make_K_Whole_Ptr_Col(K_Whole_Ptr, Total_Element_to_mesh, Total_Control_Point_to_mesh, Total_Control_Point_To_Node,
+	Make_K_Whole_Ptr_Col(Total_Element_to_mesh, Total_Control_Point_to_mesh, Total_Control_Point_To_Node,
 						 No_Control_point_ON_ELEMENT, Element_patch, Controlpoint_of_Element, Node_To_Node, NNLOVER,
 						 NELOVER, Index_Dof, K_Whole_Ptr, K_Whole_Col);
-    Make_K_Whole_Val(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
+    Make_K_Whole_Val(real_Total_Element_to_mesh, real_element, Element_mesh, NNLOVER,
+					 No_Control_point_ON_ELEMENT, Element_patch, Jac, Jac_ex, B_Matrix, B_Matrix_ex,
+					 D, Index_Dof, Controlpoint_of_Element, K_Whole_Ptr, K_Whole_Col, K_Whole_Val, NELOVER,
+					 Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex, Position_Knots, Total_Knot_to_patch_dim,
+					 Order, ENC, Total_Control_Point_to_mesh, Node_Coordinate, INC, No_knot, No_Control_point);
     printf("\nFinish Make_K_Whole\n\n");
 
 	// memory free
 	free(ENC), free(Node_To_Node), free(Total_Control_Point_To_Node);
 
-	// for s-IGA　複数メッシュのループ内に移動
-	// 荷重ベクトルの算出部分
-	for (i = 0; i < Total_Load_to_mesh[Total_mesh]; i++)
-	{
-		printf("Value_of_Load;%.20e\n", Value_of_Load[i]);
-	}
-	Make_F_Vec(Total_Load_to_mesh[Total_mesh], Load_Node_Dir, Value_of_Load, K_Whole_Size);
-	Make_F_Vec_disp_const(tm, Total_Constraint_to_mesh[Total_mesh], Constraint_Node_Dir, Value_of_Constraint, E, nu, DM);
-	Add_Equivalent_Nodal_Forec_to_F_Vec(Total_Control_Point_to_mesh[Total_mesh]);
+	// memory allocation
+	double *sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// sol_vec[MAX_K_WHOLE_SIZE]
+	double *rhs_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// rhs_vec[MAX_K_WHOLE_SIZE]
+
+	// 荷重ベクトルの制作
+	Make_F_Vec(rhs_vec, Total_Load_to_mesh, Index_Dof, Load_Node_Dir, Value_of_Load);
+	Make_F_Vec_disp_const(Total_Constraint_to_mesh, real_Total_Element_to_mesh, No_Control_point_ON_ELEMENT, Element_patch,
+						  Index_Dof, Controlpoint_of_Element, real_El_No_on_mesh, Total_Element_to_mesh, 
+						  Constraint_Node_Dir, Value_of_Constraint, rhs_vec, real_element,
+						  Jac, Jac_ex, B_Matrix, B_Matrix_ex, D);
+	Add_Equivalent_Nodal_Force_to_F_Vec(Total_Control_Point_to_mesh, Index_Dof, rhs_vec, Equivalent_Nodal_Force);
     printf("\nFinish Make_F_Vec\n\n");
 
 	// memory free
 	free(Equivalent_Nodal_Force);
 
 	// Kマトリックスのsvg出力
-	// K_output_svg(K_Whole_Size);
+	if (Output_SVG == 0)
+	{
+		K_output_svg(K_Whole_Ptr, K_Whole_Col);
+	}
 
-	// 連立一次方程式
     // 反復回数の設定
     int max_itr = K_Whole_Size;
 
 	// PCG法
     printf("\nStart PCG solver\n\n");
-	PCG_Solver(K_Whole_Size, max_itr, EPS);
+	PCG_Solver(max_itr, EPS, K_Whole_Val, K_Whole_Ptr, K_Whole_Col, sol_vec, rhs_vec, Total_Control_Point_on_mesh, Index_Dof);
 	printf("\nFinish PCG solver\n\n");
 
 	// memory free
@@ -249,7 +254,6 @@ int main(int argc, char **argv)
 	// 変位と歪と応力
     for(i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
     {
-		Constraint_ID[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = 1;
 		Displacement[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = Value_of_Constraint[i];
     }
 

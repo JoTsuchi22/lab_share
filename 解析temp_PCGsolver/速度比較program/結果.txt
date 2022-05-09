@@ -1,4 +1,6 @@
 ../../../../速度比較program/IIM_PCG_v3_fast.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+../../../../速度比較program/IIM_PCG_v3_fast.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt > a.dat
+../../../../速度比較program/IIM_PCG_v3_fast.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt > a.dat
 
 連立一次方程式まで
 82s

@@ -11,8 +11,10 @@ mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
 ../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
 
 ../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
 gdb ../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x
 run ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+run ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
 
 実行(IIM_PCG_v2)
 ../../../../cuda1/IIM_PCG_v2.x ../input_glo_element.txt ../input_loc.txt

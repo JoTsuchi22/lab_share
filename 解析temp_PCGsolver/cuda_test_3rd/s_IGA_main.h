@@ -13,7 +13,10 @@ int Total_mesh;
 double E;                      // ヤング率(GPa)
 double nu;                     // ポアソン比(-)
 
-int D_MATRIX_SIZE;
+int D_MATRIX_SIZE = 0;
+int MAX_K_WHOLE_SIZE;
+int K_Whole_Size;
+int MAX_NON_ZERO;
 
 // file pointer
 FILE *fp;

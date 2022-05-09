@@ -244,7 +244,7 @@ double E, nu;
 // file pointer
 FILE *fp;
 
-int KIEL_SIZE;                          // 要素分割マトリックスの大きさ
+// int KIEL_SIZE;                          // 要素分割マトリックスの大きさ
 int D_MATRIX_SIZE = 0;
 int MAX_K_WHOLE_SIZE;
 int K_Whole_Size;

@@ -2,6 +2,7 @@
 #define S_IGA_HEADER_H
 
 #define SKIP_S_IGA 2 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define Output_SVG 1 // SVG 出力を行う 0, 行わない 1
 #define DM 1         // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 #define ERROR -999
 #define PI  3.14159265359
@@ -126,20 +127,34 @@ void Make_gauss_array(int select_GP);
 // K matrix
 void Make_D_Matrix(double *D);
 void Make_Index_Dof(int *Total_Control_Point_to_mesh, int *Total_Constraint_to_mesh, int *Constraint_Node_Dir, int *Index_Dof);
-void Make_K_Whole_Ptr_Col(int *K_Whole_Ptr, int *Total_Element_to_mesh, int *Total_Control_Point_to_mesh, int *Total_Control_Point_To_Node,
+void Make_K_Whole_Ptr_Col(int *Total_Element_to_mesh, int *Total_Control_Point_to_mesh, int *Total_Control_Point_To_Node,
 						  int *No_Control_point_ON_ELEMENT, int *Element_patch, int *Controlpoint_of_Element, int *Node_To_Node, int *NNLOVER,
 						  int *NELOVER, int *Index_Dof, int *K_Whole_Ptr, int *K_Whole_Col);
-void Make_K_Whole_Val(double E, double nu, int Total_Element, int DM);
+void Make_K_Whole_Val(int *real_Total_Element_to_mesh, int *real_element, int *Element_mesh, int *NNLOVER,
+					  int *No_Control_point_ON_ELEMENT, int *Element_patch, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex,
+					  double *D, int *Index_Dof, int *Controlpoint_of_Element, int *K_Whole_Ptr, int *K_Whole_Col, double *K_Whole_Val, int *NELOVER,
+					  double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots, int *Total_Knot_to_patch_dim,
+					  int *Order, int *ENC, int *Total_Control_Point_to_mesh, double *Node_Coordinate, int *INC, int *No_knot, int *No_Control_point);
 void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *Element_patch,
 			   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D);
-void Make_BG_Matrix(int El_No, double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], double Local_coord[DIMENSION], double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], double *J);
-void Make_coupled_K_EL();
-void BDBJ(int *KIEL_SIZE, double *B, double *D, double J, double *K_EL)
-void coupled_BDBJ();
+void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *No_Control_point_ON_ELEMENT, 
+					   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D,
+					   double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots,
+					   int *Total_Knot_to_patch_dim, int *Order, int *ENC, int *Controlpoint_of_Element,
+					   int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC,
+					   int *No_knot, int *No_Control_point);
+void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT,
+					int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC, int *Order, double *Position_Knots,
+					int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point);
+void BDBJ(int KIEL_SIZE, double *B, double *D, double J, double *K_EL);
+void coupled_BDBJ(int KIEL_SIZE, double *B, double *D, double *BG, double J, double *K_EL);
 // F vector
-void Make_F_Vec(int Total_Load, int Load_Node_Dir[MAX_N_LOAD][2], double Value_of_Load[MAX_N_LOAD], int K_Whole_Size);
-void Make_F_Vec_disp_const(int Mesh_No, int Total_Constraint, int Constraint_Node_Dir[MAX_N_CONSTRAINT][2], double Value_of_Constraint[MAX_N_CONSTRAINT], double E, double nu, int DM);
-void Add_Equivalent_Nodal_Forec_to_F_Vec(int Total_Control_Point);
+void Make_F_Vec(double *rhs_vec, int *Total_Load_to_mesh, int *Index_Dof, int *Load_Node_Dir, double *Value_of_Load);
+void Make_F_Vec_disp_const(int *Total_Constraint_to_mesh, int *real_Total_Element_to_mesh, int *No_Control_point_ON_ELEMENT, int *Element_patch,
+						   int *Index_Dof, int *Controlpoint_of_Element, int *real_El_No_on_mesh, int *Total_Element_to_mesh, 
+						   int *Constraint_Node_Dir, double *Value_of_Constraint, double *rhs_vec, int *real_element,
+						   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D);
+void Add_Equivalent_Nodal_Force_to_F_Vec(int *Total_Control_Point_to_mesh, int *Index_Dof, double *rhs_vec, double *Equivalent_Nodal_Force);
 // tool
 double InverseMatrix_2x2(double M[DIMENSION][DIMENSION]);
 double InverseMatrix_3x3(double M[DIMENSION][DIMENSION]);
@@ -159,28 +174,18 @@ void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordina
 				 double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point,
 				 double *dShape_func1, double *dShape_func2);
 double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Element, double *Position_Knots, int *Total_Knot_to_patch_dim, int *Element_patch);
-// CG solver
-void mat_vec_crs(double *vec_result, double *vec, const int ndof);
-double inner_product(int ndof, double *vec1, double *vec2);
-int check_conv_CG(int ndof, double alphak, double *pp, double eps, int itr);
-void Diag_Scaling_CG_pre(int ndof, int flag_operation);
-void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val);
 // PCG solver
-int RowCol_to_icount(int row, int col);
-void PCG_Solver(int ndof, int max_itr, double eps);
-void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof);
-void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof);
-int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
+void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, double *sol_vec, double *rhs_vec, int *Total_Control_Point_on_mesh, int *Index_Dof);
+void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Point_on_mesh, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, int *Index_Dof);
 void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec);
+void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof);
+double inner_product(int ndof, double *vec1, double *vec2);
+int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
+int RowCol_to_icount(int row, int col, int *K_Whole_Ptr, int *K_Whole_Col);
 // Newton-Raphson
-double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
-				 double *output, double *d_output);
-double rBasisFunc(double *knot_vec, int knot_index,
-				  int order, double xi,
-				  double *output, double *d_output);
-double lBasisFunc(double *knot_vec, int knot_index,
-				  int cntl_p_n, int order, double xi,
-				  double *output, double *d_output);
+double BasisFunc(double *knot_vec, int knot_index, int order, double xi, double *output, double *d_output);
+double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double *output, double *d_output);
+double lBasisFunc(double *knot_vec, int knot_index, int cntl_p_n, int order, double xi, double *output, double *d_output);
 double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					 double *cntl_px, double *cntl_py,
 					 int cntl_p_n_xi, int cntl_p_n_eta,
@@ -228,6 +233,31 @@ int Calc_xi_eta(double px, double py,
 				double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_Control_point, int *Order,
 				double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight, int *No_knot);
 // for s_IGA overlay
+
+
+// output
+void K_output_svg(int *K_Whole_Ptr, int *K_Whole_Col);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// for s_IGA overlay
 void s_IGA_overlay();
 int CalcXiEtaByNR(double px, double py,
 				  double *input_knot_vec_xi, double *input_knot_vec_eta,
@@ -257,21 +287,6 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 						 double *cntl_px_glo, double *cntl_py_glo,
 						 double *disp_cntl_px_glo, double *disp_cntl_py_glo,
 						 double *weight_glo);
-// output
-void output_file();
-void K_output_svg(int ndof);
-
-
-
-
-
-
-
-
-
-
-
-
 
 // J積分
 

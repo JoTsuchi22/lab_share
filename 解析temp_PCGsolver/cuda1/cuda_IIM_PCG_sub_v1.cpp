@@ -1520,7 +1520,6 @@ void Make_D_Matrix(double *D)
 				for (j = 0; j < D_MATRIX_SIZE; j++)
 					D[i * D_MATRIX_SIZE + j] = D1[i][j];
 		}
-
 		else if (DM == 1) // 平面ひずみ状態(2Dの場合はこっち)
 		{
 			double Eone = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
@@ -1559,7 +1558,7 @@ void Make_Index_Dof(int *Total_Control_Point_to_mesh, int *Total_Constraint_to_m
 }
 
 
-void Make_K_Whole_Ptr_Col(int *K_Whole_Ptr, int *Total_Element_to_mesh, int *Total_Control_Point_to_mesh, int *Total_Control_Point_To_Node,
+void Make_K_Whole_Ptr_Col(int *Total_Element_to_mesh, int *Total_Control_Point_to_mesh, int *Total_Control_Point_To_Node,
 						  int *No_Control_point_ON_ELEMENT, int *Element_patch, int *Controlpoint_of_Element, int *Node_To_Node, int *NNLOVER,
 						  int *NELOVER, int *Index_Dof, int *K_Whole_Ptr, int *K_Whole_Col)
 {
@@ -1709,9 +1708,11 @@ void Make_K_Whole_Ptr_Col(int *K_Whole_Ptr, int *Total_Element_to_mesh, int *Tot
 
 
 // valを求める
-void Make_K_Whole_Val(double *K_Whole_Val, int *real_Total_Element_to_mesh, int *real_element, int *Element_mesh, int *NNLOVER,
+void Make_K_Whole_Val(int *real_Total_Element_to_mesh, int *real_element, int *Element_mesh, int *NNLOVER,
 					  int *No_Control_point_ON_ELEMENT, int *Element_patch, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex,
-					  double *D, int *Index_Dof, int *Controlpoint_of_Element, int *K_Whole_Ptr, int *K_Whole_Col, double *K_Whole_Val, int *NELOVER)
+					  double *D, int *Index_Dof, int *Controlpoint_of_Element, int *K_Whole_Ptr, int *K_Whole_Col, double *K_Whole_Val, int *NELOVER,
+					  double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots, int *Total_Knot_to_patch_dim,
+					  int *Order, int *ENC, int *Total_Control_Point_to_mesh, double *Node_Coordinate, int *INC, int *No_knot, int *No_Control_point)
 {
 	int i, j, j1, j2, k1, k2, l;
 	int a, b, re;
@@ -1725,17 +1726,17 @@ void Make_K_Whole_Val(double *K_Whole_Val, int *real_Total_Element_to_mesh, int 
 
 		if (Element_mesh[i] == 0 && re == 0) // 2つめの条件は効率化のため
 		{
-			GP_2D = POW_Ng;
+			Make_gauss_array(0);
 		}
 		else if (Element_mesh[i] > 0)
 		{
 			if (NNLOVER[i] == 1 && (NNLOVER[real_element[re - 1]] != 1 || Element_mesh[real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
 			{
-				GP_2D = POW_Ng;
+				Make_gauss_array(0);
 			}
 			else if (NNLOVER[i] >= 2 && (NNLOVER[real_element[re - 1]] == 1 || Element_mesh[real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
 			{
-				GP_2D = POW_Ng_extended;
+				Make_gauss_array(1);
 			}
 		}
 
@@ -1777,8 +1778,12 @@ void Make_K_Whole_Val(double *K_Whole_Val, int *real_Total_Element_to_mesh, int 
 			for (j = 0; j < NNLOVER[i]; j++)
 			{
 				// 各要素のcoupled_K_ELを求める
-				Make_coupled_K_EL(i, NELOVER[i * MAX_N_ELEMENT_OVER + j], coupled_K_EL,
-				);
+				Make_coupled_K_EL(i, NELOVER[i * MAX_N_ELEMENT_OVER + j], coupled_K_EL, No_Control_point_ON_ELEMENT, 
+								  Jac, Jac_ex, B_Matrix, B_Matrix_ex, D,
+								  Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex, Position_Knots,
+								  Total_Knot_to_patch_dim, Order, ENC, Controlpoint_of_Element,
+								  Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC,
+								  No_knot, No_Control_point);
 
 				// Valを求める
 				for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + j]]]; j1++)
@@ -1845,7 +1850,7 @@ void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *E
 			J = Jac[El_No * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
-				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
 					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
@@ -1856,7 +1861,7 @@ void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *E
 			J = Jac_ex[El_No * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
-				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
 					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
@@ -1874,6 +1879,107 @@ void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *E
 	}
 
 	free(B), free(K1);
+}
+
+
+// 結合要素剛性マトリックス
+void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *No_Control_point_ON_ELEMENT, 
+					   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D,
+					   double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots,
+					   int *Total_Knot_to_patch_dim, int *Order, int *ENC, int *Controlpoint_of_Element,
+					   int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC,
+					   int *No_knot, int *No_Control_point)
+{
+	int i, j, jj, k, l;
+
+	int BDBJ_flag;
+	int KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[El_No_glo]] * DIMENSION;
+
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
+	double J;
+
+	for (i = 0; i < KIEL_SIZE; i++)
+	{
+		for (j = 0; j < KIEL_SIZE; j++)
+		{
+			coupled_K_EL[i * MAX_KIEL_SIZE + j] = 0.0;
+		}
+	}
+
+	for (i = 0; i < GP_2D; i++)
+	{
+		// J, B, BG の作成
+		double para[DIMENSION] = {0.0};
+		double G_Gxi[DIMENSION] = {0.0};
+
+		if (GP_2D == POW_Ng)
+		{
+			J = Jac[El_No_loc * GP_2D + i];
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < MAX_KIEL_SIZE; k++)
+				{
+					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+				}
+			}
+			para[0] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
+			para[1] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
+		}
+		else if (GP_2D == POW_Ng_extended)
+		{
+			J = Jac_ex[El_No_loc * GP_2D + i];
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < MAX_KIEL_SIZE; k++)
+				{
+					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+				}
+			}
+			para[0] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
+			para[1] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
+		}
+
+		// 要素内外判定
+		if (para[0] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]] &&
+			para[0] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] &&
+			para[1] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]] &&
+			para[1] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1])
+		{
+			BDBJ_flag = 1;
+
+			// 親要素座標の算出
+			G_Gxi[0] = -1.0 + 2.0 * (para[0] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]])
+						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]]);
+			G_Gxi[1] = -1.0 + 2.0 * (para[1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]])
+						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]]);
+		}
+		else
+		{
+			BDBJ_flag = 0;
+		}
+
+		// 要素内であるとき, 結合要素剛性マトリックス計算
+		if (BDBJ_flag)
+		{
+			// 重なるグローバル要素のBマトリックス
+			Make_BG_Matrix(El_No_glo, BG, G_Gxi, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
+						   Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
+						   Total_Knot_to_patch_dim, No_knot, No_Control_point);
+			// BGTDBLJの計算
+			coupled_BDBJ(KIEL_SIZE, B, D, BG, J, K1);
+			for (k = 0; k < KIEL_SIZE; k++)
+			{
+				for (l = 0; l < KIEL_SIZE; l++)
+				{
+					coupled_K_EL[k * MAX_KIEL_SIZE + l] += w[i] * K1[k * MAX_KIEL_SIZE + l];
+				}
+			}
+		}
+	}
+
+	free(B), free(BG), free(K1);
 }
 
 
@@ -1934,110 +2040,8 @@ void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *C
 }
 
 
-// 結合要素剛性マトリックス
-void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *No_Control_point_ON_ELEMENT, 
-					   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D,
-					   double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots,
-					   int *Total_Knot_to_patch_dim, int *Order, int *ENC, int *Controlpoint_of_Element,
-					   int *Total_Control_Point_to_mesh, int *Element_patch, int *Node_Coordinate, int *INC,
-					   int *No_knot, int *No_Control_point)
-{
-	int i, j, jj, k, l;
-
-	int BDBJ_flag;
-	int KIEL_SIZE = No_Control_point_ON_ELEMENT[El_No_glo] * DIMENSION;
-
-	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-	double J;
-
-	for (i = 0; i < KIEL_SIZE; i++)
-	{
-		for (j = 0; j < KIEL_SIZE; j++)
-		{
-			coupled_K_EL[i * MAX_KIEL_SIZE + j] = 0.0;
-		}
-	}
-
-	for (i = 0; i < GP_2D; i++)
-	{
-		// J, B, BG の作成
-		double para[DIMENSION];
-		double G_Gxi[DIMENSION];
-
-		if (GP_2D == POW_Ng)
-		{
-			J = Jac[El_No_loc * GP_2D + i];
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-			{
-				for (k = 0; k < MAX_KIEL_SIZE; k ++)
-				{
-					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
-				}
-			}
-			para[0] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
-			para[1] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
-		}
-		else if (GP_2D == POW_Ng_extended)
-		{
-			J = Jac_ex[El_No_loc * GP_2D + i];
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-			{
-				for (k = 0; k < MAX_KIEL_SIZE; k ++)
-				{
-					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
-				}
-			}
-			para[0] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
-			para[1] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
-		}
-
-		// 要素内外判定
-		if (para[0] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]] &&
-			para[0] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] &&
-			para[1] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]] &&
-			para[1] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1])
-		{
-			BDBJ_flag = 1;
-
-			// 親要素座標の算出
-			G_Gxi[0] = -1.0 + 2.0 * (para[0] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]])
-						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]]);
-			G_Gxi[1] = -1.0 + 2.0 * (para[1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]])
-						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]]);
-		}
-		else
-		{
-			BDBJ_flag = 0;
-		}
-
-		// 要素内であるとき, 結合要素剛性マトリックス計算
-		if (BDBJ_flag)
-		{
-			// 重なるグローバル要素のBマトリックス
-			Make_BG_Matrix(El_No_glo, BG, G_Gxi, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
-						   Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
-						   Total_Knot_to_patch_dim, No_knot, No_Control_point);
-			// BGTDBLJの計算
-			coupled_BDBJ(KIEL_SIZE, B, D, BG, J, K1);
-			for (k = 0; k < KIEL_SIZE; k++)
-			{
-				for (l = 0; l < KIEL_SIZE; l++)
-				{
-					coupled_K_EL[k * MAX_KIEL_SIZE + l] += w[i] * K1[k * MAX_KIEL_SIZE + l];
-				}
-			}
-		}
-	}
-
-	free(B), free(BG), free(K1);
-}
-
-
-
 // ガウスの数値積分
-void BDBJ(int *KIEL_SIZE, double *B, double *D, double J, double *K_EL)
+void BDBJ(int KIEL_SIZE, double *B, double *D, double J, double *K_EL)
 {
 	int i, j, k;
 	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
@@ -2072,7 +2076,7 @@ void BDBJ(int *KIEL_SIZE, double *B, double *D, double J, double *K_EL)
 
 
 // 結合ガウスの数値積分
-void coupled_BDBJ(int *KIEL_SIZE, double *B, double *D, double *BG, double J, double *K_EL)
+void coupled_BDBJ(int KIEL_SIZE, double *B, double *D, double *BG, double J, double *K_EL)
 {
 	int i, j, k;
 	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
@@ -2107,12 +2111,428 @@ void coupled_BDBJ(int *KIEL_SIZE, double *B, double *D, double *BG, double J, do
 
 
 // F vector
+// 荷重の行列を作る
+void Make_F_Vec(double *rhs_vec, int *Total_Load_to_mesh, int *Index_Dof, int *Load_Node_Dir, double *Value_of_Load)
+{
+	int i, index;
+	for (i = 0; i < K_Whole_Size; i++)
+		rhs_vec[i] = 0.0;
+	for (i = 0; i < Total_Load_to_mesh[Total_mesh]; i++)
+	{
+		index = Index_Dof[Load_Node_Dir[i * 2 + 0] * DIMENSION + Load_Node_Dir[i * 2 + 1]];
+		if (index >= 0)
+			rhs_vec[index] += Value_of_Load[i];
+	}
+}
 
 
-// CG solver
+// 強制変位対策
+void Make_F_Vec_disp_const(int *Total_Constraint_to_mesh, int *real_Total_Element_to_mesh, int *No_Control_point_ON_ELEMENT, int *Element_patch,
+						   int *Index_Dof, int *Controlpoint_of_Element, int *real_El_No_on_mesh, int *Total_Element_to_mesh, 
+						   int *Constraint_Node_Dir, double *Value_of_Constraint, double *rhs_vec, int *real_element,
+						   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D)
+{
+	int ie, idir, inode, jdir, jnode, kk_const;
+	int ii, iii, b, bb, jj, j1, j2, ii_local, jj_local;
+
+	int i;
+	int KIEL_SIZE;
+
+	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
+
+	Make_gauss_array(0);
+
+	for (ie = 0; ie < real_Total_Element_to_mesh[Total_mesh]; ie++)
+	{
+		i = real_element[ie];
+		KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[i]] * DIMENSION;
+
+		iii = 0;
+		for (idir = 0; idir < DIMENSION; idir++)
+		{
+			for (inode = 0; inode < No_Control_point_ON_ELEMENT[Element_patch[i]]; inode++)
+			{
+				b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir];
+				if (b < 0)
+					iii++;
+			}
+		}
+
+		if (iii > 0)
+		{
+			Make_K_EL(i, K_EL, No_Control_point_ON_ELEMENT, Element_patch, Jac, Jac_ex, B_Matrix, B_Matrix_ex, D);
+			for (idir = 0; idir < DIMENSION; idir++)
+			{
+				for (inode = 0; inode < No_Control_point_ON_ELEMENT[Element_patch[i]]; inode++)
+				{
+					ii = Controlpoint_of_Element[real_El_No_on_mesh[Total_mesh * Total_Element_to_mesh[Total_mesh] + ie] * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir;
+					b = Index_Dof[ii];
+					if (b >= 0)
+					{
+						ii_local = inode * DIMENSION + idir;
+						for (jdir = 0; jdir < DIMENSION; jdir++)
+						{
+							for (jnode = 0; jnode < No_Control_point_ON_ELEMENT[Element_patch[i]]; jnode++)
+							{
+								jj = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] * DIMENSION + jdir;
+								bb = Index_Dof[jj];
+								if (bb < 0)
+								{
+									jj_local = jnode * DIMENSION + jdir;
+									for (kk_const = 0; kk_const < Total_Constraint_to_mesh[Total_mesh]; kk_const++)
+									{
+										if (Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] == Constraint_Node_Dir[kk_const * 2 + 0] && jdir == Constraint_Node_Dir[kk_const * 2 + 1])
+										{
+											rhs_vec[b] -= K_EL[ii_local * MAX_KIEL_SIZE + jj_local] * Value_of_Constraint[kk_const];
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	free(K_EL);
+}
+
+
+// 分布荷重の等価節点力を足す
+void Add_Equivalent_Nodal_Force_to_F_Vec(int *Total_Control_Point_to_mesh, int *Index_Dof, double *rhs_vec, double *Equivalent_Nodal_Force)
+{
+	int i, j, index;
+	for (j = 0; j < DIMENSION; j++)
+	{
+		for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
+		{
+			index = Index_Dof[i * DIMENSION + j];
+			if (index >= 0)
+			{
+				rhs_vec[index] += Equivalent_Nodal_Force[i * DIMENSION + j];
+			}
+		}
+	}
+}
+
 
 
 // PCG solver
+// 前処理付共役勾配法により[K]{d}={f}を解く
+void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, double *sol_vec, double *rhs_vec, int *Total_Control_Point_on_mesh, int *Index_Dof)
+{
+	int i, j, k;
+	int ndof = K_Whole_Size;
+
+	double *r = (double *)malloc(sizeof(double) * ndof);
+	double *p = (double *)calloc(ndof, sizeof(double));
+	double *y = (double *)malloc(sizeof(double) * ndof);
+	double *r2 = (double *)calloc(ndof, sizeof(double));
+
+	// 初期化
+	for (i = 0; i < ndof; i++)
+		sol_vec[i] = 0.0;
+
+	// 前処理行列作成
+	double *M = (double *)malloc(sizeof(double) * MAX_NON_ZERO);
+	int *M_Ptr = (int *)malloc(sizeof(int) * MAX_K_WHOLE_SIZE + 1);
+	int *M_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);
+	Make_M(M, M_Ptr, M_Col, ndof, Total_Control_Point_on_mesh, K_Whole_Val, K_Whole_Ptr, K_Whole_Col, Index_Dof);
+
+	// 第0近似解に対する残差の計算
+	double *ax = (double *)calloc(ndof, sizeof(double));
+	for (i = 0; i < ndof; i++)
+	{
+		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		{
+			ax[i] += K_Whole_Val[j] * sol_vec[K_Whole_Col[j]];
+			if (i != K_Whole_Col[j])
+			{
+				ax[K_Whole_Col[j]] += K_Whole_Val[j] * sol_vec[i];
+			}
+		}
+	}
+	for (i = 0; i < ndof; i++)
+	{
+		r[i] = rhs_vec[i] - ax[i];
+	}
+	free(ax);
+
+	// 第0近似解に対する残差の計算
+	// for (i = 0; i < ndof; i++)
+	// {
+	// 	r[i] = rhs_vec[i];
+	// }
+
+	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし,p_0 = (LDL^T)^-1 r_0 = M^-1 r_0
+	CG(ndof, p, M, M_Ptr, M_Col, r);
+
+	// double rr0 = inner_product(ndof, r, p), rr1;
+	double rr0;
+	double alpha, beta;
+
+	double e = 0.0;
+	for (k = 0; k < max_itetarion; k++)
+	{
+		// rr0 の計算
+		rr0 = inner_product(ndof, r, p);
+
+		// y = AP の計算
+		for (i = 0; i < ndof; i++)
+		{
+			double *temp_array_K = (double *)calloc(ndof, sizeof(double));
+			for (j = 0; j < ndof; j++)
+			{
+				int temp1;
+				if (i <= j)
+				{
+					temp1 = RowCol_to_icount(i, j, K_Whole_Ptr, K_Whole_Col); // temp_array_K[i][j]
+				}
+				else if (i > j)
+				{
+					temp1 = RowCol_to_icount(j. i, K_Whole_Ptr, K_Whole_Col); // temp_array_K[i][j] = temp_array_K[j][i]
+				}
+
+				if (temp1 != -1)
+				{
+					temp_array_K[j] = K_Whole_Val[temp1];
+				}
+			}
+			y[i] = inner_product(ndof, temp_array_K, p);
+			free(temp_array_K);
+		}
+
+		// alpha = r*r/(P*AP)の計算
+		double temp_scaler = inner_product(ndof, p, y);
+		alpha = rr0 / temp_scaler;
+		// printf("alpha %le\n", alpha);
+
+		// 解x, 残差rの更新
+		for (i = 0; i < ndof; i++)
+		{
+			sol_vec[i] += alpha * p[i];
+			r[i] -= alpha * y[i];
+		}
+
+		// (r*r)_(k+1)の計算
+		CG(ndof, r2, M, M_Ptr, M_Col, r);
+
+		// rr1 = inner_product(ndof, r, r2); // 旧
+		// rr1 = inner_product(ndof, y, r2); // 新
+		// printf("rr1 %le\n", rr1);
+
+		// 収束判定 (||r||<=eps)
+		// double rr1 = inner_product(ndof, y, r2);
+		// e = sqrt(fabs(rr1));
+		// if(e < eps)
+		// {
+		//     k++;
+		//     break;
+		// }
+
+		// 収束判定 (CG法と同じ)
+		double e1 = 0.0, e2 = 0.0;
+		for (i = 0; i < ndof; i++)
+		{
+			e1 += p[i] * p[i];
+			e2 += sol_vec[i] * sol_vec[i];
+		}
+		e = fabs(alpha) * sqrt(e1 / e2);
+		if (e < eps)
+		{
+			k++;
+			break;
+		}
+
+		// βの計算とPの更新
+		// beta = rr1 / rr0; //旧
+		// beta = - rr1 / temp_scaler; // 新
+		beta = -inner_product(ndof, y, r2) / temp_scaler;
+
+		for (i = 0; i < ndof; i++)
+		{
+			// p[i] = r2[i] - beta * p[i];
+			p[i] = r2[i] + beta * p[i];
+		}
+		// printf("beta %le\n", beta);
+
+		// (r*r)_(k+1)を次のステップのために確保しておく
+		// rr0 = rr1;
+
+		printf("itr %d\t", k);
+		printf("eps %.15e", e);
+		// if (rr1 < 0)
+		// {
+		// 	printf("\t rr1 < 0");
+		// }
+		printf("\n");
+	}
+
+	int max_itr_result = k;
+	double eps_result = e;
+
+	printf("\nndof = %d\n", ndof);
+	printf("itr_result = %d\n", max_itr_result);
+	printf("eps_result = %.15e\n", eps_result);
+
+	free(r), free(p), free(y), free(r2);
+	free(M), free(M_Ptr), free(M_Col);
+}
+
+
+void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Point_on_mesh, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, int *Index_Dof)
+{
+	int i, j;
+	int ndof_glo = 0;
+
+	// グローバルパッチのdofを求める
+	for (i = 0; i < Total_Control_Point_on_mesh[0] * DIMENSION; i++)
+	{
+		if (Index_Dof[i] != ERROR)
+		{
+			ndof_glo++;
+		}
+	}
+	printf("ndof		%d\n", ndof);
+	printf("ndof_glo	%d\n", ndof_glo);
+
+	int counter = 0;
+
+	// M = [[K^G, 0], [0, K^L]] を作成
+	M_Ptr[0] = 0;
+	for (i = 0; i < ndof; i++)
+	{
+		M_Ptr[i + 1] = M_Ptr[i];
+
+		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		{
+			if (i < ndof_glo && K_Whole_Col[j] < ndof_glo)
+			{
+				M[counter] = K_Whole_Val[j];
+				M_Col[counter] = K_Whole_Col[j];
+				counter++;
+				M_Ptr[i + 1]++;
+			}
+			else if (i >= ndof_glo)
+			{
+				M[counter] = K_Whole_Val[j];
+				M_Col[counter] = K_Whole_Col[j];
+				counter++;
+				M_Ptr[i + 1]++;
+			}
+		}
+	}
+}
+
+
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec)
+{
+	// CG solver
+	double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // gg[MAX_K_WHOLE_SIZE]
+	double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // dd[MAX_K_WHOLE_SIZE]
+	double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // pp[MAX_K_WHOLE_SIZE]
+	double qqq, ppp, rrr;
+	double alphak, betak;
+	int i, ii, itr, istop;
+	int max_itr = ndof;
+	double eps = 1.0e-13;
+
+	for (i = 0; i < ndof; i++)
+	{
+		solution_vec[i] = 0.0;
+	}
+	M_mat_vec_crs(M, M_Ptr, M_Col, dd, solution_vec, ndof);
+	for (i = 0; i < ndof; i++)
+	{
+		gg[i] = right_vec[i] - dd[i];
+		pp[i] = gg[i];
+	}
+	for (itr = 0; itr < max_itr; itr++)
+	{
+		ppp = inner_product(ndof, gg, gg);
+		M_mat_vec_crs(M, M_Ptr, M_Col, dd, pp, ndof);
+		rrr = inner_product(ndof, dd, pp);
+		alphak = ppp / rrr;
+		for (ii = 0; ii < ndof; ii++)
+		{
+			solution_vec[ii] += alphak * pp[ii];
+			gg[ii] -= alphak * dd[ii];
+		}
+		qqq = inner_product(ndof, gg, dd);
+		betak = qqq / rrr;
+		for (ii = 0; ii < ndof; ii++)
+			pp[ii] = gg[ii] - betak * pp[ii];
+		istop = M_check_conv_CG(ndof, alphak, pp, eps, solution_vec);
+		if (istop == 1)
+			break;
+	}
+	printf("\titr %d\n", itr);
+	free(gg), free(dd), free(pp);
+}
+
+
+void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof)
+{
+	int i, j, icount = 0;
+
+	for (i = 0; i < ndof; i++)
+		vec_result[i] = 0;
+	for (i = 0; i < ndof; i++)
+	{
+		for (j = M_Ptr[i]; j < M_Ptr[i + 1]; j++)
+		{
+			vec_result[i] += M[icount] * vec[M_Col[j]];
+			if (i != M_Col[j])
+				vec_result[M_Col[j]] += M[icount] * vec[i];
+			icount++;
+		}
+	}
+}
+
+
+double inner_product(int ndof, double *vec1, double *vec2)
+{
+	double rrr = 0.0;
+	int i;
+	for (i = 0; i < ndof; i++)
+	{
+		rrr += vec1[i] * vec2[i];
+	}
+	return (rrr);
+}
+
+
+int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec)
+{
+	double rrr1 = 0.0, rrr2 = 0.0, rrr3;
+	int i, istop = 0;
+	for (i = 0; i < ndof; i++)
+	{
+		rrr1 += pp[i] * pp[i];
+		rrr2 += solution_vec[i] * solution_vec[i];
+	}
+	rrr3 = fabs(alphak) * sqrt(rrr1 / rrr2);
+	if (rrr3 < eps)
+		istop = 1;
+	return (istop);
+}
+
+
+int RowCol_to_icount(int row, int col, int *K_Whole_Ptr, int *K_Whole_Col)
+{
+	for (int j = K_Whole_Ptr[row]; j < K_Whole_Ptr[row + 1]; j++)
+	{
+		if (K_Whole_Col[j] == col)
+		{
+			return j;
+		}
+		else if (K_Whole_Col[j] > col)
+		{
+			return -1;
+		}
+	}
+	return -1;
+}
 
 
 // tool
@@ -2395,8 +2815,7 @@ double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Elemen
 
 
 // Newton-Raphson法, from NURBSviewer
-double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
-				 double *output, double *d_output)
+double BasisFunc(double *knot_vec, int knot_index, int order, double xi, double *output, double *d_output)
 {
 	int p, j;
 	double sum1 = 0.0;
@@ -2456,9 +2875,7 @@ double BasisFunc(double *knot_vec, int knot_index, int order, double xi,
 }
 
 
-double rBasisFunc(double *knot_vec, int knot_index,
-				  int order, double xi,
-				  double *output, double *d_output)
+double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double *output, double *d_output)
 {
 	int p, j;
 	double sum1 = 0.0;
@@ -2541,9 +2958,7 @@ double rBasisFunc(double *knot_vec, int knot_index,
 }
 
 
-double lBasisFunc(double *knot_vec, int knot_index,
-				  int cntl_p_n, int order, double xi,
-				  double *output, double *d_output)
+double lBasisFunc(double *knot_vec, int knot_index, int cntl_p_n, int order, double xi, double *output, double *d_output)
 {
 	int p, j;
 	double sum1 = 0.0;
@@ -3325,564 +3740,98 @@ int Calc_xi_eta(double px, double py,
 }
 
 
+// for s_IGA overlay
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 分布荷重の等価節点力を足す
-void Add_Equivalent_Nodal_Forec_to_F_Vec(int *Total_Control_Point, double *Equivalent_Nodal_Force)
+// output
+void K_output_svg(int *K_Whole_Ptr, int *K_Whole_Col)
 {
-	int i, j, index;
-	for (j = 0; j < DIMENSION; j++)
-	{
-		for (i = 0; i < Total_Control_Point[Total_mesh]; i++)
-		{
-			index = Index_Dof[i * DIMENSION + j];
-			if (index >= 0)
-			{
-				rhs_vec[index] += Equivalent_Nodal_Force[i * DIMENSION + j];
-			}
-		}
-	}
-}
+	// [K] = [[K^G, K^GL], [K^GL, K^L]]
 
-//荷重の行列を作る
-void Make_F_Vec(int Total_Load, int Load_Node_Dir[MAX_N_LOAD][2], double Value_of_Load[MAX_N_LOAD], int K_Whole_Size)
-{
-	int i, index;
-	for (i = 0; i < K_Whole_Size; i++)
-		rhs_vec[i] = 0.0;
-	for (i = 0; i < Total_Load; i++)
-	{
-		index = Index_Dof[Load_Node_Dir[i][0] * DIMENSION + Load_Node_Dir[i][1]];
-		if (index >= 0)
-			rhs_vec[index] += Value_of_Load[i];
-	}
-}
-
-// 強制変位対策
-void Make_F_Vec_disp_const(int Mesh_No, int Total_Constraint,
-						   int Constraint_Node_Dir[MAX_N_CONSTRAINT][2],
-						   double Value_of_Constraint[MAX_N_CONSTRAINT],
-						   double E, double nu, int DM)
-{
-	int ie, idir, inode, jdir, jnode, kk_const;
-	int ii, iii, b, bb, jj, j1, j2, ii_local, jj_local;
-	int iee;
-
-	int i;
-
-	Make_gauss_array(0);
-
-	for (ie = 0; ie < real_Total_Element_to_mesh[Total_mesh]; ie++)
-	{
-		i = real_element[ie];
-
-		KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[i]] * DIMENSION;
-		double X[MAX_NO_CCpoint_ON_ELEMENT][DIMENSION], K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-
-		iii = 0;
-		for (idir = 0; idir < DIMENSION; idir++)
-		{
-			for (inode = 0; inode < No_Control_point_ON_ELEMENT[Element_patch[i]]; inode++)
-			{
-				b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir];
-				if (b < 0)
-					iii++;
-			}
-		}
-		// printf("iii;%d\n",iii);
-		if (iii > 0)
-		{
-			for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; j1++)
-			{
-				for (j2 = 0; j2 < DIMENSION; j2++)
-				{
-					X[j1][j2] = Node_Coordinate[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j1] * (DIMENSION + 1) + j2];
-				} // end for j2
-			}	  // end for j1
-			iee = i;
-			Make_K_EL(iee, X, K_EL, E, nu, DM);
-			for (idir = 0; idir < DIMENSION; idir++)
-			{
-				for (inode = 0; inode < No_Control_point_ON_ELEMENT[Element_patch[i]]; inode++)
-				{
-					ii = Controlpoint_of_Element[real_El_No_on_mesh[Mesh_No][ie] * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir;
-					b = Index_Dof[ii];
-					if (b >= 0)
-					{
-						ii_local = inode * DIMENSION + idir;
-						for (jdir = 0; jdir < DIMENSION; jdir++)
-						{
-							for (jnode = 0; jnode < No_Control_point_ON_ELEMENT[Element_patch[i]]; jnode++)
-							{
-								jj = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] * DIMENSION + jdir;
-								bb = Index_Dof[jj];
-								if (bb < 0)
-								{
-									jj_local = jnode * DIMENSION + jdir; // printf("%d,%d\n",ie,jnode);
-									for (kk_const = 0; kk_const < Total_Constraint; kk_const++)
-									{
-										if (Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] == Constraint_Node_Dir[kk_const][0] && jdir == Constraint_Node_Dir[kk_const][1])
-										{
-											rhs_vec[b] -= K_EL[ii_local][jj_local] * Value_of_Constraint[kk_const]; // if(kk_const >= 28){printf("%d , %d ,%16.15e\n",ii_local, jj_local ,  K_EL[ii_local][jj_local]);}
-										}																			// end if Controlpoint_of_Element[ie][jnode]
-									}																				// end for kk_const
-								}																					// end if bb
-							}																						// end for jnode
-						}																							// end for jdir
-					}																								// end if b>=0
-				}																									// end for inode
-			}																										// end for idir
-		}																											// end if iii>0
-	}																												// end for ie
-} // end
-
-void mat_vec_crs(double *vec_result, double *vec, const int ndof)
-{
-	int i, j, icount = 0;
-
-	// zero clear
-	for (i = 0; i < ndof; i++)
-		vec_result[i] = 0;
-	
-	for (i = 0; i < ndof; i++)
-	{
-		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
-		{
-			vec_result[i] += K_Whole_Val[icount] * vec[K_Whole_Col[j]];
-			if (i != K_Whole_Col[j])
-				vec_result[K_Whole_Col[j]] += K_Whole_Val[icount] * vec[i];
-			icount++;
-		}
-	}
-}
-
-double inner_product(int ndof, double *vec1, double *vec2)
-{
-	double rrr = 0.0;
-	int i;
-	for (i = 0; i < ndof; i++)
-	{
-		rrr += vec1[i] * vec2[i];
-	}
-	return (rrr);
-}
-
-int check_conv_CG(int ndof, double alphak, double *pp, double eps, int itr)
-{
-	double rrr1 = 0.0, rrr2 = 0.0, rrr3;
-	int i, istop = 0;
-
-	printf("ndof=%d alphak= %15e\t", ndof, alphak);
-	for (i = 0; i < ndof; i++)
-	{
-		rrr1 += pp[i] * pp[i];
-		rrr2 += sol_vec[i] * sol_vec[i];
-	}
-	rrr3 = fabs(alphak) * sqrt(rrr1 / rrr2);
-	printf("Iteration# = %d  residual = %15e (%15e)\n", itr, rrr3, eps);
-	if (rrr3 < eps)
-		istop = 1;
-
-	return (istop);
-}
-
-void Diag_Scaling_CG_pre(int ndof, int flag_operation)
-{
 	int i, j;
-	int icount = 0;
+	int ndof = K_Whole_Size;
 
-	printf("ndof=%d\n", ndof);
-	if (flag_operation == 0)
-	{
-		diag_scaling[0] = 1.0 / sqrt(K_Whole_Val[0]);
+	char color_vec[2][10] = {"#f5f5f5", "#ee82ee"};
+	// 0	whitesmoke
+	// 1	violet
+	// https://www.colordic.org/
 
-		for (i = 1; i < ndof; i++)
-		{
-			diag_scaling[i] = 1.0 / sqrt(K_Whole_Val[K_Whole_Ptr[i]]);
-			printf("diag=%le\n", diag_scaling[i]);
-			printf("K_Whole_Val[%d] = %.16e\n", K_Whole_Ptr[i], K_Whole_Val[K_Whole_Ptr[i]]);
-			printf("sqrt=%le\n", sqrt(K_Whole_Val[K_Whole_Ptr[i]]));
-		}
-		for (i = 0; i < ndof; i++)
-		{
-			for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
-			{
-				K_Whole_Val[icount] = K_Whole_Val[icount] * diag_scaling[i] * diag_scaling[K_Whole_Col[j]];
-				icount++;
-			}
-			printf("rhs_vec_before[%d]:%le diag_scaling[%d]:%le\n", i, rhs_vec[i], i, diag_scaling[i]);
-			rhs_vec[i] = rhs_vec[i] * diag_scaling[i];
-		}
-	}
-	if (flag_operation == 1)
-		for (i = 0; i < ndof; i++)
-		{
-			sol_vec[i] = sol_vec[i] * diag_scaling[i];
-		}
+	double space = 3.0, scale = 1000.0 / (((double)ndof) + 2.0 * space);
 
-	printf("\nqq\n");
-}
+	double width = (((double)ndof) + 2.0 * space) * scale;
+	double height = width;
 
-void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val)
-{
-	static double gg[MAX_K_WHOLE_SIZE], dd[MAX_K_WHOLE_SIZE], pp[MAX_K_WHOLE_SIZE];
-	static double qqq, ppp, rrr;
-	static double alphak, betak;
-	int i;
-	int itr;
-	int ii, istop;
+	char str[256] = "K_matrix.svg";
+	fp = fopen(str, "w");
 
-	// Program to solve linear equations by using the CG method
-	if (flag_ini_val == 0)
-		for (i = 0; i < ndof; i++)
-			sol_vec[i] = 0.0;
-	
-	// Initializing the solution vector if it were not given
-	mat_vec_crs(dd, sol_vec, ndof);
+	fprintf(fp, "<?xml version='1.0'?>\n");
+	fprintf(fp, "<svg width='%le' height='%le' version='1.1' style='background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height);
+
+	double xx = space * scale;
+	double yy = space * scale;
+	double ww = ndof * scale;
+	double hh = ndof * scale;
+	fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", xx, yy, ww, hh, color_vec[0]);
+
+	// 各行の成分を抽出
 	for (i = 0; i < ndof; i++)
 	{
-		gg[i] = rhs_vec[i] - dd[i];
-		printf("rhs_vec[%d]=%f dd[%d]=%f\n", i, rhs_vec[i], i, dd[i]);
-		pp[i] = gg[i];
-	}
-
-	printf("\nrr");
-
-	for (itr = 0; itr < max_itr; itr++)
-	{
-		ppp = inner_product(ndof, gg, gg);
-		mat_vec_crs(dd, pp, ndof);
-		rrr = inner_product(ndof, dd, pp);
-		alphak = ppp / rrr;
-		for (ii = 0; ii < ndof; ii++)
+		int *K_bool = (int *)malloc(sizeof(int) * ndof); // 一行分保存する
+		for (j = 0; j < ndof; j++)
 		{
-			sol_vec[ii] += alphak * pp[ii];
-			gg[ii] -= alphak * dd[ii];
+			K_bool[j] = 0;
 		}
-		qqq = inner_product(ndof, gg, dd);
-		betak = qqq / rrr;
-		for (ii = 0; ii < ndof; ii++)
-			pp[ii] = gg[ii] - betak * pp[ii];
-		istop = check_conv_CG(ndof, alphak, pp, eps, itr);
-		if (istop == 1)
-			break;
-	}
 
-	printf("\nss");
-}
-
-void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof)
-{
-	int i, j;
-	int ndof_glo = 0;
-
-	// グローバルパッチのdofを求める
-	for (i = 0; i < Total_Control_Point_on_mesh[0] * DIMENSION; i++)
-	{
-		if (Index_Dof[i] != ERROR)
+		for (j = 0; j < ndof; j++)
 		{
-			ndof_glo++;
-		}
-	}
-	printf("ndof		%d\n", ndof);
-	printf("ndof_glo	%d\n", ndof_glo);
-
-	int counter = 0;
-
-	// M = [[K^G, 0], [0, K^L]] を作成
-	M_Ptr[0] = 0;
-	for (i = 0; i < ndof; i++)
-	{
-		M_Ptr[i + 1] = M_Ptr[i];
-
-		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
-		{
-			if (i < ndof_glo && K_Whole_Col[j] < ndof_glo)
+			int temp_count;
+			if (i <= j)
 			{
-				M[counter] = K_Whole_Val[j];
-				M_Col[counter] = K_Whole_Col[j];
-				counter++;
-				M_Ptr[i + 1]++;
+				temp_count = RowCol_to_icount(i, j, K_Whole_Ptr, K_Whole_Col);
 			}
-			else if (i >= ndof_glo)
+			else if (i > j)
 			{
-				M[counter] = K_Whole_Val[j];
-				M_Col[counter] = K_Whole_Col[j];
-				counter++;
-				M_Ptr[i + 1]++;
+				temp_count = RowCol_to_icount(j, i, K_Whole_Ptr, K_Whole_Col);
+			}
+
+			if (temp_count != -1)
+			{
+				K_bool[j] = 1;
 			}
 		}
-	}
-}
 
-void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof)
-{
-	int i, j, icount = 0;
-
-	for (i = 0; i < ndof; i++)
-		vec_result[i] = 0;
-	for (i = 0; i < ndof; i++)
-	{
-		for (j = M_Ptr[i]; j < M_Ptr[i + 1]; j++)
+		for (j = 0; j < ndof; j++)
 		{
-			vec_result[i] += M[icount] * vec[M_Col[j]];
-			if (i != M_Col[j])
-				vec_result[M_Col[j]] += M[icount] * vec[i];
-			icount++;
-		}
-	}
-}
-
-int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec)
-{
-	double rrr1 = 0.0, rrr2 = 0.0, rrr3;
-	int i, istop = 0;
-	for (i = 0; i < ndof; i++)
-	{
-		rrr1 += pp[i] * pp[i];
-		rrr2 += solution_vec[i] * solution_vec[i];
-	}
-	rrr3 = fabs(alphak) * sqrt(rrr1 / rrr2);
-	if (rrr3 < eps)
-		istop = 1;
-	return (istop);
-}
-
-void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec)
-{
-	int i;
-
-	// CG solver
-	static double gg[MAX_K_WHOLE_SIZE], dd[MAX_K_WHOLE_SIZE], pp[MAX_K_WHOLE_SIZE];
-	static double qqq, ppp, rrr;
-	static double alphak, betak;
-	int itr;
-	int ii, istop;
-	int max_itr = ndof;
-	double eps = 1.0e-13;
-
-	for (i = 0; i < ndof; i++)
-	{
-		solution_vec[i] = 0.0;
-	}
-	M_mat_vec_crs(M, M_Ptr, M_Col, dd, solution_vec, ndof);
-	for (i = 0; i < ndof; i++)
-	{
-		gg[i] = right_vec[i] - dd[i];
-		pp[i] = gg[i];
-	}
-	for (itr = 0; itr < max_itr; itr++)
-	{
-		ppp = inner_product(ndof, gg, gg);
-		M_mat_vec_crs(M, M_Ptr, M_Col, dd, pp, ndof);
-		rrr = inner_product(ndof, dd, pp);
-		alphak = ppp / rrr;
-		for (ii = 0; ii < ndof; ii++)
-		{
-			solution_vec[ii] += alphak * pp[ii];
-			gg[ii] -= alphak * dd[ii];
-		}
-		qqq = inner_product(ndof, gg, dd);
-		betak = qqq / rrr;
-		for (ii = 0; ii < ndof; ii++)
-			pp[ii] = gg[ii] - betak * pp[ii];
-		istop = M_check_conv_CG(ndof, alphak, pp, eps, solution_vec);
-		if (istop == 1)
-			break;
-	}
-	printf("\titr %d\n", itr);
-}
-
-int RowCol_to_icount(int row, int col)
-{
-	for (int j = K_Whole_Ptr[row]; j < K_Whole_Ptr[row + 1]; j++)
-	{
-		if (K_Whole_Col[j] == col)
-		{
-			return j;
-		}
-		else if (K_Whole_Col[j] > col)
-		{
-			return -1;
-		}
-	}
-	return -1;
-}
-
-// 前処理付共役勾配法により[K]{d}={f}を解く
-void PCG_Solver(int ndof, int max_itetarion, double eps)
-{
-	int i, j, k;
-
-	double *r = (double *)malloc(sizeof(double) * ndof);
-	double *p = (double *)calloc(ndof, sizeof(double));
-	double *y = (double *)malloc(sizeof(double) * ndof);
-	double *r2 = (double *)calloc(ndof, sizeof(double));
-
-	// 初期化
-	for (i = 0; i < ndof; i++)
-		sol_vec[i] = 0.0;
-
-	// 前処理行列作成
-	double *M = (double *)malloc(sizeof(double) * MAX_NON_ZERO);
-	int *M_Ptr = (int *)malloc(sizeof(int) * MAX_K_WHOLE_SIZE + 1);
-	int *M_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);
-	Make_M(M, M_Ptr, M_Col, ndof);
-
-	// 第0近似解に対する残差の計算
-	double *ax = (double *)calloc(ndof, sizeof(double));
-	for (i = 0; i < ndof; i++)
-	{
-		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
-		{
-			ax[i] += K_Whole_Val[j] * sol_vec[K_Whole_Col[j]];
-			if (i != K_Whole_Col[j])
+			double x = (((double)j) + space) * scale;
+			double y = (((double)i) + space) * scale;
+			// if (K_bool[j] == 0)
+			// {
+			// 	fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[0]);
+			// }
+			if (K_bool[j] == 1)
 			{
-				ax[K_Whole_Col[j]] += K_Whole_Val[j] * sol_vec[i];
+				fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[1]);
 			}
 		}
-	}
-	for (i = 0; i < ndof; i++)
-	{
-		r[i] = rhs_vec[i] - ax[i];
-	}
-	free(ax);
-
-	// 第0近似解に対する残差の計算
-	// for (i = 0; i < ndof; i++)
-	// {
-	// 	r[i] = rhs_vec[i];
-	// }
-
-	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし,p_0 = (LDL^T)^-1 r_0 = M^-1 r_0
-	CG(ndof, p, M, M_Ptr, M_Col, r);
-
-	// double rr0 = inner_product(ndof, r, p), rr1;
-	double rr0;
-	double alpha, beta;
-
-	double e = 0.0;
-	for (k = 0; k < max_itetarion; k++)
-	{
-		// rr0 の計算
-		rr0 = inner_product(ndof, r, p);
-
-		// y = AP の計算
-		for (i = 0; i < ndof; i++)
-		{
-			double *temp_array_K = (double *)calloc(ndof, sizeof(double));
-			for (j = 0; j < ndof; j++)
-			{
-				int temp1;
-				if (i <= j)
-				{
-					temp1 = RowCol_to_icount(i, j); // temp_array_K[i][j]
-				}
-				else if (i > j)
-				{
-					temp1 = RowCol_to_icount(j, i); // temp_array_K[i][j] = temp_array_K[j][i]
-				}
-
-				if (temp1 != -1)
-				{
-					temp_array_K[j] = K_Whole_Val[temp1];
-				}
-			}
-			y[i] = inner_product(ndof, temp_array_K, p);
-			free(temp_array_K);
-		}
-
-		// alpha = r*r/(P*AP)の計算
-		double temp_scaler = inner_product(ndof, p, y);
-		alpha = rr0 / temp_scaler;
-		// printf("alpha %le\n", alpha);
-
-		// 解x,残差rの更新
-		for (i = 0; i < ndof; i++)
-		{
-			sol_vec[i] += alpha * p[i];
-			r[i] -= alpha * y[i];
-		}
-
-		// (r*r)_(k+1)の計算
-		CG(ndof, r2, M, M_Ptr, M_Col, r);
-
-		// rr1 = inner_product(ndof, r, r2); // 旧
-		// rr1 = inner_product(ndof, y, r2); // 新
-		// printf("rr1 %le\n", rr1);
-
-		// 収束判定 (||r||<=eps)
-		// double rr1 = inner_product(ndof, y, r2);
-		// e = sqrt(fabs(rr1));
-		// if(e < eps)
-		// {
-		//     k++;
-		//     break;
-		// }
-
-		// 収束判定 (CG法と同じ)
-		double e1 = 0.0, e2 = 0.0;
-		for (i = 0; i < ndof; i++)
-		{
-			e1 += p[i] * p[i];
-			e2 += sol_vec[i] * sol_vec[i];
-		}
-		e = fabs(alpha) * sqrt(e1 / e2);
-		if (e < eps)
-		{
-			k++;
-			break;
-		}
-
-		// βの計算とPの更新
-		// beta = rr1 / rr0; //旧
-		// beta = - rr1 / temp_scaler; // 新
-		beta = -inner_product(ndof, y, r2) / temp_scaler;
-
-		for (i = 0; i < ndof; i++)
-		{
-			// p[i] = r2[i] - beta * p[i];
-			p[i] = r2[i] + beta * p[i];
-		}
-		// printf("beta %le\n", beta);
-
-		// (r*r)_(k+1)を次のステップのために確保しておく
-		// rr0 = rr1;
-
-		printf("itr %d\t", k);
-		printf("eps %.15e", e);
-		// if (rr1 < 0)
-		// {
-		// 	printf("\t rr1 < 0");
-		// }
-		printf("\n");
+		free(K_bool);
 	}
 
-	int max_itr_result = k;
-	double eps_result = e;
-
-	printf("\nndof = %d\n", ndof);
-	printf("itr_result = %d\n", max_itr_result);
-	printf("eps_result = %.15e\n", eps_result);
-
-	free(r), free(p), free(y), free(r2);
-	free(M), free(M_Ptr), free(M_Col);
+	fprintf(fp, "</svg>");
+	fclose(fp);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6017,83 +5966,6 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 			}
 		}
 	}
-	fclose(fp);
-}
-
-
-void K_output_svg(int ndof)
-{
-	// [K] = [[K^G, K^GL], [K^GL, K^L]]
-
-	int i, j;
-
-	char color_vec[2][10] = {"#f5f5f5", "#ee82ee"};
-	// 0	whitesmoke
-	// 1	violet
-	// https://www.colordic.org/
-
-	double space = 3.0, scale = 1000.0 / (((double)ndof) + 2.0 * space);
-
-	double width = (((double)ndof) + 2.0 * space) * scale;
-	double height = width;
-
-	char str[256] = "K_matrix.svg";
-	fp = fopen(str, "w");
-
-	fprintf(fp, "<?xml version='1.0'?>\n");
-	// fprintf(fp, "<svg width='%lept' height='%lept' viewBox='0 0 %le %le' style = 'background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height, width, height);
-	fprintf(fp, "<svg width='%le' height='%le' version='1.1' style='background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height);
-
-	double xx = space * scale;
-	double yy = space * scale;
-	double ww = ndof * scale;
-	double hh = ndof * scale;
-	fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", xx, yy, ww, hh, color_vec[0]);
-
-	// 各行の成分を抽出
-	for (i = 0; i < ndof; i++)
-	{
-		int *K_bool = (int *)malloc(sizeof(int) * ndof); // 一行分保存する
-		for (j = 0; j < ndof; j++)
-		{
-			K_bool[j] = 0;
-		}
-
-		for (j = 0; j < ndof; j++)
-		{
-			int temp_count;
-			if (i <= j)
-			{
-				temp_count = RowCol_to_icount(i, j);
-			}
-			else if (i > j)
-			{
-				temp_count = RowCol_to_icount(j, i);
-			}
-
-			if (temp_count != -1)
-			{
-				K_bool[j] = 1;
-			}
-		}
-
-		for (j = 0; j < ndof; j++)
-		{
-			double x = (((double)j) + space) * scale;
-			double y = (((double)i) + space) * scale;
-			// if (K_bool[j] == 0)
-			// {
-			// 	fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[0]);
-			// }
-			if (K_bool[j] == 1)
-			{
-				fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[1]);
-			}
-		}
-		free(K_bool);
-	}
-
-	fprintf(fp, "</svg>");
 	fclose(fp);
 }
 

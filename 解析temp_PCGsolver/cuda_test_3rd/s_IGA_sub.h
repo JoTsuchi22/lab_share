@@ -14,6 +14,9 @@ extern double E;                      // ヤング率(GPa)
 extern double nu;                     // ポアソン比(-)
 
 extern int D_MATRIX_SIZE;
+extern int MAX_K_WHOLE_SIZE;
+extern int K_Whole_Size;
+extern int MAX_NON_ZERO;
 
 // file pointer
 extern FILE *fp;
