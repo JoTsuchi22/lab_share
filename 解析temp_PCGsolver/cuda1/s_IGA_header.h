@@ -21,6 +21,7 @@
 #define MAX_N_ELEMENT_OVER	100  					// グローバルメッシュ内の1要素に重なる最大要素数
 #define MAX_N_ELEMENT_OVER_POINT	5				// ローカル要素内の1点に重なるグローバル要素
 #define MAX_N_ELEMENT_OVER_ELEMENT	MAX_N_ELEMENT_OVER_POINT * POW_Ng_extended		// ローカルメッシュ内の1要素に重なる最大要素数
+#define DIVISION_ELE 10	// 一要素あたりの分割数
 // #define D_MATRIX_SIZE 3										// 応力歪マトリックスの大きさ（2次元:3 3次元:6）
 // 各種最大配置可能数
 // #define MAX_N_KNOT 1000
@@ -43,14 +44,12 @@
 
 // 重ね合わせの結果
 #define DBL_MAX          1.7976931348623158e+308 // max value
-#define DIVISION_ELE_XI 10
-#define DIVISION_ELE_ETA 10
 #define MAX_PATCHES MAX_N_PATCH							//最大パッチ数
 // #define MAX_ORDER MAX_ORDER							//最大次数(p)
 // #define MAX_CNRL_P MAX_N_Controlpoint_in_Patch			//最大コントロールポイント数(n)
 // #define MAX_KNOTS (MAX_CNRL_P + MAX_ORDER + 1)			//ノットベクトルの最大長さ(n+p+1)
 #define MAX_ELEMENTS 100								//最大要素数
-#define MAX_DIVISION 10									//一要素あたりの最大分割数
+// #define MAX_DIVISION 10									// 一要素あたりの最大分割数
 #define MAX_POINTS (MAX_ELEMENTS * MAX_DIVISION + 1)	//最大点数
 
 // Get input file data
@@ -232,8 +231,11 @@ int Calc_xi_eta(double px, double py,
 				double *output_xi, double *output_eta,
 				double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_Control_point, int *Order,
 				double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight, int *No_knot);
-// for s_IGA overlay
+// Postprocessing
+void Make_Displacement(int *Total_Constraint_to_mesh, double *Displacement, int *Constraint_Node_Dir, double *Value_of_Constraint, int *Total_Control_Point_to_mesh, int *Index_Dof, double *sol_vec);
 
+// for s_IGA overlay
+s_IGA_overlay();
 
 // output
 void K_output_svg(int *K_Whole_Ptr, int *K_Whole_Col);

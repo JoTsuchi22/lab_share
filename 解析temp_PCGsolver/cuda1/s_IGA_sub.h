@@ -8,7 +8,7 @@ extern double Gxi[POW_Ng_extended][DIMENSION]; // ガウス点
 extern double w[POW_Ng_extended];              // ガウス点での重み
 
 
-extern double Displacement[MAX_K_WHOLE_SIZE];
+// extern double Displacement[MAX_K_WHOLE_SIZE];
 
 extern double Strain[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 extern double Strain_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
@@ -100,7 +100,7 @@ extern double stress_xx_gauss[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_
 extern double stress_yy_gauss[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]; // y方向垂直応力
 extern double stress_xy_gauss[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]; // 剪断応力
 
-extern int fields_flag;  // s-IGAのためのNURBS_inputでは変位データは必ず読み込ませる
+// extern int fields_flag;  // s-IGAのためのNURBS_inputでは変位データは必ず読み込ませる
 extern int division_ele_xi;  // ξ方向の一要素あたりの分割数
 extern int division_ele_eta; // η方向の一要素あたりの分割数
 extern int division_n_xi;    // ξ方向の表示する点の数

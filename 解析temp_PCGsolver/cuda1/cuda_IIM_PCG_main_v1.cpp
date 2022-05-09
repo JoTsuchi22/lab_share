@@ -27,13 +27,10 @@
 int main(int argc, char **argv)
 {
 	clock_t start, end;
-
 	int i, j, k;
+	int tm;
 
 	Total_mesh = argc - 1;
-
-	// for s-IGA
-	int tm;
 
 	// 引数の個数確認
 	if (argc <= 1)
@@ -235,433 +232,48 @@ int main(int argc, char **argv)
 	// memory free
 	free(Equivalent_Nodal_Force);
 
-	// Kマトリックスのsvg出力
-	if (Output_SVG == 0)
-	{
-		K_output_svg(K_Whole_Ptr, K_Whole_Col);
-	}
-
-    // 反復回数の設定
-    int max_itr = K_Whole_Size;
-
 	// PCG法
     printf("\nStart PCG solver\n\n");
+    int max_itr = K_Whole_Size;
 	PCG_Solver(max_itr, EPS, K_Whole_Val, K_Whole_Ptr, K_Whole_Col, sol_vec, rhs_vec, Total_Control_Point_on_mesh, Index_Dof);
 	printf("\nFinish PCG solver\n\n");
 
 	// memory free
 
-	// 変位と歪と応力
-    for(i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
-    {
-		Displacement[Constraint_Node_Dir[i][0] * DIMENSION + Constraint_Node_Dir[i][1]] = Value_of_Constraint[i];
-    }
+	// memory allocation
+    double *Displacement = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE); // Displacement[MAX_K_WHOLE_SIZE]
 
-	for(i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
-	{
-		for (j = 0; j < DIMENSION; j++)
-		{
-			int index = Index_Dof[i * DIMENSION + j];
-			if (index >= 0)
-				Displacement[i * DIMENSION + j] = sol_vec[index];
-		}
-	}
-	printf("Finish Make_Displacement\n");
+	// Postprocessing
+	Make_Displacement(Total_Constraint_to_mesh, Displacement, Constraint_Node_Dir, Value_of_Constraint, Total_Control_Point_to_mesh, Index_Dof, sol_vec)
+	printf("\nFinish Make_Displacement\n\n");
 	end = clock();
-	printf("Analysis time:%.2f[s]\n",(double)(end - start) / CLOCKS_PER_SEC);
+	printf("\nAnalysis time:%.2f[s]\n\n",(double)(end - start) / CLOCKS_PER_SEC);
 	Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
-	printf("Finish Make_Strain\n");
+	printf("\nFinish Make_Strain\n\n");
 	Make_Stress_2D(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
-	printf("Finish Make_Stress\n");
+	printf("\nFinish Make_Stress\n\n");
 	Make_ReactionForce(Total_Control_Point_to_mesh[Total_mesh]);
-	printf("Finish Make_ReactionForce\n");
-	puts("sol_vec");
+	printf("\nFinish Make_ReactionForce\n\n");
 	Make_Parameter_z(real_Total_Element_to_mesh[Total_mesh], E, nu, DM);
-	printf("Finish Make_Parameter_z\n");
+	printf("\nFinish Make_Parameter_z\n\n");
 
-	// 全てのローカルパッチについて1つのinput.txt作成
-	// (重ね合わせ結果出力のため)
-	int l_patch, g_patch;
-	int l_cntl_p, g_cntl_p;
-	int l_cnst, g_cnst;
-	int l_load, g_load;
-	int l_dist, g_dist;
-	int l_temp;
-
-	g_patch = Total_Patch_to_mesh[1];
-	g_cntl_p = Total_Control_Point_to_mesh[1];
-	g_cnst = Total_Constraint_to_mesh[1];
-	g_load = Total_Load_to_mesh[1];
-	g_dist = Total_DistributeForce_to_mesh[1];
-
-	fp = fopen("input_local.txt", "w");
-	fprintf(fp, "%.3f\t%.6f\n\n", E, nu);
-
-	l_patch = Total_Patch_to_mesh[Total_mesh] - g_patch;
-	fprintf(fp, "%d\n\n", l_patch);
-
-	l_cntl_p = Total_Control_Point_to_mesh[Total_mesh] - g_cntl_p;
-	fprintf(fp, "%d\n\n", l_cntl_p);
-
-	for (i = 0; i < l_patch; i++)
+	// Kマトリックスのsvg出力
+	if (Output_SVG == 0)
 	{
-		fprintf(fp, "%d\t%d\n",
-				Order[i + g_patch][0], Order[i + g_patch][1]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_patch; i++)
-	{
-		fprintf(fp, "%d\t%d\n",
-				No_knot[i + g_patch][0], No_knot[i + g_patch][1]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_patch; i++)
-	{
-		fprintf(fp, "%d\t%d\n",
-				No_Control_point[i + g_patch][0],
-				No_Control_point[i + g_patch][1]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_patch; i++)
-	{
-		for (j = 0; j < No_Control_point_in_patch[i + g_patch]; j++)
-		{
-			l_temp = Patch_Control_point[i + g_patch][j] - g_cntl_p;
-			fprintf(fp, "%d\t", l_temp);
-		}
-		fprintf(fp, "\n");
-	}
-	fprintf(fp,"\n");
-
-	l_cnst = Total_Constraint_to_mesh[Total_mesh] - g_cnst;
-	l_load = Total_Load_to_mesh[Total_mesh] - g_load;
-	l_dist = Total_DistributeForce_to_mesh[Total_mesh] - g_dist;
-	fprintf(fp,"%d\t%d\t%d\n\n",
-				l_cnst, l_load,	l_dist);
-
-	for (i = 0; i < l_patch; i++)
-	{
-		for (j = 0; j < DIMENSION; j++)
-		{
-			for (k = 0; k < No_knot[i + g_patch][j]; k++)
-			{
-				fprintf(fp, "%.5f\t", Position_Knots[i + g_patch][j][k]);
-			}
-			fprintf(fp, "\n");
-		}
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_cntl_p; i++)
-	{
-		fprintf(fp, "%d\t", i);
-		for (j = 0; j < DIMENSION + 1; j++)
-		{
-			fprintf(fp, "%.10f\t", Node_Coordinate[i + g_cntl_p][j]);
-		}
-		fprintf(fp, "\n");
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_cnst; i++)
-	{
-		l_temp = Constraint_Node_Dir[i + g_cnst][0] - g_cntl_p;
-		fprintf(fp, "%d\t%d\t%.10f\n",
-				l_temp,
-				Constraint_Node_Dir[i + g_cnst][1],
-				Value_of_Constraint[i + g_cnst]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_load; i++)
-	{
-		l_temp = Load_Node_Dir[i + g_load][0] - g_cntl_p;
-		fprintf(fp, "%d\t%d\t%.10f\n",
-				l_temp,
-				Load_Node_Dir[i + g_load][1],
-				Value_of_Load[i + g_load]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < l_dist; i++)
-	{
-		fprintf(fp, "%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
-				type_load_array[i + g_dist],
-				iPatch_array[i + g_dist],
-				iCoord_array[i + g_dist],
-				val_Coord_array[i + g_dist],
-				Range_Coord_array[i + g_dist][0],
-				Range_Coord_array[i + g_dist][1],
-				Coeff_Dist_Load_array[i + g_dist][0],
-				Coeff_Dist_Load_array[i + g_dist][1],
-				Coeff_Dist_Load_array[i + g_dist][2]);
-	}
-	fclose(fp);
-
-	fp = fopen("input_for_NURBS.txt", "w");
-	fprintf(fp, "%.3f\t%.6f\n\n", E, nu);
-
-	fprintf(fp, "%d\n\n", Total_Patch_to_mesh[Total_mesh]);
-
-	fprintf(fp, "%d\n\n", Total_Control_Point_to_mesh[Total_mesh]);
-
-	for (i = 0; i < Total_Patch_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t%d\n", Order[i][0], Order[i][1]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_Patch_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t%d\n", No_knot[i][0], No_knot[i][1]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_Patch_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t%d\n", No_Control_point[i][0], No_Control_point[i][1]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_Patch_to_mesh[Total_mesh]; i++)
-	{
-		for (j = 0; j < No_Control_point_in_patch[i]; j++)
-		{
-			fprintf(fp, "%d\t", Patch_Control_point[i][j]);
-		}
-		fprintf(fp, "\n");
-	}
-	fprintf(fp,"\n");
-
-	fprintf(fp,"%d\t%d\t%d\n\n",
-				Total_Constraint_to_mesh[Total_mesh],
-				Total_Load_to_mesh[Total_mesh],
-				Total_DistributeForce_to_mesh[Total_mesh]);
-
-	for (i = 0; i < Total_Patch_to_mesh[Total_mesh]; i++)
-	{
-		for (j = 0; j < DIMENSION; j++)
-		{
-			for (k = 0; k < No_knot[i][j]; k++)
-			{
-				fprintf(fp, "%.5f\t", Position_Knots[i][j][k]);
-			}
-			fprintf(fp, "\n");
-		}
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t", i);
-		for (j = 0; j < DIMENSION + 1; j++)
-		{
-			fprintf(fp, "%.10f\t", Node_Coordinate[i][j]);
-		}
-		fprintf(fp, "\n");
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t%d\t%.10f\n",
-				Constraint_Node_Dir[i][0],
-				Constraint_Node_Dir[i][1],
-				Value_of_Constraint[i]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_Load_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t%d\t%.10f\n",
-				Load_Node_Dir[i][0],
-				Load_Node_Dir[i][1],
-				Value_of_Load[i]);
-	}
-	fprintf(fp,"\n");
-
-	for (i = 0; i < Total_DistributeForce_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
-				type_load_array[i],
-				iPatch_array[i],
-				iCoord_array[i],
-				val_Coord_array[i],
-				Range_Coord_array[i][0],
-				Range_Coord_array[i][1],
-				Coeff_Dist_Load_array[i][0],
-				Coeff_Dist_Load_array[i][1],
-				Coeff_Dist_Load_array[i][2]);
+		K_output_svg(K_Whole_Ptr, K_Whole_Col);
+		printf("\nFinish K_output_svg\n\n");
 	}
 
-	fclose(fp);
-
-	fp = fopen("coord_data.txt","w");
-	for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
-	{
-		fprintf(fp, "%d\t", i);
-		for (j = 0; j < DIMENSION; j++)
-		{
-			fprintf(fp, "%.10e\t", Node_Coordinate[i][j]);
-		}
-		fprintf(fp, "\n");
-	}
-	fclose(fp);
-
-	fp = fopen("Displacement.dat", "w");
-	fprintf(fp, "label=Displacement\n");
-	fprintf(fp, "num_items=%d\n", Total_Control_Point_to_mesh[Total_mesh]);
-	fprintf(fp, "\n");
-	for (j = 0; j < Total_Control_Point_to_mesh[Total_mesh]; j++)
-	{
-		fprintf(fp, "%d:	%.16e %.16e ", j, Displacement[j * DIMENSION + 0], Displacement[j * DIMENSION + 1]);
-		fprintf(fp, "\n");
-	}
-	fclose(fp);
+	// viewer のための出力
+	output_for_viewer();
+	printf("\nFinish output_for_viewer\n\n");
 
 	// 重ね合わせをスキップしてJ積分を行う
 	if (SKIP_S_IGA != 1)
 	{
-		// 重ね合わせの結果
-		division_ele_xi = DIVISION_ELE_XI;
-		division_ele_eta = DIVISION_ELE_ETA;
-
-		if (division_ele_xi > MAX_DIVISION)
-		{
-			printf("Error!!\n");
-			printf("Too many Divsion at xi!\n"
-				   "Maximum of division is %d (Now %d)\n"
-				   "\n",
-				   MAX_DIVISION, division_ele_xi);
-			exit(1);
-		}
-		if (division_ele_eta > MAX_DIVISION)
-		{
-			printf("Error!!\n");
-			printf("Too many Divsion at eta!\n"
-				   "Maximum of division is %d (Now %d)\n"
-				   "\n",
-				   MAX_DIVISION, division_ele_eta);
-			exit(1);
-		}
-
-		// ローカルメッシュの情報取得
-		GetLocData();
-
-		int patch_n_loc = 0, patch_n_glo = 0; // パッチ番号
-
-		ReadFile();
-		fp = fopen("view.dat", "w");
-		fprintf(fp, "%d\t%d\t%d\n",
-				fields_flag, division_ele_xi, division_ele_eta);
-		fclose(fp);
-		// machino
-		fp = fopen("view_r_theta.dat", "w");
-		fprintf(fp, "%d\t%d\t%d\n",
-				fields_flag, division_ele_xi, division_ele_eta);
-		fclose(fp);
-
-		n_patch_glo = patch_n - n_patch_loc;
-
-		// for s-IGA
-		// 重ね合わせ結果出力のためのoverlay_view.dat作成
-		fp = fopen("overlay_view.dat", "w");
-		fprintf(fp, "%d\t%d\t%d\n",
-				fields_flag, division_ele_xi, division_ele_eta);
-		fclose(fp);
-		// machino
-		fp = fopen("overlay_view_r_theta.dat", "w");
-		fprintf(fp, "%d\t%d\t%d\n",
-				fields_flag, division_ele_xi, division_ele_eta);
-		fclose(fp);
-
-		// グラフ作成のための出力
-		fp = fopen("disp_graph.txt", "w");
-		fprintf(fp, "patch_n\tx\ty\tdisp_x\tdisp_y\n");
-		fclose(fp);
-
-		fp = fopen("stress_y_graph.txt", "w");
-		fprintf(fp, "patch_n\tx\ty\tstress_yy\n");
-		fclose(fp);
-
-		fp = fopen("stress_y_graph_0.txt", "w");
-		fprintf(fp, "patch_n\tx\ty\tstress_yy\n");
-		fclose(fp);
-
-		fp = fopen("stress_vm_graph.txt", "w");
-		fprintf(fp, "xi\teta\tx\ty\tstress_vm\n");
-		fclose(fp);
-
-		fp = fopen("over_disp_graph.txt", "w");
-		fprintf(fp, "patch_n\tx\ty\tdisp_x\tdisp_y\n");
-		fclose(fp);
-
-		fp = fopen("over_stress_x_graph.txt", "w");
-		fprintf(fp, "x\ty\tstress_xx\n");
-		fclose(fp);
-
-		fp = fopen("over_stress_y_graph.txt", "w");
-		fprintf(fp, "x\ty\tstress_yy\n");
-		fclose(fp);
-
-		fp = fopen("over_stress_y_graph_0.txt", "w");
-		fprintf(fp, "x\ty\tstress_yy\n");
-		fclose(fp);
-
-		fp = fopen("over_stress_r_theta_graph.txt", "w");
-		fprintf(fp, "xi\teta\tx\ty\tstress_r\tstress_theta\n");
-		fclose(fp);
-
-		fp = fopen("over_stress_vm_graph.txt", "w");
-		fprintf(fp, "xi\teta\tx\ty\tstress_vm\n");
-		fclose(fp);
-
-		// 重ね合わせ
-		for (i = 0; i < patch_n; i++)
-		{
-
-			fp = fopen("stress_vm_graph.txt", "a");
-			fprintf(fp, "\npatch_n;%d\n\n", i);
-			fclose(fp);
-
-			graph_patch_n = i;
-
-			printf("----------Start calculation at patch %d----------\n\n", i);
-			Calculation(order_xi[i], order_eta[i],
-						knot_n_xi[i], knot_n_eta[i],
-						cntl_p_n_xi[i], cntl_p_n_eta[i],
-						knot_vec_xi[i], knot_vec_eta[i],
-						cntl_px[i], cntl_py[i],
-						disp_cntl_px[i], disp_cntl_py[i],
-						weight[i]);
-			printf("-----------End calculation at patch %d-----------\n\n", i);
-
-			if (i >= n_patch_glo) // ローカル上のパッチに対しては重合計算行う
-			{
-				patch_n_loc = i;
-				printf("----------Start overlay calculation at patch %d in LOCAL patch----------\n\n", i);
-				for (j = 0; j < n_patch_glo; j++)
-				{
-					patch_n_glo = j;
-					Calculation_overlay(order_xi[patch_n_loc], order_eta[patch_n_loc],
-										knot_n_xi[patch_n_loc], knot_n_eta[patch_n_loc],
-										cntl_p_n_xi[patch_n_loc], cntl_p_n_eta[patch_n_loc],
-										knot_vec_xi[patch_n_loc], knot_vec_eta[patch_n_loc],
-										cntl_px[patch_n_loc], cntl_py[patch_n_loc],
-										weight[patch_n_loc],
-										order_xi[patch_n_glo], order_eta[patch_n_glo],
-										cntl_p_n_xi[patch_n_glo], cntl_p_n_eta[patch_n_glo],
-										knot_vec_xi[patch_n_glo], knot_vec_eta[patch_n_glo],
-										cntl_px[patch_n_glo], cntl_py[patch_n_glo],
-										disp_cntl_px[patch_n_glo], disp_cntl_py[patch_n_glo],
-										weight[patch_n_glo]);
-				}
-			}
-		}
-		printf("End S-IGA\n\n");
+		printf("\nStart s_IGA overlay\n\n");
+		s_IGA_overlay();
+		printf("\nFinish s_IGA overlay\n\n");
 	}
 	else if (SKIP_S_IGA == 1)
 	{
