@@ -116,13 +116,13 @@ extern double temp_disp_x[MAX_CNRL_P];
 extern double temp_disp_y[MAX_CNRL_P];
 
 // for s-IGA
-extern int n_patch_glo;  // グローバルメッシュ上のパッチ数
-extern int n_patch_loc;  // ローカルメッシュ上のパッチ数
-extern int glo_cntl_p_n; // グローバルメッシュ上のコントロールポイント数
-extern int loc_cntl_p_n; // ローカルメッシュ上のコントロールポイント数
+// extern int n_patch_glo;  // グローバルメッシュ上のパッチ数
+// extern int n_patch_loc;  // ローカルメッシュ上のパッチ数
+// extern int glo_cntl_p_n; // グローバルメッシュ上のコントロールポイント数
+// extern int loc_cntl_p_n; // ローカルメッシュ上のコントロールポイント数
 
 // for graph
-extern int graph_patch_n; // グラフ作成用出力ファイル内のパッチ番号
+// extern int graph_patch_n; // グラフ作成用出力ファイル内のパッチ番号
 
 // for s-IGA
 extern double E;                      // ヤング率(GPa)

@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 	Make_Displacement(Total_Constraint_to_mesh, Displacement, Constraint_Node_Dir, Value_of_Constraint, Total_Control_Point_to_mesh, Index_Dof, sol_vec)
 	printf("\nFinish Make_Displacement\n\n");
 	end = clock();
-	printf("\nAnalysis time:%.2f[s]\n\n",(double)(end - start) / CLOCKS_PER_SEC);
+	printf("\nAnalysis time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
 	Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
 	printf("\nFinish Make_Strain\n\n");
 	Make_Stress_2D(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);

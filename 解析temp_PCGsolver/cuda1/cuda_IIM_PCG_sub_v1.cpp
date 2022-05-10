@@ -3771,15 +3771,17 @@ void Make_Displacement(int *Total_Constraint_to_mesh, double *Displacement, int 
 void s_IGA_overlay()
 {
 	int i, j;
-	int patch_n_loc = 0, patch_n_glo = 0; // パッチ番号
+
+	// ローカルメッシュの情報取得
+	int patch_n = Total_Patch_to_mesh[Total_mesh];
+	int n_patch_loc = Total_Patch_to_mesh[Total_mesh] - Total_Patch_to_mesh[1];
+	int n_patch_glo = Total_Patch_to_mesh[1];
+	int loc_cntl_p_n = Total_Control_Point_to_mesh[Total_mesh] - Total_Control_Point_to_mesh[1];
+	int glo_cntl_p_n = Total_Control_Point_to_mesh[1];
 
 	// 一要素の分割数
 	division_ele_xi = DIVISION_ELE;
 	division_ele_eta = DIVISION_ELE;
-
-	// ローカルメッシュの情報取得
-	GetLocData();
-	ReadFile();
 
 	fp = fopen("view.dat", "w");
 	fprintf(fp, "%d\t%d\t%d\n", 1, division_ele_xi, division_ele_eta);
@@ -3789,9 +3791,6 @@ void s_IGA_overlay()
 	fprintf(fp, "%d\t%d\t%d\n", 1, division_ele_xi, division_ele_eta);
 	fclose(fp);
 
-	n_patch_glo = patch_n - n_patch_loc;
-
-	// for s-IGA
 	// 重ね合わせ結果出力のためのoverlay_view.dat作成
 	fp = fopen("overlay_view.dat", "w");
 	fprintf(fp, "%d\t%d\t%d\n", 1, division_ele_xi, division_ele_eta);
@@ -3850,25 +3849,45 @@ void s_IGA_overlay()
 		fprintf(fp, "\npatch_n;%d\n\n", i);
 		fclose(fp);
 
-		graph_patch_n = i;
+		int graph_patch_n = i;
 
-		printf("----------Start calculation at patch %d----------\n\n", i);
-		Calculation(order_xi[i], order_eta[i],
-					knot_n_xi[i], knot_n_eta[i],
-					cntl_p_n_xi[i], cntl_p_n_eta[i],
-					knot_vec_xi[i], knot_vec_eta[i],
-					cntl_px[i], cntl_py[i],
-					disp_cntl_px[i], disp_cntl_py[i],
-					weight[i]);
-		printf("-----------End calculation at patch %d-----------\n\n", i);
+		// パッチ i での各方向ノットベクトル
+		double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 0]);
+		double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 1]);
+		double *temp_Coord_x = (double *)malloc(sizeof(double) * No_Control_point_in_patch[i]);
+		double *temp_Coord_y = (double *)malloc(sizeof(double) * No_Control_point_in_patch[i]);
+		double *temp_Coord_w = (double *)malloc(sizeof(double) * No_Control_point_in_patch[i]);
+		double *temp_disp_x = (double *)malloc(sizeof(double) * No_Control_point_in_patch[i]);
+		double *temp_disp_y = (double *)malloc(sizeof(double) * No_Control_point_in_patch[i]);
+
+		for (j = 0; j < No_knot[i * DIMENSION + 0]; j++)
+		{
+			temp_Position_Knots_xi[j] = Position_Knots[Total_Knot_to_patch_dim[i * DIMENSION + 0] + j];
+		}
+		for (j = 0; j < No_knot[i * DIMENSION + 1]; j++)
+		{
+			temp_Position_Knots_eta[j] = Position_Knots[Total_Knot_to_patch_dim[i * DIMENSION + 1] + j];
+		}
+
+		for (j = 0; j < No_Control_point_in_patch[i]; j++)
+		{
+			temp_Coord_x[j] = Control_Coord_x[Total_Control_Point_to_patch[i] + j];
+			temp_Coord_y[j] = Control_Coord_y[Total_Control_Point_to_patch[i] + j];
+			temp_Coord_w[j] = Control_Weight[Total_Control_Point_to_patch[i] + j];
+			temp_disp_x[j] = Displacement[(Total_Control_Point_to_patch[i] + j) * DIMENSION + 0];
+			temp_disp_y[j] = Displacement[(Total_Control_Point_to_patch[i] + j) * DIMENSION + 1];
+		}
+
+		Calculation(Order[i * DIMENSION + 0], Order[i * DIMENSION + 1], No_knot[i * DIMENSION + 0], No_knot[i * DIMENSION + 1], No_Control_point[i * DIMENSION + 0], No_Control_point[i * DIMENSION + 1],
+					temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Coord_x, temp_Coord_y, temp_Coord_w,
+					temp_disp_x, temp_disp_y);
 
 		if (i >= n_patch_glo) // ローカル上のパッチに対しては重合計算行う
 		{
-			patch_n_loc = i;
-			printf("----------Start overlay calculation at patch %d in LOCAL patch----------\n\n", i);
+			int patch_n_loc = i;
 			for (j = 0; j < n_patch_glo; j++)
 			{
-				patch_n_glo = j;
+				int patch_n_glo = j;
 				Calculation_overlay(order_xi[patch_n_loc], order_eta[patch_n_loc],
 									knot_n_xi[patch_n_loc], knot_n_eta[patch_n_loc],
 									cntl_p_n_xi[patch_n_loc], cntl_p_n_eta[patch_n_loc],
@@ -3884,7 +3903,6 @@ void s_IGA_overlay()
 			}
 		}
 	}
-	printf("End S-IGA\n\n");
 }
 
 
@@ -3894,9 +3912,7 @@ void GetLocData()
 	double temp;
 
 	// 必要なのはローカルのパッチ数とコントロールポイント数
-	printf("Start Get Local Data\n\n");
 	fp = fopen("input_local.txt", "r");
-
 	fscanf(fp, "%lf%lf", &temp, &temp);
 	fscanf(fp, "\n");
 	fscanf(fp, "%d", &n_patch_loc);
@@ -3904,9 +3920,6 @@ void GetLocData()
 	fscanf(fp, "%d", &loc_cntl_p_n);
 	fscanf(fp, "\n");
 	fclose(fp);
-	printf("patches(in local):% d\n", n_patch_loc);
-	printf("control points(in local):% d\n", loc_cntl_p_n);
-	printf("\nFinish Get Local Data\n\n");
 }
 
 
@@ -4783,13 +4796,9 @@ int CalcXiEtaByNR(double px, double py,
 }
 
 
-void Calculation(int order_xi, int order_eta,
-				 int knot_n_xi, int knot_n_eta,
-				 int cntl_p_n_xi, int cntl_p_n_eta,
-				 double *input_knot_vec_xi, double *input_knot_vec_eta,
-				 double *cntl_px, double *cntl_py,
-				 double *disp_cntl_px, double *disp_cntl_py,
-				 double *weight)
+void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int cntl_p_n_xi, int cntl_p_n_eta,
+				 double *input_knot_vec_xi, double *input_knot_vec_eta, double *cntl_px, double *cntl_py, double *weight
+				 double *disp_cntl_px, double *disp_cntl_py)
 {
 	int i, j, k, l;
 	double temp1, temp2, temp3;
