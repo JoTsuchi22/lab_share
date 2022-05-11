@@ -3902,24 +3902,10 @@ void s_IGA_overlay()
 									weight[patch_n_glo]);
 			}
 		}
+
+		free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
+		free(temp_Coord_x), free(temp_Coord_y), free(temp_Coord_w), free(temp_disp_x), free(temp_disp_y)
 	}
-}
-
-
-// 重ね合わせた結果の出力(NURBS_input_for_s-IGA)
-void GetLocData()
-{
-	double temp;
-
-	// 必要なのはローカルのパッチ数とコントロールポイント数
-	fp = fopen("input_local.txt", "r");
-	fscanf(fp, "%lf%lf", &temp, &temp);
-	fscanf(fp, "\n");
-	fscanf(fp, "%d", &n_patch_loc);
-	fscanf(fp, "\n");
-	fscanf(fp, "%d", &loc_cntl_p_n);
-	fscanf(fp, "\n");
-	fclose(fp);
 }
 
 
@@ -4804,11 +4790,12 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 	double temp1, temp2, temp3;
 	double temp_matrix[2][2];
 
-	//計算するξ,ηの値決定と ∂ξ/∂チルダξ, ∂η/∂チルダη の計算
-	double calc_xi[MAX_POINTS];	  //計算するξの値
-	double calc_eta[MAX_POINTS];  //計算するηの値
-	double dtilda_xi[MAX_KNOTS];  // ∂ξ/∂チルダξ
-	double dtilda_eta[MAX_KNOTS]; // ∂η/∂チルダη
+	// ξ, ηの値決定と ∂ξ/∂チルダξ, ∂η/∂チルダη
+	double calc_xi = (double *)malloc(sizeof(double) * cntl_p_n_xi); // calc_xi[MAX_POINTS]
+	double calc_eta = (double *)malloc(sizeof(double) * cntl_p_n_eta); // calc_eta[MAX_POINTS]
+	double dtilda_xi = (double *)malloc(sizeof(double) * knot_n_xi); // dtilda_xi[MAX_KNOTS]
+	double dtilda_eta = (double *)malloc(sizeof(double) * knot_n_eta); // dtilda_eta[MAX_KNOTS]
+
 	k = 0;
 	l = 0;
 	for (i = 0; i < knot_n_xi - 1; i++)
@@ -4835,7 +4822,6 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 	}
 	calc_xi[k] = input_knot_vec_xi[knot_n_xi - 1];
 	printf("%d\t%f\n", k, calc_xi[k]);
-	// printf("\n");
 	division_n_xi = k + 1;
 	element_n_xi = l;
 
@@ -4846,9 +4832,7 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 		if (input_knot_vec_eta[i] != input_knot_vec_eta[i + 1])
 		{
 			calc_eta[k] = input_knot_vec_eta[i];
-			// printf("%d\t%f\n", k, calc_eta[k]);
 			dtilda_eta[l] = (input_knot_vec_eta[i + 1] - input_knot_vec_eta[i]) / 2.0;
-			// printf("%d\t%f\n", k, dtilda_eta[k]);
 			k++;
 			l++;
 			if (division_ele_eta > 1)
@@ -4857,41 +4841,18 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 				for (j = 1; j < division_ele_eta; j++)
 				{
 					calc_eta[k] = calc_eta[k - 1] + temp1;
-					// printf("%d\t%f\n", k, calc_eta[k]);
 					k++;
 				}
 			}
 		}
 	}
 	calc_eta[k] = input_knot_vec_eta[knot_n_eta - 1];
-	// printf("%d\t%f\n", k, calc_eta[k]);
-	// printf("\n");
 	division_n_eta = k + 1;
 	element_n_eta = l;
 
-	if (element_n_xi > MAX_ELEMENTS)
-	{
-		printf("Error!!\n");
-		printf("Too many elements at xi!\n"
-			   "Maximum of elements is %d (Now %d)\n"
-			   "\n",
-			   MAX_ELEMENTS, element_n_xi);
-		exit(1);
-	}
-	if (element_n_eta > MAX_ELEMENTS)
-	{
-		printf("Error!!\n");
-		printf("Too many elements at eta!\n"
-			   "Maximum of elements is %d (Now %d)\n"
-			   "\n",
-			   MAX_ELEMENTS, element_n_eta);
-		exit(1);
-	}
-
 	int ii, jj, kk, ll;
 
-	//メッシュ座標計算
-	printf("Start Calculation mesh\n\n");
+	// メッシュ座標計算
 	for (i = 0; i < division_n_xi; i++)
 	{
 		ii = i / division_ele_xi;
@@ -4907,382 +4868,231 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 						   &coord_x[i][j], &coord_y[i][j],
 						   &dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
 						   &dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
-			// printf("[%d][%d] [%d][%d][%d][%d]"
-			// 	   "% 1.4e % 1.4e "
-			// 	   "% 1.4e % 1.4e\n",
-			// 	   i, j, ii, jj, kk, ll,
-			// 	   calc_xi[i], calc_eta[j],
-			// 	   coord_x[i][j], coord_y[i][j]);
 		}
-		// printf("\n");
 	}
-	printf("\n");
-	printf("End Calculation mesh\n\n");
 
-	if (1)
+	// 変位計算
+	for (i = 0; i < division_n_xi; i++)
 	{
-		//変位計算
-		printf("Start Calculation displpacement\n\n");
-		for (i = 0; i < division_n_xi; i++)
+		ii = i / division_ele_xi;
+		kk = i % division_ele_xi;
+		for (j = 0; j < division_n_eta; j++)
 		{
-			ii = i / division_ele_xi;
-			kk = i % division_ele_xi;
-			for (j = 0; j < division_n_eta; j++)
-			{
-				jj = j / division_ele_eta;
-				ll = j % division_ele_eta;
-				lNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
-							   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
-							   weight, order_xi, order_eta,
-							   calc_xi[i], calc_eta[j],
-							   &disp_x[i][j], &disp_y[i][j],
-							   &dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
-							   &dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
-				// printf("[%d][%d] [%d][%d][%d][%d]"
-				// 	   "% 1.4e % 1.4e "
-				// 	   "% 1.4e % 1.4e\n",
-				// 	   i, j, ii, jj, kk, ll,
-				// 	   calc_xi[i], calc_eta[j],
-				// 	   disp_x[i][j], disp_y[i][j]);
-			}
-			// printf("\n");
+			jj = j / division_ele_eta;
+			ll = j % division_ele_eta;
+			lNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
+							weight, order_xi, order_eta,
+							calc_xi[i], calc_eta[j],
+							&disp_x[i][j], &disp_y[i][j],
+							&dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
+							&dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
 		}
-		printf("\n");
-		printf("End Calculation displpacement\n\n");
-
-		//足りない微分値計算
-		for (ii = 0; ii < element_n_xi; ii++)
+	}
+	// 足りない微分値計算
+	for (ii = 0; ii < element_n_xi; ii++)
+	{
+		for (jj = 0; jj < element_n_eta; jj++)
 		{
-			for (jj = 0; jj < element_n_eta; jj++)
+			kk = division_ele_xi;
+			i = (ii + 1) * division_ele_xi;
+			j = jj * division_ele_eta;
+			for (ll = 1; ll < division_ele_eta; ll++)
 			{
-				kk = division_ele_xi;
-				i = (ii + 1) * division_ele_xi;
-				j = jj * division_ele_eta;
-				for (ll = 1; ll < division_ele_eta; ll++)
-				{
-					j++;
-					rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
-								   cntl_px, cntl_py, cntl_p_n_xi, cntl_p_n_eta,
-								   weight, order_xi, order_eta,
-								   calc_xi[i], calc_eta[j],
-								   &coord_x[i][j], &coord_y[i][j],
-								   &dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
-								   &dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
-					rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
-								   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
-								   weight, order_xi, order_eta,
-								   calc_xi[i], calc_eta[j],
-								   &disp_x[i][j], &disp_y[i][j],
-								   &dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
-								   &dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
-					/*
-					printf("[%d][%d] [%d][%d][%d][%d]"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e\n",
-						   i, j, ii, jj, kk, ll,
-						   dxi_x[ii][jj][kk][ll], deta_x[ii][jj][kk][ll],
-						   dxi_y[ii][jj][kk][ll], deta_y[ii][jj][kk][ll],
-						   dxi_disp_x[ii][jj][kk][ll], deta_disp_x[ii][jj][kk][ll],
-						   dxi_disp_y[ii][jj][kk][ll], deta_disp_y[ii][jj][kk][ll]);
-					*/
-				}
-
-				ll = division_ele_eta;
-				i = ii * division_ele_xi;
-				j = (jj + 1) * division_ele_eta;
-				for (kk = 1; kk <= division_ele_xi; kk++)
-				{
-					i++;
-					rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
-								   cntl_px, cntl_py, cntl_p_n_xi, cntl_p_n_eta,
-								   weight, order_xi, order_eta,
-								   calc_xi[i], calc_eta[j],
-								   &coord_x[i][j], &coord_y[i][j],
-								   &dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
-								   &dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
-					rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
-								   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
-								   weight, order_xi, order_eta,
-								   calc_xi[i], calc_eta[j],
-								   &disp_x[i][j], &disp_y[i][j],
-								   &dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
-								   &dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
-					/*
-					printf("[%d][%d] [%d][%d][%d][%d]"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e\n",
-						   i, j, ii, jj, kk, ll,
-						   dxi_x[ii][jj][kk][ll], deta_x[ii][jj][kk][ll],
-						   dxi_y[ii][jj][kk][ll], deta_y[ii][jj][kk][ll],
-						   dxi_disp_x[ii][jj][kk][ll], deta_disp_x[ii][jj][kk][ll],
-						   dxi_disp_y[ii][jj][kk][ll], deta_disp_y[ii][jj][kk][ll]);
-					*/
-				}
-
-				kk = division_ele_xi;
-				ll = 0;
-				i = (ii + 1) * division_ele_xi;
-				j = jj * division_ele_eta;
-				rlNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+				j++;
+				rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 								cntl_px, cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 								weight, order_xi, order_eta,
 								calc_xi[i], calc_eta[j],
 								&coord_x[i][j], &coord_y[i][j],
 								&dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
 								&dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
-				rlNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+				rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 								disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 								weight, order_xi, order_eta,
 								calc_xi[i], calc_eta[j],
 								&disp_x[i][j], &disp_y[i][j],
 								&dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
 								&dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
-				/*
-					printf("[%d][%d] [%d][%d][%d][%d]"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e\n",
-						   i, j, ii, jj, kk, ll,
-						   dxi_x[ii][jj][kk][ll], deta_x[ii][jj][kk][ll],
-						   dxi_y[ii][jj][kk][ll], deta_y[ii][jj][kk][ll],
-						   dxi_disp_x[ii][jj][kk][ll], deta_disp_x[ii][jj][kk][ll],
-						   dxi_disp_y[ii][jj][kk][ll], deta_disp_y[ii][jj][kk][ll]);
-				*/
+			}
 
-				kk = 0;
-				ll = division_ele_eta;
-				i = ii * division_ele_xi;
-				j = (jj + 1) * division_ele_eta;
-				lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+			ll = division_ele_eta;
+			i = ii * division_ele_xi;
+			j = (jj + 1) * division_ele_eta;
+			for (kk = 1; kk <= division_ele_xi; kk++)
+			{
+				i++;
+				rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 								cntl_px, cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 								weight, order_xi, order_eta,
 								calc_xi[i], calc_eta[j],
 								&coord_x[i][j], &coord_y[i][j],
 								&dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
 								&dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
-				lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+				rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 								disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 								weight, order_xi, order_eta,
 								calc_xi[i], calc_eta[j],
 								&disp_x[i][j], &disp_y[i][j],
 								&dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
 								&dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
-				/*
-					printf("[%d][%d] [%d][%d][%d][%d]"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e"
-						   "% 1.4e % 1.4e % 1.4e % 1.4e\n",
-						   i, j, ii, jj, kk, ll,
-						   dxi_x[ii][jj][kk][ll], deta_x[ii][jj][kk][ll],
-						   dxi_y[ii][jj][kk][ll], deta_y[ii][jj][kk][ll],
-						   dxi_disp_x[ii][jj][kk][ll], deta_disp_x[ii][jj][kk][ll],
-						   dxi_disp_y[ii][jj][kk][ll], deta_disp_y[ii][jj][kk][ll]);
-				printf("\n");
-				*/
 			}
+
+			kk = division_ele_xi;
+			ll = 0;
+			i = (ii + 1) * division_ele_xi;
+			j = jj * division_ele_eta;
+			rlNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+							cntl_px, cntl_py, cntl_p_n_xi, cntl_p_n_eta,
+							weight, order_xi, order_eta,
+							calc_xi[i], calc_eta[j],
+							&coord_x[i][j], &coord_y[i][j],
+							&dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
+							&dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
+			rlNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
+							weight, order_xi, order_eta,
+							calc_xi[i], calc_eta[j],
+							&disp_x[i][j], &disp_y[i][j],
+							&dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
+							&dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
+
+			kk = 0;
+			ll = division_ele_eta;
+			i = ii * division_ele_xi;
+			j = (jj + 1) * division_ele_eta;
+			lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+							cntl_px, cntl_py, cntl_p_n_xi, cntl_p_n_eta,
+							weight, order_xi, order_eta,
+							calc_xi[i], calc_eta[j],
+							&coord_x[i][j], &coord_y[i][j],
+							&dxi_x[ii][jj][kk][ll], &deta_x[ii][jj][kk][ll],
+							&dxi_y[ii][jj][kk][ll], &deta_y[ii][jj][kk][ll]);
+			lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
+							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
+							weight, order_xi, order_eta,
+							calc_xi[i], calc_eta[j],
+							&disp_x[i][j], &disp_y[i][j],
+							&dxi_disp_x[ii][jj][kk][ll], &deta_disp_x[ii][jj][kk][ll],
+							&dxi_disp_y[ii][jj][kk][ll], &deta_disp_y[ii][jj][kk][ll]);
 		}
-
-		/*
-		for (ii = 0; ii < element_n_xi; ii++) {
-			for (jj = 0; jj < element_n_eta; jj++) {
-				for (kk = 0; kk <= division_ele_xi; kk++) {
-					for (ll = 0; ll <= division_ele_eta; ll++) {
-						printf("[%d][%d][%d][%d]"
-							   "% 1.4e % 1.4e % 1.4e % 1.4e"
-							   "% 1.4e % 1.4e % 1.4e % 1.4e\n",
-							   ii, jj, kk, ll,
-							   dxi_x[ii][jj][kk][ll], deta_x[ii][jj][kk][ll],
-							   dxi_y[ii][jj][kk][ll], deta_y[ii][jj][kk][ll],
-							   dxi_disp_x[ii][jj][kk][ll], deta_disp_x[ii][jj][kk][ll],
-							   dxi_disp_y[ii][jj][kk][ll], deta_disp_y[ii][jj][kk][ll]);
-					}
-				}
-			}
-		}
-		printf("\n");
-		*/
-
-		//ひずみ計算
-		printf("Start Calculation Strain\n\n");
-		for (i = 0; i < element_n_xi; i++)
-		{
-			for (j = 0; j < element_n_eta; j++)
-			{
-				temp1 = dtilda_xi[i];
-				temp2 = dtilda_eta[j];
-				for (k = 0; k < division_ele_xi + 1; k++)
-				{
-					for (l = 0; l < division_ele_eta + 1; l++)
-					{
-						temp_matrix[0][0] = dxi_x[i][j][k][l] * temp1;
-						temp_matrix[0][1] = dxi_y[i][j][k][l] * temp1;
-						temp_matrix[1][0] = deta_x[i][j][k][l] * temp2;
-						temp_matrix[1][1] = deta_y[i][j][k][l] * temp2;
-
-						InverseMatrix_2x2(temp_matrix);
-
-						strain_xx[i][j][k][l] = temp_matrix[0][0] * temp1 * dxi_disp_x[i][j][k][l] + temp_matrix[0][1] * temp2 * deta_disp_x[i][j][k][l];
-						strain_yy[i][j][k][l] = temp_matrix[1][0] * temp1 * dxi_disp_y[i][j][k][l] + temp_matrix[1][1] * temp2 * deta_disp_y[i][j][k][l];
-						strain_xy[i][j][k][l] = temp_matrix[1][0] * temp1 * dxi_disp_x[i][j][k][l] + temp_matrix[1][1] * temp2 * deta_disp_x[i][j][k][l] + temp_matrix[0][0] * temp1 * dxi_disp_y[i][j][k][l] + temp_matrix[0][1] * temp2 * deta_disp_y[i][j][k][l];
-
-						// printf("[%d][%d][%d][%d]\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n",
-						// 	   i, j, k, l, temp1, temp2,
-						// 	   strain_xx[i][j][k][l], strain_yy[i][j][k][l], strain_xy[i][j][k][l]);
-					}
-				}
-			}
-			// printf("\n");
-		}
-		printf("End Calculation Strain\n\n");
-
-		// Dマトリクスの計算
-		double D_matrix[3][3] = {{0.0}};
-		if (DM == 0)
-		{ //平面応力状態
-			temp1 = E * (1.0 - nu * nu);
-			D_matrix[0][0] = temp1;
-			D_matrix[0][1] = nu * temp1;
-			D_matrix[1][0] = nu * temp1;
-			D_matrix[1][1] = temp1;
-			D_matrix[2][2] = (1.0 - nu) / 2.0 * temp1;
-		}
-		else if (DM == 1)
-		{ //平面ひずみ状態(2Dの場合はこっち)
-			temp1 = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
-			D_matrix[0][0] = temp1;
-			D_matrix[0][1] = nu / (1.0 - nu) * temp1;
-			D_matrix[1][0] = nu / (1.0 - nu) * temp1;
-			D_matrix[1][1] = temp1;
-			D_matrix[2][2] = (1.0 - 2.0 * nu) / 2.0 / (1.0 - nu) * temp1;
-		}
-
-		printf("Start Calculation Stress\n\n");
-		for (i = 0; i < element_n_xi; i++)
-		{
-			for (j = 0; j < element_n_eta; j++)
-			{
-				for (k = 0; k < division_ele_xi + 1; k++)
-				{
-					for (l = 0; l < division_ele_eta + 1; l++)
-					{
-						stress_xx[i][j][k][l] = D_matrix[0][0] * strain_xx[i][j][k][l] + D_matrix[0][1] * strain_yy[i][j][k][l];
-						stress_yy[i][j][k][l] = D_matrix[1][0] * strain_xx[i][j][k][l] + D_matrix[1][1] * strain_yy[i][j][k][l];
-						stress_xy[i][j][k][l] = D_matrix[2][2] * strain_xy[i][j][k][l];
-						// printf("[%d][%d][%d][%d]\t% 1.4e\t% 1.4e\t% 1.4e\n", i, j, k, l,
-						// 	   stress_xx[i][j][k][l], stress_yy[i][j][k][l], stress_xy[i][j][k][l]);
-					}
-				}
-				// printf("\n");
-			}
-		}
-		printf("End Calculation Stress\n\n");
 	}
 
-	//書き込み
+	// ひずみ計算
+	for (i = 0; i < element_n_xi; i++)
+	{
+		for (j = 0; j < element_n_eta; j++)
+		{
+			temp1 = dtilda_xi[i];
+			temp2 = dtilda_eta[j];
+			for (k = 0; k < division_ele_xi + 1; k++)
+			{
+				for (l = 0; l < division_ele_eta + 1; l++)
+				{
+					temp_matrix[0][0] = dxi_x[i][j][k][l] * temp1;
+					temp_matrix[0][1] = dxi_y[i][j][k][l] * temp1;
+					temp_matrix[1][0] = deta_x[i][j][k][l] * temp2;
+					temp_matrix[1][1] = deta_y[i][j][k][l] * temp2;
+
+					InverseMatrix_2x2(temp_matrix);
+
+					strain_xx[i][j][k][l] = temp_matrix[0][0] * temp1 * dxi_disp_x[i][j][k][l] + temp_matrix[0][1] * temp2 * deta_disp_x[i][j][k][l];
+					strain_yy[i][j][k][l] = temp_matrix[1][0] * temp1 * dxi_disp_y[i][j][k][l] + temp_matrix[1][1] * temp2 * deta_disp_y[i][j][k][l];
+					strain_xy[i][j][k][l] = temp_matrix[1][0] * temp1 * dxi_disp_x[i][j][k][l] + temp_matrix[1][1] * temp2 * deta_disp_x[i][j][k][l] + temp_matrix[0][0] * temp1 * dxi_disp_y[i][j][k][l] + temp_matrix[0][1] * temp2 * deta_disp_y[i][j][k][l];
+				}
+			}
+		}
+	}
+
+	for (i = 0; i < element_n_xi; i++)
+	{
+		for (j = 0; j < element_n_eta; j++)
+		{
+			for (k = 0; k < division_ele_xi + 1; k++)
+			{
+				for (l = 0; l < division_ele_eta + 1; l++)
+				{
+					stress_xx[i][j][k][l] = D_matrix[0][0] * strain_xx[i][j][k][l] + D_matrix[0][1] * strain_yy[i][j][k][l];
+					stress_yy[i][j][k][l] = D_matrix[1][0] * strain_xx[i][j][k][l] + D_matrix[1][1] * strain_yy[i][j][k][l];
+					stress_xy[i][j][k][l] = D_matrix[2][2] * strain_xy[i][j][k][l];
+				}
+			}
+		}
+	}
+
+	// 書き込み
 	fp = fopen("view.dat", "a");
-	if (1)
+	fprintf(fp, "%d\t%d\t%d\t%d\n",
+			division_n_xi, division_n_eta,
+			element_n_xi, element_n_eta);
+	for (i = 0; i < division_n_xi; i++)
 	{
-		fprintf(fp, "%d\t%d\t%d\t%d\n",
-				division_n_xi, division_n_eta,
-				element_n_xi, element_n_eta);
-		for (i = 0; i < division_n_xi; i++)
+		for (j = 0; j < division_n_eta; j++)
 		{
-			for (j = 0; j < division_n_eta; j++)
-			{
-				temp1 = disp_x[i][j];
-				temp2 = disp_y[i][j];
-				temp3 = sqrt(temp1 * temp1 + temp2 * temp2);
-				fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n",
-						coord_x[i][j], coord_y[i][j],
-						disp_x[i][j], disp_y[i][j], temp3);
-			}
-		}
-		for (i = 0; i < element_n_xi; i++)
-		{
-			for (j = 0; j < element_n_eta; j++)
-			{
-				for (k = 0; k < division_ele_xi + 1; k++)
-				{
-					for (l = 0; l < division_ele_eta + 1; l++)
-					{
-						fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n",
-								strain_xx[i][j][k][l], strain_yy[i][j][k][l], strain_xy[i][j][k][l],
-								stress_xx[i][j][k][l], stress_yy[i][j][k][l], stress_xy[i][j][k][l]);
-					}
-				}
-			}
+			temp1 = disp_x[i][j];
+			temp2 = disp_y[i][j];
+			temp3 = sqrt(temp1 * temp1 + temp2 * temp2);
+			fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n", coord_x[i][j], coord_y[i][j], disp_x[i][j], disp_y[i][j], temp3);
 		}
 	}
-	else
+	for (i = 0; i < element_n_xi; i++)
 	{
-		fprintf(fp, "%d\t%d\t%d\t%d\n",
-				division_n_xi, division_n_eta,
-				element_n_xi, element_n_eta);
-		for (i = 0; i < division_n_xi; i++)
+		for (j = 0; j < element_n_eta; j++)
 		{
-			for (j = 0; j < division_n_eta; j++)
+			for (k = 0; k < division_ele_xi + 1; k++)
 			{
-				fprintf(fp, "% 1.4e\t% 1.4e\n",
-						coord_x[i][j], coord_y[i][j]);
+				for (l = 0; l < division_ele_eta + 1; l++)
+				{
+					fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n",
+							strain_xx[i][j][k][l], strain_yy[i][j][k][l], strain_xy[i][j][k][l],
+							stress_xx[i][j][k][l], stress_yy[i][j][k][l], stress_xy[i][j][k][l]);
+				}
 			}
 		}
 	}
 	fclose(fp);
+
 	// machino
 	fp = fopen("view_r_theta.dat", "a");
-	if (1)
+	fprintf(fp, "%d\t%d\t%d\t%d\n",
+			division_n_xi, division_n_eta,
+			element_n_xi, element_n_eta);
+	for (i = 0; i < division_n_xi; i++)
 	{
-		fprintf(fp, "%d\t%d\t%d\t%d\n",
-				division_n_xi, division_n_eta,
-				element_n_xi, element_n_eta);
-		for (i = 0; i < division_n_xi; i++)
+		for (j = 0; j < division_n_eta; j++)
 		{
-			for (j = 0; j < division_n_eta; j++)
-			{
-				temp1 = disp_x[i][j];
-				temp2 = disp_y[i][j];
-				temp3 = sqrt(temp1 * temp1 + temp2 * temp2);
-				fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n",
-						coord_x[i][j], coord_y[i][j],
-						disp_x[i][j], disp_y[i][j], temp3);
-			}
+			temp1 = disp_x[i][j];
+			temp2 = disp_y[i][j];
+			temp3 = sqrt(temp1 * temp1 + temp2 * temp2);
+			fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\n",
+					coord_x[i][j], coord_y[i][j],
+					disp_x[i][j], disp_y[i][j], temp3);
 		}
-		for (i = 0; i < element_n_xi; i++)
+	}
+	for (i = 0; i < element_n_xi; i++)
+	{
+		for (j = 0; j < element_n_eta; j++)
 		{
-			for (j = 0; j < element_n_eta; j++)
+			for (k = 0; k < division_ele_xi + 1; k++)
 			{
-				for (k = 0; k < division_ele_xi + 1; k++)
+				for (l = 0; l < division_ele_eta + 1; l++)
 				{
-					for (l = 0; l < division_ele_eta + 1; l++)
-					{
-						double stress_rr, stress_theta;
-						double sum = stress_xx[i][j][k][l] + stress_yy[i][j][k][l];
-						double dif = stress_xx[i][j][k][l] - stress_yy[i][j][k][l];
-						double tau2 = stress_xy[i][j][k][l] * stress_xy[i][j][k][l];
-						stress_rr = sum * 0.5 + sqrt(dif * dif + 4 * tau2) * 0.5;
-						stress_theta = sum * 0.5 - sqrt(dif * dif + 4 * tau2) * 0.5;
-						fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t0.0\n",
-								strain_xx[i][j][k][l], strain_yy[i][j][k][l], strain_xy[i][j][k][l],
-								stress_rr, stress_theta);
-					}
+					double stress_rr, stress_theta;
+					double sum = stress_xx[i][j][k][l] + stress_yy[i][j][k][l];
+					double dif = stress_xx[i][j][k][l] - stress_yy[i][j][k][l];
+					double tau2 = stress_xy[i][j][k][l] * stress_xy[i][j][k][l];
+					stress_rr = sum * 0.5 + sqrt(dif * dif + 4 * tau2) * 0.5;
+					stress_theta = sum * 0.5 - sqrt(dif * dif + 4 * tau2) * 0.5;
+					fprintf(fp, "% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t% 1.4e\t0.0\n",
+							strain_xx[i][j][k][l], strain_yy[i][j][k][l], strain_xy[i][j][k][l],
+							stress_rr, stress_theta);
 				}
 			}
 		}
 	}
-	else
-	{
-		fprintf(fp, "%d\t%d\t%d\t%d\n",
-				division_n_xi, division_n_eta,
-				element_n_xi, element_n_eta);
-		for (i = 0; i < division_n_xi; i++)
-		{
-			for (j = 0; j < division_n_eta; j++)
-			{
-				fprintf(fp, "% 1.4e\t% 1.4e\n",
-						coord_x[i][j], coord_y[i][j]);
-			}
-		}
-	}
 	fclose(fp);
-	//グラフ用ファイル書き込み
+
+	// グラフ用ファイル書き込み
 	fp = fopen("disp_graph.txt", "a");
 	for (i = 0; i < division_n_xi; i++)
 	{

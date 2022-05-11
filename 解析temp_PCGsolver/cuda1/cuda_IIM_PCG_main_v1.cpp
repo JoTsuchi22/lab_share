@@ -248,13 +248,13 @@ int main(int argc, char **argv)
 	printf("\nFinish Make_Displacement\n\n");
 	end = clock();
 	printf("\nAnalysis time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
-	Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
+	// Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
 	printf("\nFinish Make_Strain\n\n");
-	Make_Stress_2D(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
+	// Make_Stress_2D(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
 	printf("\nFinish Make_Stress\n\n");
-	Make_ReactionForce(Total_Control_Point_to_mesh[Total_mesh]);
+	// Make_ReactionForce(Total_Control_Point_to_mesh[Total_mesh]);
 	printf("\nFinish Make_ReactionForce\n\n");
-	Make_Parameter_z(real_Total_Element_to_mesh[Total_mesh], E, nu, DM);
+	// Make_Parameter_z(real_Total_Element_to_mesh[Total_mesh], E, nu, DM);
 	printf("\nFinish Make_Parameter_z\n\n");
 
 	// Kマトリックスのsvg出力
@@ -265,14 +265,24 @@ int main(int argc, char **argv)
 	}
 
 	// viewer のための出力
-	output_for_viewer();
+	output_for_viewer(Total_Patch_to_mesh, Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Total_Constraint_to_mesh,
+					  Total_Load_to_mesh, Total_DistributeForce_to_mesh, Order, No_knot, No_Control_point,
+					  No_Control_point_in_patch, Patch_Control_point, Total_Control_Point_to_patch, Position_Knots,
+					  Total_Knot_to_patch_dim, Node_Coordinate, Constraint_Node_Dir, Value_of_Constraint,
+					  Load_Node_Dir, Value_of_Load, type_load_array, iPatch_array, iCoord_array,
+					  val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array, Displacement);
 	printf("\nFinish output_for_viewer\n\n");
 
 	// 重ね合わせをスキップしてJ積分を行う
 	if (SKIP_S_IGA != 1)
 	{
 		printf("\nStart s_IGA overlay\n\n");
-		s_IGA_overlay();
+		s_IGA_overlay(Total_Patch_to_mesh, Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Total_Constraint_to_mesh,
+					  Total_Load_to_mesh, Total_DistributeForce_to_mesh, Order, No_knot, No_Control_point,
+					  No_Control_point_in_patch, Patch_Control_point, Total_Control_Point_to_patch, Position_Knots,
+					  Total_Knot_to_patch_dim, Node_Coordinate, Constraint_Node_Dir, Value_of_Constraint,
+					  Load_Node_Dir, Value_of_Load, type_load_array, iPatch_array, iCoord_array,
+					  val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array, Displacement);
 		printf("\nFinish s_IGA overlay\n\n");
 	}
 	else if (SKIP_S_IGA == 1)

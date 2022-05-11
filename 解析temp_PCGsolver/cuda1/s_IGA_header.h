@@ -48,9 +48,9 @@
 // #define MAX_ORDER MAX_ORDER							//最大次数(p)
 // #define MAX_CNRL_P MAX_N_Controlpoint_in_Patch			//最大コントロールポイント数(n)
 // #define MAX_KNOTS (MAX_CNRL_P + MAX_ORDER + 1)			//ノットベクトルの最大長さ(n+p+1)
-#define MAX_ELEMENTS 100								//最大要素数
+// #define MAX_ELEMENTS 100								//最大要素数
 // #define MAX_DIVISION 10									// 一要素あたりの最大分割数
-#define MAX_POINTS (MAX_ELEMENTS * MAX_DIVISION + 1)	//最大点数
+// #define MAX_POINTS (MAX_ELEMENTS * MAX_DIVISION + 1)	//最大点数
 
 // Get input file data
 void Get_Input_1(int tm, int *Total_Knot_to_mesh,
