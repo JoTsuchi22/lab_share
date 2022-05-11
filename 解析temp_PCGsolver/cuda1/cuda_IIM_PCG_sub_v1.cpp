@@ -3849,8 +3849,6 @@ void s_IGA_overlay()
 		fprintf(fp, "\npatch_n;%d\n\n", i);
 		fclose(fp);
 
-		int graph_patch_n = i;
-
 		// パッチ i での各方向ノットベクトル
 		double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 0]);
 		double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 1]);
@@ -3880,7 +3878,7 @@ void s_IGA_overlay()
 
 		Calculation(Order[i * DIMENSION + 0], Order[i * DIMENSION + 1], No_knot[i * DIMENSION + 0], No_knot[i * DIMENSION + 1], No_Control_point[i * DIMENSION + 0], No_Control_point[i * DIMENSION + 1],
 					temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Coord_x, temp_Coord_y, temp_Coord_w,
-					temp_disp_x, temp_disp_y);
+					temp_disp_x, temp_disp_y, i);
 
 		if (i >= n_patch_glo) // ローカル上のパッチに対しては重合計算行う
 		{
@@ -4784,7 +4782,7 @@ int CalcXiEtaByNR(double px, double py,
 
 void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int cntl_p_n_xi, int cntl_p_n_eta,
 				 double *input_knot_vec_xi, double *input_knot_vec_eta, double *cntl_px, double *cntl_py, double *weight
-				 double *disp_cntl_px, double *disp_cntl_py)
+				 double *disp_cntl_px, double *disp_cntl_py, int graph_patch_n)
 {
 	int i, j, k, l;
 	double temp1, temp2, temp3;
@@ -4803,9 +4801,7 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 		if (input_knot_vec_xi[i] != input_knot_vec_xi[i + 1])
 		{
 			calc_xi[k] = input_knot_vec_xi[i];
-			printf("%d\t%f\n", k, calc_xi[k]);
 			dtilda_xi[l] = (input_knot_vec_xi[i + 1] - input_knot_vec_xi[i]) / 2.0;
-			printf("%d\t%f\n", k, dtilda_xi[k]);
 			k++;
 			l++;
 			if (division_ele_xi > 1)
@@ -4814,14 +4810,12 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 				for (j = 1; j < division_ele_xi; j++)
 				{
 					calc_xi[k] = calc_xi[k - 1] + temp1;
-					printf("%d\t%f\n", k, calc_xi[k]);
 					k++;
 				}
 			}
 		}
 	}
 	calc_xi[k] = input_knot_vec_xi[knot_n_xi - 1];
-	printf("%d\t%f\n", k, calc_xi[k]);
 	division_n_xi = k + 1;
 	element_n_xi = l;
 

@@ -21,7 +21,7 @@
 #define MAX_N_ELEMENT_OVER	100  					// グローバルメッシュ内の1要素に重なる最大要素数
 #define MAX_N_ELEMENT_OVER_POINT	5				// ローカル要素内の1点に重なるグローバル要素
 #define MAX_N_ELEMENT_OVER_ELEMENT	MAX_N_ELEMENT_OVER_POINT * POW_Ng_extended		// ローカルメッシュ内の1要素に重なる最大要素数
-#define DIVISION_ELE 10	// 一要素あたりの分割数
+#define DIVISION_ELE 5	// 一要素あたりの分割数
 // #define D_MATRIX_SIZE 3										// 応力歪マトリックスの大きさ（2次元:3 3次元:6）
 // 各種最大配置可能数
 // #define MAX_N_KNOT 1000
