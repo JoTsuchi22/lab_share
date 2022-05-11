@@ -2351,7 +2351,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 		// βの計算とPの更新
 		// beta = rr1 / rr0; //旧
 		// beta = - rr1 / temp_scaler; // 新
-		beta = -inner_product(ndof, y, r2) / temp_scaler;
+		beta = - inner_product(ndof, y, r2) / temp_scaler;
 
 		for (i = 0; i < ndof; i++)
 		{
