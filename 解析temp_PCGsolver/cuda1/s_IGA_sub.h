@@ -129,7 +129,6 @@ extern double E;                      // ヤング率(GPa)
 extern double nu;                     // ポアソン比(-)
 extern int Total_mesh;
 
-
 // extern int KIEL_SIZE;                           //要素分割マトリックスの大きさ
 extern int D_MATRIX_SIZE;
 extern int MAX_K_WHOLE_SIZE;
@@ -138,5 +137,67 @@ extern int MAX_NON_ZERO;
 
 // file pointer
 extern FILE *fp;
+
+extern struct info {
+    int *Total_Knot_to_mesh;
+    int *Total_Patch_on_mesh;
+    int *Total_Patch_to_mesh;
+    int *Total_Control_Point_on_mesh;
+    int *Total_Control_Point_to_mesh;
+    int *Total_Element_on_mesh;
+    int *Total_Element_to_mesh;
+    int *real_Total_Element_on_mesh;
+    int *real_Total_Element_to_mesh;
+    int *Total_Load_to_mesh;
+    int *Total_Constraint_to_mesh;
+    int *Total_DistributeForce_to_mesh;
+
+    int *Order;
+    int *No_knot;
+    int *Total_Control_Point_to_patch;
+    int *Total_Knot_to_patch_dim;
+    double *Position_Knots;
+    int *No_Control_point;
+    int *No_Control_point_in_patch;
+    int *Patch_Control_point;
+    int *No_Control_point_ON_ELEMENT;
+    double *Node_Coordinate;
+    double *Control_Coord_x;
+    double *Control_Coord_y;
+    double *Control_Weight;
+    int *Constraint_Node_Dir;
+    double *Value_of_Constraint;
+    int *Load_Node_Dir;
+    double *Value_of_Load;
+    int *iPatch_array;
+    int *iCoord_array;
+    int *type_load_array;
+    double *val_Coord_array;
+    double *Range_Coord_array;
+    double *Coeff_Dist_Load_array;
+
+    int *INC;
+    int *Controlpoint_of_Element;
+    int *Element_patch;
+    int *Element_mesh;
+    int *line_No_real_element;
+    int *line_No_Total_element;
+    double *difference;
+    int *Total_element_all_ID;
+    int *ENC;
+    int *real_element_line;
+    int *real_element;
+    int *real_El_No_on_mesh;
+    double *Equivalent_Nodal_Force;
+};
+
+extern struct GP_val{
+    int *NNLOVER;
+    int *NELOVER;
+    double *Gauss_Coordinate;
+    double *Jac;
+    double *B_Matrix;
+    double *Loc_parameter_on_Glo;
+}
 
 #endif

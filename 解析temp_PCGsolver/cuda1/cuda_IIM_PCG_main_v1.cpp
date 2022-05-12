@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 	clock_t start, end;
 	int i, j, k;
 	int tm;
+	info info_ptr;
 
 	Total_mesh = argc - 1;
 
