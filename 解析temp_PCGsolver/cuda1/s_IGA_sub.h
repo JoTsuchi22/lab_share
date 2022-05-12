@@ -7,9 +7,6 @@ extern int GP_2D;                              // 2次元のガウス点数
 extern double Gxi[POW_Ng_extended][DIMENSION]; // ガウス点
 extern double w[POW_Ng_extended];              // ガウス点での重み
 
-
-// extern double Displacement[MAX_K_WHOLE_SIZE];
-
 extern double Strain[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 extern double Strain_glo[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
 extern double Strain_overlay[MAX_N_ELEMENT][POW_Ng_extended][N_STRAIN];
@@ -138,7 +135,7 @@ extern int MAX_NON_ZERO;
 // file pointer
 extern FILE *fp;
 
-extern struct info {
+extern struct infomation {
     int *Total_Knot_to_mesh;
     int *Total_Patch_on_mesh;
     int *Total_Patch_to_mesh;
@@ -189,15 +186,39 @@ extern struct info {
     int *real_element;
     int *real_El_No_on_mesh;
     double *Equivalent_Nodal_Force;
-};
 
-extern struct GP_val{
     int *NNLOVER;
     int *NELOVER;
     double *Gauss_Coordinate;
+    double *Gauss_Coordinate_ex;
     double *Jac;
+    double *Jac_ex;
     double *B_Matrix;
+    double *B_Matrix_ex;
     double *Loc_parameter_on_Glo;
-}
+    double *Loc_parameter_on_Glo_ex;
+
+    double *D;
+    int *Node_To_Node;
+    int *Total_Control_Point_To_Node;
+    int *Index_Dof;
+    int *K_Whole_Ptr;
+    int *K_Whole_Col;
+    double *K_Whole_Val;
+
+    double *sol_vec;
+    double *rhs_vec;
+
+    double *Displacement;
+};
+
+// extern struct GP_val{
+//     int *NNLOVER;
+//     int *NELOVER;
+//     double *Gauss_Coordinate;
+//     double *Jac;
+//     double *B_Matrix;
+//     double *Loc_parameter_on_Glo;
+// }
 
 #endif
