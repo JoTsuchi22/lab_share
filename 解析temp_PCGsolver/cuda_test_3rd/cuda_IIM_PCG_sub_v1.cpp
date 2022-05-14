@@ -10,12 +10,10 @@
 #include "s_IGA_sub.h"
 
 
+
+
 // ファイル読み込み1回目
-void Get_Input_1(int tm, int *Total_Knot_to_mesh,
-				 int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
-				 int *Total_Control_Point_on_mesh, int *Total_Control_Point_to_mesh,
-				 int *Total_Constraint_to_mesh, int *Total_Load_to_mesh, int *Total_DistributeForce_to_mesh,
-				 char **argv)
+void Get_Input_1(int tm, char **argv, information info)
 {
 	char s[256];
 	int temp_i;
@@ -36,18 +34,18 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	int No_Patch = temp_i;
 	int *CP = (int *)malloc(sizeof(int) * temp_i * DIMENSION);
 	printf("No_Patch: %d\n", temp_i);
-	Total_Patch_on_mesh[tm] = temp_i;
-	Total_Patch_to_mesh[tm + 1] = Total_Patch_to_mesh[tm] + temp_i;
-	printf("Total_Patch_to_mesh[%d] = %d\n", tm, Total_Patch_to_mesh[tm]);
+	info.Total_Patch_on_mesh[tm] = temp_i;
+	info.Total_Patch_to_mesh[tm + 1] = info.Total_Patch_to_mesh[tm] + temp_i;
+	printf("info.Total_Patch_to_mesh[%d] = %d\n", tm, info.Total_Patch_to_mesh[tm]);
 
 	// コントロールポイント数
 	fscanf(fp, "%d", &temp_i);
 	fgets(s, 256, fp);
 	int Total_Control_Point = temp_i;
 	printf("Total_Control_Point: %d\n", temp_i);
-	Total_Control_Point_on_mesh[tm] = temp_i;
-	Total_Control_Point_to_mesh[tm + 1] = Total_Control_Point_to_mesh[tm] + temp_i;
-	printf("Total_Control_Point_to_mesh[%d] = %d\n", tm, Total_Control_Point_to_mesh[tm]);
+	info.Total_Control_Point_on_mesh[tm] = temp_i;
+	info.Total_Control_Point_to_mesh[tm + 1] = info.Total_Control_Point_to_mesh[tm] + temp_i;
+	printf("info.Total_Control_Point_to_mesh[%d] = %d\n", tm, info.Total_Control_Point_to_mesh[tm]);
 
 	// 各方向の次数(スキップ)
 	for (i = 0; i < No_Patch; i++)
@@ -60,13 +58,13 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	fgets(s, 256, fp);
 
 	// ノット数
-	Total_Knot_to_mesh[tm + 1] = Total_Knot_to_mesh[tm];
+	info.Total_Knot_to_mesh[tm + 1] = info.Total_Knot_to_mesh[tm];
 	for (i = 0; i < No_Patch; i++)
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
 			fscanf(fp, "%d", &temp_i);
-			Total_Knot_to_mesh[tm + 1] += temp_i;
+			info.Total_Knot_to_mesh[tm + 1] += temp_i;
 		}
 	}
 
@@ -82,7 +80,7 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	fgets(s, 256, fp);
 
 	// パッチコネクティビティ(スキップ)
-	for (i = 0; i < Total_Patch_on_mesh[tm]; i++)
+	for (i = 0; i < info.Total_Patch_on_mesh[tm]; i++)
 	{
 		for (j = 0; j < CP[i * DIMENSION + 0] * CP[i * DIMENSION + 1]; j++)
 		{
@@ -94,9 +92,9 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 	// 境界条件
 	int Total_Constraint, Total_Load, Total_DistributeForce;
 	fscanf(fp, "%d %d %d", &Total_Constraint, &Total_Load, &Total_DistributeForce);
-	Total_Constraint_to_mesh[tm + 1] = Total_Constraint_to_mesh[tm] + Total_Constraint;
-	Total_Load_to_mesh[tm + 1] = Total_Load_to_mesh[tm] + Total_Load;
-	Total_DistributeForce_to_mesh[tm + 1] = Total_DistributeForce_to_mesh[tm] + Total_DistributeForce;
+	info.Total_Constraint_to_mesh[tm + 1] = info.Total_Constraint_to_mesh[tm] + Total_Constraint;
+	info.Total_Load_to_mesh[tm + 1] = info.Total_Load_to_mesh[tm] + Total_Load;
+	info.Total_DistributeForce_to_mesh[tm + 1] = info.Total_DistributeForce_to_mesh[tm] + Total_DistributeForce;
 
 	printf("Total_Constraint = %d\n", Total_Constraint);
 	printf("Total_Load = %d\n", Total_Load);
@@ -108,19 +106,7 @@ void Get_Input_1(int tm, int *Total_Knot_to_mesh,
 
 
 // ファイル読み込み2回目
-void Get_Input_2(int tm, int *Total_Knot_to_mesh,
-				 int *Total_Patch_to_mesh, int *Total_Control_Point_to_mesh,
-				 int *Total_Element_on_mesh, int *Total_Element_to_mesh,
-				 int *Total_Constraint_to_mesh, int *Total_Load_to_mesh, int *Total_DistributeForce_to_mesh,
-				 int *Order, int *No_knot, int *No_Control_point, int *No_Control_point_in_patch,
-				 int *Patch_Control_point, double *Position_Knots, int *No_Control_point_ON_ELEMENT,
-				 double *Node_Coordinate, double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight,
-				 int *Constraint_Node_Dir, double *Value_of_Constraint,
-				 int *Load_Node_Dir, double *Value_of_Load,
-				 int *type_load_array, int *iPatch_array, int *iCoord_array,
-				 double *val_Coord_array, double *Range_Coord_array, double *Coeff_Dist_Load_array,
-				 int *Total_Control_Point_to_patch, int *Total_Knot_to_patch_dim,
-				 char **argv)
+void Get_Input_2(int tm, char **argv, information info)
 {
 	char s[256];
 	int temp_i;
@@ -150,8 +136,8 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 		for (j = 0; j < DIMENSION; j++)
 		{
 			fscanf(fp, "%d", &temp_i);
-			Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
-			printf("Order[%d] = %d\n", (i + Total_Patch_to_mesh[tm]) * DIMENSION + j, Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]);
+			info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
+			printf("info.Order[%d] = %d\n", (i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j, info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j]);
 		}
 	}
 	fgets(s, 256, fp);
@@ -162,9 +148,9 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 		for (j = 0; j < DIMENSION; j++)
 		{
 			fscanf(fp, "%d", &temp_i);
-			No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
-			Total_Knot_to_patch_dim[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j + 1] = Total_Knot_to_patch_dim[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] + temp_i;
-			printf("No_knot[%d] = %d\n", (i + Total_Patch_to_mesh[tm]) * DIMENSION + j, No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]);
+			info.No_knot[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
+			info.Total_Knot_to_patch_dim[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j + 1] = info.Total_Knot_to_patch_dim[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] + temp_i;
+			printf("info.No_knot[%d] = %d\n", (i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j, info.No_knot[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j]);
 		}
 	}
 	fgets(s, 256, fp);
@@ -175,35 +161,35 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 		for (j = 0; j < DIMENSION; j++)
 		{
 			fscanf(fp, "%d", &temp_i);
-			No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
-			printf("No_Control_point[%d] = %d\n", (i + Total_Patch_to_mesh[tm]) * DIMENSION + j, No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]);
+			info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] = temp_i;
+			printf("info.No_Control_point[%d] = %d\n", (i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j, info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j]);
 		}
 	}
 	fgets(s, 256, fp);
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		No_Control_point_in_patch[i + Total_Patch_to_mesh[tm]] = 1;
+		info.No_Control_point_in_patch[i + info.Total_Patch_to_mesh[tm]] = 1;
 	}
 
 	for (i = 0; i < No_Patch; i++)
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-			No_Control_point_in_patch[i + Total_Patch_to_mesh[tm]] *= No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j];
+			info.No_Control_point_in_patch[i + info.Total_Patch_to_mesh[tm]] *= info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j];
 		}
 	}
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		Total_Control_Point_to_patch[i + Total_Patch_to_mesh[tm] + 1] = Total_Control_Point_to_patch[i + Total_Patch_to_mesh[tm]] + No_Control_point_in_patch[i + Total_Patch_to_mesh[tm]];
+		info.Total_Control_Point_to_patch[i + info.Total_Patch_to_mesh[tm] + 1] = info.Total_Control_Point_to_patch[i + info.Total_Patch_to_mesh[tm]] + info.No_Control_point_in_patch[i + info.Total_Patch_to_mesh[tm]];
 	}
 
 	for (i = 0; i < No_Patch; i++)
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-			if (No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] != No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] + Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] + 1)
+			if (info.No_knot[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] != info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] + info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] + 1)
 			{
 				printf("wrong relationship between the number of knot vector and the number of control_point \n");
 				printf("in mesh_No.%d in patch_No.%d direction:%d\n", tm, i, j);
@@ -213,20 +199,20 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		printf("No_Control_point_in_patch[%d] = %d\t", i + Total_Patch_to_mesh[tm], No_Control_point_in_patch[i + Total_Patch_to_mesh[tm]]);
+		printf("info.No_Control_point_in_patch[%d] = %d\t", i + info.Total_Patch_to_mesh[tm], info.No_Control_point_in_patch[i + info.Total_Patch_to_mesh[tm]]);
 	}
 	printf("\n");
 
 	// パッチコネクティビティ
 	for (i = 0; i < No_Patch; i++)
 	{
-		for (j = 0; j < No_Control_point_in_patch[i + Total_Patch_to_mesh[tm]]; j++)
+		for (j = 0; j < info.No_Control_point_in_patch[i + info.Total_Patch_to_mesh[tm]]; j++)
 		{
 			fscanf(fp, "%d", &temp_i);
-			Patch_Control_point[Total_Control_Point_to_patch[i + Total_Patch_to_mesh[tm]] + j] = temp_i;
+			info.Patch_Control_point[info.Total_Control_Point_to_patch[i + info.Total_Patch_to_mesh[tm]] + j] = temp_i;
 			if (tm > 0)
 			{
-				Patch_Control_point[Total_Control_Point_to_patch[i + Total_Patch_to_mesh[tm]] + j] += Total_Control_Point_to_mesh[tm];
+				info.Patch_Control_point[info.Total_Control_Point_to_patch[i + info.Total_Patch_to_mesh[tm]] + j] += info.Total_Control_Point_to_mesh[tm];
 			}
 		}
 	}
@@ -242,11 +228,11 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-			for (k = 0; k < No_knot[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j]; k++)
+			for (k = 0; k < info.No_knot[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j]; k++)
 			{
 				fscanf(fp, "%lf", &temp_d);
-				Position_Knots[Total_Knot_to_patch_dim[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] + k] = temp_d;
-				printf("%le\t", Position_Knots[Total_Knot_to_patch_dim[(i + Total_Patch_to_mesh[tm]) * DIMENSION + j] + k]);
+				info.Position_Knots[info.Total_Knot_to_patch_dim[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] + k] = temp_d;
+				printf("%le\t", info.Position_Knots[info.Total_Knot_to_patch_dim[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + j] + k]);
 			}
 			printf("\n");
 		}
@@ -258,26 +244,26 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 	{
 		if (DIMENSION == 2)
 		{
-			Total_Element += (No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 0] - Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 0])
-						   * (No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 1] - Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 1]);
-			No_Control_point_ON_ELEMENT[i + Total_Patch_to_mesh[tm]] = (Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 0] + 1) * (Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 1] + 1);
+			Total_Element += (info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 0] - info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 0])
+						   * (info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 1] - info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 1]);
+			info.No_Control_point_ON_ELEMENT[i + info.Total_Patch_to_mesh[tm]] = (info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 0] + 1) * (info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 1] + 1);
 		}
 		else if (DIMENSION == 3)
 		{
-			Total_Element += (No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 0] - Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 0])
-						   * (No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 1] - Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 1])
-						   * (No_Control_point[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 2] - Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 2]);
-			No_Control_point_ON_ELEMENT[i + Total_Patch_to_mesh[tm]] = (Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 0] + 1) * (Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 1] + 1) * (Order[(i + Total_Patch_to_mesh[tm]) * DIMENSION + 2] + 1);
+			Total_Element += (info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 0] - info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 0])
+						   * (info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 1] - info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 1])
+						   * (info.No_Control_point[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 2] - info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 2]);
+			info.No_Control_point_ON_ELEMENT[i + info.Total_Patch_to_mesh[tm]] = (info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 0] + 1) * (info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 1] + 1) * (info.Order[(i + info.Total_Patch_to_mesh[tm]) * DIMENSION + 2] + 1);
 		}
 	}
 	printf("Total_Element = %d\n", Total_Element);
-	Total_Element_on_mesh[tm] = Total_Element;
-	Total_Element_to_mesh[tm + 1] = Total_Element_to_mesh[tm] + Total_Element;
-	printf("Total_Element_on_mesh[%d] = %d\n", tm, Total_Element_on_mesh[tm]);
+	info.Total_Element_on_mesh[tm] = Total_Element;
+	info.Total_Element_to_mesh[tm + 1] = info.Total_Element_to_mesh[tm] + Total_Element;
+	printf("info.Total_Element_on_mesh[%d] = %d\n", tm, info.Total_Element_on_mesh[tm]);
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		printf("No_Control_point_ON_ELEMENT[%d] = %d\n", i + Total_Patch_to_mesh[tm], No_Control_point_ON_ELEMENT[i + Total_Patch_to_mesh[tm]]);
+		printf("info.No_Control_point_ON_ELEMENT[%d] = %d\n", i + info.Total_Patch_to_mesh[tm], info.No_Control_point_ON_ELEMENT[i + info.Total_Patch_to_mesh[tm]]);
 	}
 
 	// 節点座標
@@ -287,7 +273,7 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 		for (j = 0; j < DIMENSION + 1; j++)
 		{
 			fscanf(fp, "%lf", &temp_d);
-			Node_Coordinate[(temp_i + Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j] = temp_d;
+			info.Node_Coordinate[(temp_i + info.Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j] = temp_d;
 		}
 	}
 	for (i = 0; i < Total_Control_Point; i++)
@@ -297,15 +283,15 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 			// コントロールポイント座標・重みの新たな配列(for s-IGA/NewtonLaphson) DIMENSION == 2 の場合のみ記述
 			if (j == 0)
 			{
-				Control_Coord_x[i + Total_Control_Point_to_mesh[tm]] = Node_Coordinate[(i + Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j];
+				info.Control_Coord_x[i + info.Total_Control_Point_to_mesh[tm]] = info.Node_Coordinate[(i + info.Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j];
 			}
 			else if (j == 1)
 			{
-				Control_Coord_y[i + Total_Control_Point_to_mesh[tm]] = Node_Coordinate[(i + Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j];
+				info.Control_Coord_y[i + info.Total_Control_Point_to_mesh[tm]] = info.Node_Coordinate[(i + info.Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j];
 			}
 			else if (j == DIMENSION)
 			{
-				Control_Weight[i + Total_Control_Point_to_mesh[tm]] = Node_Coordinate[(i + Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j];
+				info.Control_Weight[i + info.Total_Control_Point_to_mesh[tm]] = info.Node_Coordinate[(i + info.Total_Control_Point_to_mesh[tm]) * (DIMENSION + 1) + j];
 			}
 		}
 	}
@@ -315,15 +301,15 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 	for (i = 0; i < Total_Constraint; i++)
 	{
 		fscanf(fp, "%d %d %lf",
-			   &Constraint_Node_Dir[(i + Total_Constraint_to_mesh[tm]) * 2 + 0],
-			   &Constraint_Node_Dir[(i + Total_Constraint_to_mesh[tm]) * 2 + 1],
-			   &Value_of_Constraint[i + Total_Constraint_to_mesh[tm]]);
-		Constraint_Node_Dir[(i + Total_Constraint_to_mesh[tm]) * 2 + 0] = Constraint_Node_Dir[(i + Total_Constraint_to_mesh[tm]) * 2 + 0] + Total_Control_Point_to_mesh[tm];
+			   &info.Constraint_Node_Dir[(i + info.Total_Constraint_to_mesh[tm]) * 2 + 0],
+			   &info.Constraint_Node_Dir[(i + info.Total_Constraint_to_mesh[tm]) * 2 + 1],
+			   &info.Value_of_Constraint[i + info.Total_Constraint_to_mesh[tm]]);
+		info.Constraint_Node_Dir[(i + info.Total_Constraint_to_mesh[tm]) * 2 + 0] = info.Constraint_Node_Dir[(i + info.Total_Constraint_to_mesh[tm]) * 2 + 0] + info.Total_Control_Point_to_mesh[tm];
 
-		printf("Constraint_Node_Dir[%d] = %d Constraint_Node_Dir[%d] = %d Value_of_Constraint[%d] = %le \n",
-			   (i + Total_Constraint_to_mesh[tm]) * 2 + 0, Constraint_Node_Dir[(i + Total_Constraint_to_mesh[tm]) * 2 + 0],
-			   (i + Total_Constraint_to_mesh[tm]) * 2 + 1, Constraint_Node_Dir[(i + Total_Constraint_to_mesh[tm]) * 2 + 1],
-			   i + Total_Constraint_to_mesh[tm], Value_of_Constraint[i + Total_Constraint_to_mesh[tm]]);
+		printf("info.Constraint_Node_Dir[%d] = %d info.Constraint_Node_Dir[%d] = %d info.Value_of_Constraint[%d] = %le \n",
+			   (i + info.Total_Constraint_to_mesh[tm]) * 2 + 0, info.Constraint_Node_Dir[(i + info.Total_Constraint_to_mesh[tm]) * 2 + 0],
+			   (i + info.Total_Constraint_to_mesh[tm]) * 2 + 1, info.Constraint_Node_Dir[(i + info.Total_Constraint_to_mesh[tm]) * 2 + 1],
+			   i + info.Total_Constraint_to_mesh[tm], info.Value_of_Constraint[i + info.Total_Constraint_to_mesh[tm]]);
 	}
 	fgets(s, 256, fp);
 
@@ -331,15 +317,15 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 	for (i = 0; i < Total_Load; i++)
 	{
 		fscanf(fp, "%d %d %lf",
-			   &Load_Node_Dir[(i + Total_Load_to_mesh[tm]) * 2 + 0],
-			   &Load_Node_Dir[(i + Total_Load_to_mesh[tm]) * 2 + 1],
-			   &Value_of_Load[i + Total_Load_to_mesh[tm]]);
-		Load_Node_Dir[(i + Total_Load_to_mesh[tm]) * 2 + 0] = Load_Node_Dir[(i + Total_Load_to_mesh[tm]) * 2 + 0] + Total_Control_Point_to_mesh[tm];
+			   &info.Load_Node_Dir[(i + info.Total_Load_to_mesh[tm]) * 2 + 0],
+			   &info.Load_Node_Dir[(i + info.Total_Load_to_mesh[tm]) * 2 + 1],
+			   &info.Value_of_Load[i + info.Total_Load_to_mesh[tm]]);
+		info.Load_Node_Dir[(i + info.Total_Load_to_mesh[tm]) * 2 + 0] = info.Load_Node_Dir[(i + info.Total_Load_to_mesh[tm]) * 2 + 0] + info.Total_Control_Point_to_mesh[tm];
 
-		printf("Load_Node_Dir[%d]= %d Load_Node_Dir[%d]= %d Value_of_Load[%d] = %le\n",
-			   (i + Total_Load_to_mesh[tm]) * 2 + 0, Load_Node_Dir[(i + Total_Load_to_mesh[tm]) * 2 + 0],
-			   (i + Total_Load_to_mesh[tm]) * 2 + 1, Load_Node_Dir[(i + Total_Load_to_mesh[tm]) * 2 + 1],
-			   i + Total_Load_to_mesh[tm], Value_of_Load[i + Total_Load_to_mesh[tm]]);
+		printf("info.Load_Node_Dir[%d]= %d info.Load_Node_Dir[%d]= %d info.Value_of_Load[%d] = %le\n",
+			   (i + info.Total_Load_to_mesh[tm]) * 2 + 0, info.Load_Node_Dir[(i + info.Total_Load_to_mesh[tm]) * 2 + 0],
+			   (i + info.Total_Load_to_mesh[tm]) * 2 + 1, info.Load_Node_Dir[(i + info.Total_Load_to_mesh[tm]) * 2 + 1],
+			   i + info.Total_Load_to_mesh[tm], info.Value_of_Load[i + info.Total_Load_to_mesh[tm]]);
 	}
 	fgets(s, 256, fp);
 
@@ -354,78 +340,62 @@ void Get_Input_2(int tm, int *Total_Knot_to_mesh,
 			   type_load, iPatch, iCoord, val_Coord, Range_Coord[0], Range_Coord[1], Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2]);
 
 		// for s-IGA
-		type_load_array[i + Total_DistributeForce_to_mesh[tm]] = type_load;
-		iPatch_array[i + Total_DistributeForce_to_mesh[tm]] = iPatch;
-		iCoord_array[i + Total_DistributeForce_to_mesh[tm]] = iCoord;
-		val_Coord_array[i + Total_DistributeForce_to_mesh[tm]] = val_Coord;
-		Range_Coord_array[(i + Total_DistributeForce_to_mesh[tm]) * 2 + 0] = Range_Coord[0];
-		Range_Coord_array[(i + Total_DistributeForce_to_mesh[tm]) * 2 + 1] = Range_Coord[1];
-		Coeff_Dist_Load_array[(i + Total_DistributeForce_to_mesh[tm]) * 3 + 0] = Coeff_Dist_Load[0];
-		Coeff_Dist_Load_array[(i + Total_DistributeForce_to_mesh[tm]) * 3 + 1] = Coeff_Dist_Load[1];
-		Coeff_Dist_Load_array[(i + Total_DistributeForce_to_mesh[tm]) * 3 + 2] = Coeff_Dist_Load[2];
+		info.type_load_array[i + info.Total_DistributeForce_to_mesh[tm]] = type_load;
+		info.iPatch_array[i + info.Total_DistributeForce_to_mesh[tm]] = iPatch;
+		info.iCoord_array[i + info.Total_DistributeForce_to_mesh[tm]] = iCoord;
+		info.val_Coord_array[i + info.Total_DistributeForce_to_mesh[tm]] = val_Coord;
+		info.Range_Coord_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 2 + 0] = Range_Coord[0];
+		info.Range_Coord_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 2 + 1] = Range_Coord[1];
+		info.Coeff_Dist_Load_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 3 + 0] = Coeff_Dist_Load[0];
+		info.Coeff_Dist_Load_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 3 + 1] = Coeff_Dist_Load[1];
+		info.Coeff_Dist_Load_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 3 + 2] = Coeff_Dist_Load[2];
 	}
 	fclose(fp);
 }
 
 
 // INC 等の作成
-void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
-			  int *Total_Element_on_mesh, int *Total_Element_to_mesh,
-			  int *Total_Control_Point_on_mesh, int *Total_Control_Point_to_mesh,
-			  int *Total_DistributeForce_to_mesh,
-			  int *INC, int *Patch_Control_point, int *Total_Control_Point_to_patch,
-			  int *No_Control_point, int *Controlpoint_of_Element,
-			  int *Element_patch, int *Element_mesh,
-			  double *difference, int *Total_Knot_to_patch_dim,
-			  int *Total_element_all_ID, int *ENC,
-			  int *real_element_line, int *line_No_real_element,
-			  int *line_No_Total_element, int *real_element,
-			  int *real_El_No_on_mesh, int *real_Total_Element_on_mesh,
-			  int *real_Total_Element_to_mesh, double *Equivalent_Nodal_Force,
-			  int *type_load_array, int *iPatch_array, int *iCoord_array,
-			  double *val_Coord_array, double *Range_Coord_array, double *Coeff_Dist_Load_array,
-			  int *Order, int *No_knot, int *Total_Knot_to_mesh, double *Node_Coordinate,
-			  double *Position_Knots, int *No_Control_point_ON_ELEMENT)
+void Make_INC(int tm, information info)
 {
-	// INC の計算(節点番号をξ, ηの番号で表す為の配列)
+	// info.INC の計算(節点番号をξ, ηの番号で表す為の配列)
 	for (tm = 0; tm < Total_mesh; tm++)
 	{
 		int b, B, e, h, i, j, k, l, n, p, q, x, y, ii, jj, kk, iii, kkk, iiloc, jjloc, kkloc, r = 0;
 		int type_load, iPatch, iCoord;
 		double val_Coord, Range_Coord[2], Coeff_Dist_Load[3];
-		int No_Patch = Total_Patch_on_mesh[tm];
-		int Total_Patch_to_Now = Total_Patch_to_mesh[tm];
-		int Total_Element = Total_Element_on_mesh[tm];
-		int Total_Element_to_Now = Total_Element_to_mesh[tm];
-		int Total_Control_Point = Total_Control_Point_on_mesh[tm];
-		int Total_DistributeForce = Total_DistributeForce_to_mesh[tm + 1] - Total_DistributeForce_to_mesh[tm];
+		int No_Patch = info.Total_Patch_on_mesh[tm];
+		int Total_Patch_to_Now = info.Total_Patch_to_mesh[tm];
+		int Total_Element = info.Total_Element_on_mesh[tm];
+		int Total_Element_to_Now = info.Total_Element_to_mesh[tm];
+		int Total_Control_Point = info.Total_Control_Point_on_mesh[tm];
+		int Total_DistributeForce = info.Total_DistributeForce_to_mesh[tm + 1] - info.Total_DistributeForce_to_mesh[tm];
 		if (DIMENSION == 2) // for s-IGA
 		{
 			e = 0;
 			for (l = 0; l < No_Patch; l++)
 			{
 				i = 0;
-				for (jj = 0; jj < No_Control_point[(l + Total_Patch_to_Now) * DIMENSION + 1]; jj++)
+				for (jj = 0; jj < info.No_Control_point[(l + Total_Patch_to_Now) * DIMENSION + 1]; jj++)
 				{
-					for (ii = 0; ii < No_Control_point[(l + Total_Patch_to_Now) * DIMENSION + 0]; ii++)
+					for (ii = 0; ii < info.No_Control_point[(l + Total_Patch_to_Now) * DIMENSION + 0]; ii++)
 					{
-						INC[Patch_Control_point[Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * DIMENSION + 0] = ii;
-						INC[Patch_Control_point[Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * DIMENSION + 1] = jj;
+						info.INC[info.Patch_Control_point[info.Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * DIMENSION + 0] = ii;
+						info.INC[info.Patch_Control_point[info.Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * DIMENSION + 1] = jj;
 
-						if (ii >= Order[(l + Total_Patch_to_Now) * DIMENSION + 0] && jj >= Order[(l + Total_Patch_to_Now) * DIMENSION + 1])
+						if (ii >= info.Order[(l + Total_Patch_to_Now) * DIMENSION + 0] && jj >= info.Order[(l + Total_Patch_to_Now) * DIMENSION + 1])
 						{
 
-							for (jjloc = 0; jjloc <= Order[(l + Total_Patch_to_Now) * DIMENSION + 1]; jjloc++)
+							for (jjloc = 0; jjloc <= info.Order[(l + Total_Patch_to_Now) * DIMENSION + 1]; jjloc++)
 							{
-								for (iiloc = 0; iiloc <= Order[(l + Total_Patch_to_Now) * DIMENSION + 0]; iiloc++)
+								for (iiloc = 0; iiloc <= info.Order[(l + Total_Patch_to_Now) * DIMENSION + 0]; iiloc++)
 								{
-									B = Patch_Control_point[Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i - jjloc * No_Control_point[(l + Total_Patch_to_Now) * DIMENSION + 0] - iiloc];
-									b = jjloc * (Order[(l + Total_Patch_to_Now) * DIMENSION + 0] + 1) + iiloc;
-									Controlpoint_of_Element[(e + Total_Element_to_Now) * MAX_NO_CCpoint_ON_ELEMENT + b] = B;
+									B = info.Patch_Control_point[info.Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i - jjloc * info.No_Control_point[(l + Total_Patch_to_Now) * DIMENSION + 0] - iiloc];
+									b = jjloc * (info.Order[(l + Total_Patch_to_Now) * DIMENSION + 0] + 1) + iiloc;
+									info.Controlpoint_of_Element[(e + Total_Element_to_Now) * MAX_NO_CCpoint_ON_ELEMENT + b] = B;
 								}
 							}
-							Element_patch[e + Total_Element_to_Now] = l + Total_Patch_to_Now;
-							Element_mesh[e + Total_Element_to_Now] = tm;
+							info.Element_patch[e + Total_Element_to_Now] = l + Total_Patch_to_Now;
+							info.Element_mesh[e + Total_Element_to_Now] = tm;
 							e++;
 						}
 						i++;
@@ -441,30 +411,30 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 		// 	for (l = 0; l < No_Patch; l++)
 		// 	{
 		// 		i = 0;
-		// 		for (kk = 0; kk < No_Control_point[l][2]; kk++)
+		// 		for (kk = 0; kk < info.No_Control_point[l][2]; kk++)
 		// 		{
-		// 			for (jj = 0; jj < No_Control_point[l][1]; jj++)
+		// 			for (jj = 0; jj < info.No_Control_point[l][1]; jj++)
 		// 			{
-		// 				for (ii = 0; ii < No_Control_point[l][0]; ii++)
+		// 				for (ii = 0; ii < info.No_Control_point[l][0]; ii++)
 		// 				{
-		// 					INC[l][Patch_Control_point[l][i]][0] = ii;
-		// 					INC[l][Patch_Control_point[l][i]][1] = jj;
-		// 					INC[l][Patch_Control_point[l][i]][2] = kk;
-		// 					if (ii >= Order[l][0] && jj >= Order[l][1] && kk >= Order[l][2])
+		// 					info.INC[l][info.Patch_Control_point[l][i]][0] = ii;
+		// 					info.INC[l][info.Patch_Control_point[l][i]][1] = jj;
+		// 					info.INC[l][info.Patch_Control_point[l][i]][2] = kk;
+		// 					if (ii >= info.Order[l][0] && jj >= info.Order[l][1] && kk >= info.Order[l][2])
 		// 					{
-		// 						for (kkloc = 0; kkloc < Order[l][2]; kkloc++)
+		// 						for (kkloc = 0; kkloc < info.Order[l][2]; kkloc++)
 		// 						{
-		// 							for (jjloc = 0; jjloc <= Order[l][1]; jjloc++)
+		// 							for (jjloc = 0; jjloc <= info.Order[l][1]; jjloc++)
 		// 							{
-		// 								for (iiloc = 0; iiloc <= Order[l][0]; iiloc++)
+		// 								for (iiloc = 0; iiloc <= info.Order[l][0]; iiloc++)
 		// 								{
-		// 									B = Patch_Control_point[l][i - jjloc * No_Control_point[l][0] - iiloc];
-		// 									b = jjloc * (Order[l][0] + 1) + iiloc;
-		// 									Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + b] = B;
+		// 									B = info.Patch_Control_point[l][i - jjloc * info.No_Control_point[l][0] - iiloc];
+		// 									b = jjloc * (info.Order[l][0] + 1) + iiloc;
+		// 									info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + b] = B;
 		// 								}
 		// 							}
 		// 						}
-		// 						Element_patch[e] = l + Total_Patch_to_Now;
+		// 						info.Element_patch[e] = l + Total_Patch_to_Now;
 		// 						e++;
 		// 					}
 		// 					i++;
@@ -479,7 +449,7 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 		{
 			for (j = 0; j < DIMENSION; j++)
 			{
-				line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + j] = 0;
+				info.line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + j] = 0;
 			}
 		}
 
@@ -487,15 +457,15 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 		{
 			for (j = 0; j < DIMENSION; j++)
 			{
-				line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + j] = No_knot[(l + Total_Patch_to_Now) * DIMENSION + j] - 2 * Order[(l + Total_Patch_to_Now) * DIMENSION + j] - 1;
+				info.line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + j] = info.No_knot[(l + Total_Patch_to_Now) * DIMENSION + j] - 2 * info.Order[(l + Total_Patch_to_Now) * DIMENSION + j] - 1;
 
-				for (kkk = Order[(l + Total_Patch_to_Now) * DIMENSION + j]; kkk < No_knot[(l + Total_Patch_to_Now) * DIMENSION + j] - Order[(l + Total_Patch_to_Now) * DIMENSION + j] - 1; kkk++)
+				for (kkk = info.Order[(l + Total_Patch_to_Now) * DIMENSION + j]; kkk < info.No_knot[(l + Total_Patch_to_Now) * DIMENSION + j] - info.Order[(l + Total_Patch_to_Now) * DIMENSION + j] - 1; kkk++)
 				{
-					difference[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - Order[(l + Total_Patch_to_Now) * DIMENSION + j]]
-						= Position_Knots[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk + 1] - Position_Knots[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk];
-					if (difference[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - Order[(l + Total_Patch_to_Now) * DIMENSION + j]] != 0)
+					info.difference[info.Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - info.Order[(l + Total_Patch_to_Now) * DIMENSION + j]]
+						= info.Position_Knots[info.Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk];
+					if (info.difference[info.Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + kkk - info.Order[(l + Total_Patch_to_Now) * DIMENSION + j]] != 0)
 					{
-						line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + j]++;
+						info.line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + j]++;
 					}
 				}
 			}
@@ -506,18 +476,18 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 		{
 			for (h = 0; h < Total_Element; h++)
 			{
-				Total_element_all_ID[h] = 0;
+				info.Total_element_all_ID[h] = 0;
 			}
 
 			i = 0;
 			for (l = 0; l < No_Patch; l++)
 			{
-				for (y = 0; y < line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + 1]; y++)
+				for (y = 0; y < info.line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + 1]; y++)
 				{
-					for (x = 0; x < line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + 0]; x++)
+					for (x = 0; x < info.line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + 0]; x++)
 					{
-						ENC[(i + Total_Element_to_mesh[tm]) * DIMENSION + 0] = x;
-						ENC[(i + Total_Element_to_mesh[tm]) * DIMENSION + 1] = y;
+						info.ENC[(i + info.Total_Element_to_mesh[tm]) * DIMENSION + 0] = x;
+						info.ENC[(i + info.Total_Element_to_mesh[tm]) * DIMENSION + 1] = y;
 						i++;
 					}
 				}
@@ -531,11 +501,11 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 			{
 				e = 0;
 
-				for (k = 0; k < line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + j]; k++)
+				for (k = 0; k < info.line_No_Total_element[(l + Total_Patch_to_Now) * DIMENSION + j]; k++)
 				{
-					if (difference[Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + k] != 0)
+					if (info.difference[info.Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * DIMENSION + j] + k] != 0)
 					{
-						real_element_line[(l + Total_Patch_to_Now) * (Total_Element_to_mesh[Total_mesh] * DIMENSION) + e * DIMENSION + j] = k;
+						info.real_element_line[(l + Total_Patch_to_Now) * (info.Total_Element_to_mesh[Total_mesh] * DIMENSION) + e * DIMENSION + j] = k;
 						e++;
 					}
 				}
@@ -547,25 +517,25 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 		{
 			for (n = 0; n < Total_Element; n++)
 			{
-				for (p = 0; p < line_No_real_element[(Element_patch[n + Total_Element_to_Now]) * DIMENSION + 0]; p++)
+				for (p = 0; p < info.line_No_real_element[(info.Element_patch[n + Total_Element_to_Now]) * DIMENSION + 0]; p++)
 				{
-					if (ENC[(n + Total_Element_to_mesh[tm]) * DIMENSION + 0] == real_element_line[(Element_patch[n + Total_Element_to_Now]) * (Total_Element_to_mesh[Total_mesh] * DIMENSION) + p * DIMENSION + 0])
+					if (info.ENC[(n + info.Total_Element_to_mesh[tm]) * DIMENSION + 0] == info.real_element_line[(info.Element_patch[n + Total_Element_to_Now]) * (info.Total_Element_to_mesh[Total_mesh] * DIMENSION) + p * DIMENSION + 0])
 					{
-						for (q = 0; q < line_No_real_element[(Element_patch[n + Total_Element_to_Now]) * DIMENSION + 1]; q++)
+						for (q = 0; q < info.line_No_real_element[(info.Element_patch[n + Total_Element_to_Now]) * DIMENSION + 1]; q++)
 						{
-							if (ENC[(n + Total_Element_to_mesh[tm]) * DIMENSION + 1] == real_element_line[(Element_patch[n + Total_Element_to_Now]) * (Total_Element_to_mesh[Total_mesh] * DIMENSION) + q * DIMENSION + 1])
+							if (info.ENC[(n + info.Total_Element_to_mesh[tm]) * DIMENSION + 1] == info.real_element_line[(info.Element_patch[n + Total_Element_to_Now]) * (info.Total_Element_to_mesh[Total_mesh] * DIMENSION) + q * DIMENSION + 1])
 							{
-								Total_element_all_ID[n]++;
+								info.Total_element_all_ID[n]++;
 							}
 						}
 					}
 				}
 
 				// IDが1の要素に番号を振る
-				if (Total_element_all_ID[n] == 1)
+				if (info.Total_element_all_ID[n] == 1)
 				{
-					real_element[r + real_Total_Element_to_mesh[tm]] = n + Total_Element_to_Now;
-					real_El_No_on_mesh[tm * Total_Element_to_mesh[Total_mesh] + r] = n + Total_Element_to_Now;
+					info.real_element[r + info.real_Total_Element_to_mesh[tm]] = n + Total_Element_to_Now;
+					info.real_El_No_on_mesh[tm * info.Total_Element_to_mesh[Total_mesh] + r] = n + Total_Element_to_Now;
 					r++;
 				}
 			}
@@ -575,47 +545,35 @@ void Make_INC(int tm, int *Total_Patch_on_mesh, int *Total_Patch_to_mesh,
 
 			for (l = 0; l < No_Patch; l++)
 			{
-				real_Total_Element += line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + 0] * line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + 1];
+				real_Total_Element += info.line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + 0] * info.line_No_real_element[(l + Total_Patch_to_Now) * DIMENSION + 1];
 			}
-			real_Total_Element_on_mesh[tm] = real_Total_Element;
-			real_Total_Element_to_mesh[tm + 1] = real_Total_Element_to_mesh[tm] + real_Total_Element;
+			info.real_Total_Element_on_mesh[tm] = real_Total_Element;
+			info.real_Total_Element_to_mesh[tm + 1] = info.real_Total_Element_to_mesh[tm] + real_Total_Element;
 		}
 
 		for (i = 0; i < Total_DistributeForce; i++)
 		{
-			type_load = type_load_array[i + Total_DistributeForce_to_mesh[tm]];
-			iPatch = iPatch_array[i + Total_DistributeForce_to_mesh[tm]];
-			iCoord = iCoord_array[i + Total_DistributeForce_to_mesh[tm]];
-			val_Coord = val_Coord_array[i + Total_DistributeForce_to_mesh[tm]];
-			Range_Coord[0] = Range_Coord_array[(i + Total_DistributeForce_to_mesh[tm]) * 2 + 0];
-			Range_Coord[1] = Range_Coord_array[(i + Total_DistributeForce_to_mesh[tm]) * 2 + 1];
-			Coeff_Dist_Load[0] = Coeff_Dist_Load_array[(i + Total_DistributeForce_to_mesh[tm]) * 3 + 0];
-			Coeff_Dist_Load[1] = Coeff_Dist_Load_array[(i + Total_DistributeForce_to_mesh[tm]) * 3 + 1];
-			Coeff_Dist_Load[2] = Coeff_Dist_Load_array[(i + Total_DistributeForce_to_mesh[tm]) * 3 + 2];
+			type_load = info.type_load_array[i + info.Total_DistributeForce_to_mesh[tm]];
+			iPatch = info.iPatch_array[i + info.Total_DistributeForce_to_mesh[tm]];
+			iCoord = info.iCoord_array[i + info.Total_DistributeForce_to_mesh[tm]];
+			val_Coord = info.val_Coord_array[i + info.Total_DistributeForce_to_mesh[tm]];
+			Range_Coord[0] = info.Range_Coord_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 2 + 0];
+			Range_Coord[1] = info.Range_Coord_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 2 + 1];
+			Coeff_Dist_Load[0] = info.Coeff_Dist_Load_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 3 + 0];
+			Coeff_Dist_Load[1] = info.Coeff_Dist_Load_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 3 + 1];
+			Coeff_Dist_Load[2] = info.Coeff_Dist_Load_array[(i + info.Total_DistributeForce_to_mesh[tm]) * 3 + 2];
 
 			printf("type_load:%d\tiPatch:%d\tiCoord:%d\tval_coord:%lf\t", type_load, iPatch, iCoord, val_Coord);
 			printf("Range0:%lf\tRange1:%lf\t", Range_Coord[0], Range_Coord[1]);
 			printf("Coeff0:%lf\n", Coeff_Dist_Load[0]);
-			Setting_Dist_Load_2D(tm, iPatch, Total_Element_to_mesh[tm + 1], iCoord, val_Coord,
-								 Range_Coord, type_load, Coeff_Dist_Load, Total_Knot_to_mesh,
-						  		 Controlpoint_of_Element, Order, No_knot, Total_element_all_ID,
-						  		 Total_Knot_to_patch_dim, Position_Knots, Equivalent_Nodal_Force,
-						  		 Total_Element_on_mesh, Total_Element_to_mesh, Element_patch, ENC,
-						  		 Node_Coordinate, INC, No_Control_point_ON_ELEMENT, Total_Control_Point_to_mesh,
-						  		 No_Control_point);
+			Setting_Dist_Load_2D(tm, iPatch, iCoord, val_Coord, Range_Coord, type_load, Coeff_Dist_Load, info);
 		}
 	}
 }
 
 
 // Distributed Load
-void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord, double val_Coord,
-						  double Range_Coord[2], int type_load, double Coeff_Dist_Load[3], int *Total_Knot_to_mesh,
-						  int *Controlpoint_of_Element, int *Order, int *No_knot, int *Total_element_all_ID,
-						  int *Total_Knot_to_patch_dim, double *Position_Knots, double *Equivalent_Nodal_Force,
-						  int *Total_Element_on_mesh, int *Total_Element_to_mesh, int *Element_patch, int *ENC,
-						  double *Node_Coordinate, int *INC, int *No_Control_point_ON_ELEMENT, int *Total_Control_Point_to_mesh,
-						  int *No_Control_point)
+void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, double *Range_Coord, int type_load, double *Coeff_Dist_Load, information info)
 {
 	int iii, jjj;
 	int N_Seg_Load_Element_iDir = 0, jCoord;
@@ -629,7 +587,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	double Gg = pow(3.0 / 5.0, 0.5);
 
 	double Position_Data_param[DIMENSION];
-	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
+	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info.Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
  
 	GaussPt[0] = -Gg;
 	GaussPt[1] = 0.0;
@@ -648,17 +606,17 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	// val_Coord: Value of Eta or Xi of the line or surface to give the distributed load
 	// Setting elements needed to computed the distributed load
 
-	for (iii = Order[iPatch * DIMENSION + iCoord]; iii < No_knot[iPatch * DIMENSION + iCoord] - Order[iPatch * DIMENSION + iCoord] - 1; iii++)
+	for (iii = info.Order[iPatch * DIMENSION + iCoord]; iii < info.No_knot[iPatch * DIMENSION + iCoord] - info.Order[iPatch * DIMENSION + iCoord] - 1; iii++)
 	{
 		double epsi = 0.00000000001;
 
-		if (Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + iCoord] + iii] - epsi <= Range_Coord[0])
+		if (info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + iCoord] + iii] - epsi <= Range_Coord[0])
 			iPos[0] = iii;
-		if (Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + iCoord] + iii + 1] - epsi <= Range_Coord[1])
+		if (info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + iCoord] + iii + 1] - epsi <= Range_Coord[1])
 			iPos[1] = iii + 1;
 	}
-	iRange_ele[0] = iPos[0] - Order[iPatch * DIMENSION + iCoord];
-	iRange_ele[1] = iPos[1] - Order[iPatch * DIMENSION + iCoord] - 1;
+	iRange_ele[0] = iPos[0] - info.Order[iPatch * DIMENSION + iCoord];
+	iRange_ele[1] = iPos[1] - info.Order[iPatch * DIMENSION + iCoord] - 1;
 	printf("iPos[0] = %d iPos[1] = %d\n", iPos[0], iPos[1]);
 	printf("iRange_ele[0] = %d  iRange_ele[1] = %d\n", iRange_ele[0], iRange_ele[1]);
 
@@ -668,17 +626,17 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 		exit(0);
 	}
 
-	for (jjj = Order[iPatch * DIMENSION + jCoord]; jjj < No_knot[iPatch * DIMENSION + jCoord] - Order[iPatch * DIMENSION + jCoord] - 1; jjj++)
+	for (jjj = info.Order[iPatch * DIMENSION + jCoord]; jjj < info.No_knot[iPatch * DIMENSION + jCoord] - info.Order[iPatch * DIMENSION + jCoord] - 1; jjj++)
 	{
 		double epsi = 0.00000000001;
 
-		if (Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj] - epsi <= val_Coord
-			&& Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj + 1] + epsi > val_Coord)
+		if (info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj] - epsi <= val_Coord
+			&& info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj + 1] + epsi > val_Coord)
 		{
 			jPos[0] = jjj;
 			jPos[1] = jjj + 1;
-			val_jCoord_Local = -1.0 + 2.0 * (val_Coord - Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj])
-							 / (Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj + 1] - Position_Knots[Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj]);
+			val_jCoord_Local = -1.0 + 2.0 * (val_Coord - info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj])
+							 / (info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[iPatch * DIMENSION + jCoord] + jjj]);
 		}
 	}
 
@@ -696,10 +654,10 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 	iii = 0;
 	if (iCoord == 1)
 	{
-		iX = jPos[0] - Order[iPatch * DIMENSION + 0];
-		for (iY = iPos[0] - Order[iPatch * DIMENSION + 1]; iY < iPos[1] - Order[iPatch * DIMENSION + 1]; iY++)
+		iX = jPos[0] - info.Order[iPatch * DIMENSION + 0];
+		for (iY = iPos[0] - info.Order[iPatch * DIMENSION + 1]; iY < iPos[1] - info.Order[iPatch * DIMENSION + 1]; iY++)
 		{
-			No_Element_for_Integration[iii] = SearchForElement(mesh_n, iPatch, iX, iY, Total_Element_on_mesh, Total_Element_to_mesh, Element_patch, ENC);
+			No_Element_for_Integration[iii] = SearchForElement(mesh_n, iPatch, iX, iY, info);
 			printf("Check No_Element_for_Integration[%d] = %d\n", iii, No_Element_for_Integration[iii]);
 			iii++;
 		}
@@ -707,10 +665,10 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 
 	if (iCoord == 0)
 	{
-		iY = jPos[0] - Order[iPatch * DIMENSION + 1];
-		for (iX = iPos[0] - Order[iPatch * DIMENSION + 0]; iX < iPos[1] - Order[iPatch * DIMENSION + 0]; iX++)
+		iY = jPos[0] - info.Order[iPatch * DIMENSION + 1];
+		for (iX = iPos[0] - info.Order[iPatch * DIMENSION + 0]; iX < iPos[1] - info.Order[iPatch * DIMENSION + 0]; iX++)
 		{
-			No_Element_for_Integration[iii] = SearchForElement(mesh_n, iPatch, iX, iY, Total_Element_on_mesh, Total_Element_to_mesh, Element_patch, ENC);
+			No_Element_for_Integration[iii] = SearchForElement(mesh_n, iPatch, iX, iY, info);
 			printf("Check No_Element_for_Integration[%d] = %d\n", iii, No_Element_for_Integration[iii]);
 			iii++;
 		}
@@ -721,13 +679,13 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 
 	for (iii = 0; iii < No_Element_For_Dist_Load; iii++)
 	{
-		if (Total_element_all_ID[No_Element_for_Integration[iii]] == 1)
+		if (info.Total_element_all_ID[No_Element_for_Integration[iii]] == 1)
 		{
-			iX = ENC[No_Element_for_Integration[iii] * DIMENSION + 0];
-			iY = ENC[No_Element_for_Integration[iii] * DIMENSION + 1];
+			iX = info.ENC[No_Element_for_Integration[iii] * DIMENSION + 0];
+			iY = info.ENC[No_Element_for_Integration[iii] * DIMENSION + 1];
 
-			for (ic = 0; ic < (Order[iPatch * DIMENSION + 0] + 1) * (Order[iPatch * DIMENSION + 1] + 1); ic++)
-				iControlpoint[ic] = Controlpoint_of_Element[No_Element_for_Integration[iii] * MAX_NO_CCpoint_ON_ELEMENT + ic];
+			for (ic = 0; ic < (info.Order[iPatch * DIMENSION + 0] + 1) * (info.Order[iPatch * DIMENSION + 1] + 1); ic++)
+				iControlpoint[ic] = info.Controlpoint_of_Element[No_Element_for_Integration[iii] * MAX_NO_CCpoint_ON_ELEMENT + ic];
 
 			for (ig = 0; ig < NNG; ig++)
 			{
@@ -737,7 +695,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 				Local_Coord[iCoord] = GaussPt[ig];
 				printf("ig = %d   Local_Coord[jCoord] = %f Local_Coord[iCoord] = %f\n", ig, Local_Coord[jCoord], Local_Coord[iCoord]);
 
-				ShapeFunc_from_paren(Position_Data_param, Local_Coord, iCoord, No_Element_for_Integration[iii], INC, Position_Knots, Total_Knot_to_patch_dim, Controlpoint_of_Element, Element_patch);
+				ShapeFunc_from_paren(Position_Data_param, Local_Coord, iCoord, No_Element_for_Integration[iii], info);
 				XiEtaCoordParen = Position_Data_param[iCoord];
 				printf("Check  Coeff_Dist_Load[0] = %f Coeff_Dist_Load[1] = %f  Coeff_Dist_Load[2] = %f  Position_Data_param[iCoord] = %f\n", Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2], Position_Data_param[iCoord]);
 				valDistLoad = Coeff_Dist_Load[0] + Coeff_Dist_Load[1] * XiEtaCoordParen + Coeff_Dist_Load[2] * XiEtaCoordParen * XiEtaCoordParen;
@@ -745,22 +703,20 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 				dxyzdge[0] = 0.0;
 				dxyzdge[1] = 0.0;
 				dxyzdge[2] = 0.0;
-				for (icc = 0; icc < (Order[iPatch * DIMENSION + 0] + 1) * (Order[iPatch * DIMENSION + 1] + 1); icc++)
+				for (icc = 0; icc < (info.Order[iPatch * DIMENSION + 0] + 1) * (info.Order[iPatch * DIMENSION + 1] + 1); icc++)
 				{
-					dxyzdge[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], Controlpoint_of_Element, No_Control_point_ON_ELEMENT, Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point)
-								* Node_Coordinate[iControlpoint[icc] * (DIMENSION + 1) + 0];
-					dxyzdge[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], Controlpoint_of_Element, No_Control_point_ON_ELEMENT, Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point)
-								* Node_Coordinate[iControlpoint[icc] * (DIMENSION + 1) + 1];
+					dxyzdge[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info.Node_Coordinate[iControlpoint[icc] * (DIMENSION + 1) + 0];
+					dxyzdge[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info.Node_Coordinate[iControlpoint[icc] * (DIMENSION + 1) + 1];
 				}
 
 				detJ = sqrt(dxyzdge[0] * dxyzdge[0] + dxyzdge[1] * dxyzdge[1]);
 				printf("Check the value of detJ etc: detJ = %f dxyzdge[0] = %f dxyzdge[1] = %f\n", detJ, dxyzdge[0], dxyzdge[1]);
 				if (type_load < 2)
 				{
-					for (ic = 0; ic < (Order[iPatch * DIMENSION + 0] + 1) * (Order[iPatch * DIMENSION + 1] + 1); ic++)
+					for (ic = 0; ic < (info.Order[iPatch * DIMENSION + 0] + 1) * (info.Order[iPatch * DIMENSION + 1] + 1); ic++)
 					{
-						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT, Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
-						Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
+						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
+						info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
 					}
 				}
 
@@ -769,14 +725,14 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 					double LoadDir[2];
 					LoadDir[0] = dxyzdge[1] / detJ;
 					LoadDir[1] = -dxyzdge[0] / detJ;
-					for (ic = 0; ic < (Order[iPatch * DIMENSION + 0] + 1) * (Order[iPatch * DIMENSION + 1] + 1); ic++)
+					for (ic = 0; ic < (info.Order[iPatch * DIMENSION + 0] + 1) * (info.Order[iPatch * DIMENSION + 1] + 1); ic++)
 					{
-						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT, Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
-						Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-						Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
-						printf("Equivalent_Nodal_Force[%d][0]=%le\nEquivalent_Nodal_Force[%d][1]=%le\n",
-							   iControlpoint[ic], Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 0],
-							   iControlpoint[ic], Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 1]);
+						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
+						info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
+						info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+						printf("info.Equivalent_Nodal_Force[%d][0]=%le\nEquivalent_Nodal_Force[%d][1]=%le\n",
+							   iControlpoint[ic], info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 0],
+							   iControlpoint[ic], info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 1]);
 					}
 				}
 				if (type_load == 3)
@@ -784,11 +740,11 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 					double LoadDir[2];
 					LoadDir[0] = dxyzdge[0] / detJ;
 					LoadDir[1] = dxyzdge[1] / detJ;
-					for (ic = 0; ic < (Order[iPatch * DIMENSION + 0] + 1) * (Order[iPatch * DIMENSION + 1] + 1); ic++)
+					for (ic = 0; ic < (info.Order[iPatch * DIMENSION + 0] + 1) * (info.Order[iPatch * DIMENSION + 1] + 1); ic++)
 					{
-						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT, Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
-						Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-						Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
+						info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
+						info.Equivalent_Nodal_Force[iControlpoint[ic] * DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
 					}
 				}
 			}
@@ -798,15 +754,15 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int Total_Element, int iCoord,
 }
 
 
-int SearchForElement(int mesh_n, int iPatch, int iX, int iY, int *Total_Element_on_mesh, int *Total_Element_to_mesh, int *Element_patch, int *ENC)
+int SearchForElement(int mesh_n, int iPatch, int iX, int iY, information info)
 {
 	int iii;
 
-	for (iii = 0; iii < Total_Element_on_mesh[mesh_n]; iii++)
+	for (iii = 0; iii < info.Total_Element_on_mesh[mesh_n]; iii++)
 	{
-		if (Element_patch[iii + Total_Element_to_mesh[mesh_n]] == iPatch)
+		if (info.Element_patch[iii + info.Total_Element_to_mesh[mesh_n]] == iPatch)
 		{
-			if (iX == ENC[(iii + Total_Element_to_mesh[mesh_n]) * DIMENSION + 0] && iY == ENC[(iii + Total_Element_to_mesh[mesh_n]) * DIMENSION + 1])
+			if (iX == info.ENC[(iii + info.Total_Element_to_mesh[mesh_n]) * DIMENSION + 0] && iY == info.ENC[(iii + info.Total_Element_to_mesh[mesh_n]) * DIMENSION + 1])
 				goto loopend;
 		}
 	}
@@ -817,13 +773,7 @@ int SearchForElement(int mesh_n, int iPatch, int iX, int iY, int *Total_Element_
 
 
 // for s_IGA, coupled matrix を求める, 要素の重なりを要素のガウス点から求める
-void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, int *NNLOVER, int *NELOVER,
-											 double *Gauss_Coordinate, double *Gauss_Coordinate_ex, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex,
-											 int *real_Total_Element_to_mesh, double *Node_Coordinate, int *Total_Control_Point_to_mesh, int *Controlpoint_of_Element,
-											 int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT, double *Position_Knots,
-											 int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point,
-											 double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight,
-											 int *real_Total_Element_on_mesh, int *real_element, int *Total_Patch_on_mesh, int *line_No_Total_element)
+void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, information info)
 {
 	int re, e;
 	int i, j, k, m;
@@ -840,45 +790,39 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 		Check_coupled_No[i] = 0;
 	}
 
-	for (m = 0; m < 2; m++) // 最初 Ng 個のガウス点で重なりを求め, NNLOVER[e] >= 2 の e に対して, 再度 Ng_extended 個のガウス点で重なりを求める
+	for (m = 0; m < 2; m++) // 最初 Ng 個のガウス点で重なりを求め, info.NNLOVER[e] >= 2 の e に対して, 再度 Ng_extended 個のガウス点で重なりを求める
 	{
 		Make_gauss_array(m);
 
 		// グローバルパッチの Preprocessing 作成
 		if (m == 0)
 		{
-			for (re = 0; re < real_Total_Element_on_mesh[mesh_n_org]; re++)
+			for (re = 0; re < info.real_Total_Element_on_mesh[mesh_n_org]; re++)
 			{
-				e = real_element[re + real_Total_Element_to_mesh[mesh_n_org]];
-				Preprocessing(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, B_Matrix, B_Matrix_ex,
-							  Jac, Jac_ex, real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh,
-							  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-							  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+				e = info.real_element[re + info.real_Total_Element_to_mesh[mesh_n_org]];
+				Preprocessing(m, e, info);
 			}
 		}
 
 		// ローカルパッチ(mesh_n_over)各要素の頂点の物理座標算出
-		for (re = 0; re < real_Total_Element_on_mesh[mesh_n_over]; re++)
+		for (re = 0; re < info.real_Total_Element_on_mesh[mesh_n_over]; re++)
 		{
 			int i_gg, i_ee;
 			double output_para[DIMENSION];
 			int Total_n_elements;
 
-			e = real_element[re + real_Total_Element_to_mesh[mesh_n_over]];
+			e = info.real_element[re + info.real_Total_Element_to_mesh[mesh_n_over]];
 
-			if (m == 0 || (m == 1 && NNLOVER[e] >= 2))
+			if (m == 0 || (m == 1 && info.NNLOVER[e] >= 2))
 			{
-				Preprocessing(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, B_Matrix, B_Matrix_ex,
-							  Jac, Jac_ex, real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh,
-							  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-							  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+				Preprocessing(m, e, info);
 
 				if (m == 1)
 				{
-					NNLOVER[e] = 0;
-					for (i = 0; i < NNLOVER[e]; i++)
+					info.NNLOVER[e] = 0;
+					for (i = 0; i < info.NNLOVER[e]; i++)
 					{
-						NELOVER[e * MAX_N_ELEMENT_OVER + i] = 0;
+						info.NELOVER[e * MAX_N_ELEMENT_OVER + i] = 0;
 					}
 				}
 
@@ -887,19 +831,19 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 				ll = 0;
 
 				// ローカルパッチ各要素のガウス点の物理座標のグローバルパッチでの(xi, eta)算出
-				for (i = 0; i < Total_Patch_on_mesh[mesh_n_org]; i++)
+				for (i = 0; i < info.Total_Patch_on_mesh[mesh_n_org]; i++)
 				{
 					// グローバルパッチ i での各方向ノットベクトル
-					double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 0]);
-					double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * No_knot[i * DIMENSION + 1]);
+					double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info.No_knot[i * DIMENSION + 0]);
+					double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info.No_knot[i * DIMENSION + 1]);
 
-					for (j = 0; j < No_knot[i * DIMENSION + 0]; j++)
+					for (j = 0; j < info.No_knot[i * DIMENSION + 0]; j++)
 					{
-						temp_Position_Knots_xi[j] = Position_Knots[Total_Knot_to_patch_dim[i * DIMENSION + 0] + j];
+						temp_Position_Knots_xi[j] = info.Position_Knots[info.Total_Knot_to_patch_dim[i * DIMENSION + 0] + j];
 					}
-					for (j = 0; j < No_knot[i * DIMENSION + 1]; j++)
+					for (j = 0; j < info.No_knot[i * DIMENSION + 1]; j++)
 					{
-						temp_Position_Knots_eta[j] = Position_Knots[Total_Knot_to_patch_dim[i * DIMENSION + 1] + j];
+						temp_Position_Knots_eta[j] = info.Position_Knots[info.Total_Knot_to_patch_dim[i * DIMENSION + 1] + j];
 					}
 
 					for (i_ee = 0; i_ee < GP_1dir; i_ee++)
@@ -913,33 +857,31 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 							{
 								if (m == 0)
 								{
-									data_result_shape[l] = Gauss_Coordinate[e * GP_2D * DIMENSION + g_n * DIMENSION + l];
+									data_result_shape[l] = info.Gauss_Coordinate[e * GP_2D * DIMENSION + g_n * DIMENSION + l];
 								}
 								else if (m == 1)
 								{
-									data_result_shape[l] = Gauss_Coordinate_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + l];
+									data_result_shape[l] = info.Gauss_Coordinate_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + l];
 								}
 							}
 							int itr_n = Calc_xi_eta(data_result_shape[0], data_result_shape[1],
 													temp_Position_Knots_xi, temp_Position_Knots_eta,
-													No_Control_point[i * DIMENSION + 0], No_Control_point[i * DIMENSION + 1], Order[i * DIMENSION + 0], Order[i * DIMENSION + 1],
-													&output_para[0], &output_para[1],
-													Position_Knots, Total_Knot_to_patch_dim,
-													No_Control_point, Order, Control_Coord_x, Control_Coord_y, Control_Weight, No_knot);
+													info.No_Control_point[i * DIMENSION + 0], info.No_Control_point[i * DIMENSION + 1], info.Order[i * DIMENSION + 0], info.Order[i * DIMENSION + 1],
+													&output_para[0], &output_para[1], info);
 							
 							if (m == 0)
 							{
-								Loc_parameter_on_Glo[e * GP_2D * DIMENSION + g_n * DIMENSION + 0] = output_para[0];
-								Loc_parameter_on_Glo[e * GP_2D * DIMENSION + g_n * DIMENSION + 1] = output_para[1];
+								info.Loc_parameter_on_Glo[e * GP_2D * DIMENSION + g_n * DIMENSION + 0] = output_para[0];
+								info.Loc_parameter_on_Glo[e * GP_2D * DIMENSION + g_n * DIMENSION + 1] = output_para[1];
 							}
 							else if (m == 1)
 							{
-								Loc_parameter_on_Glo_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + 0] = output_para[0];
-								Loc_parameter_on_Glo_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + 1] = output_para[1];
+								info.Loc_parameter_on_Glo_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + 0] = output_para[0];
+								info.Loc_parameter_on_Glo_ex[e * GP_2D * DIMENSION + g_n * DIMENSION + 1] = output_para[1];
 							}
 
 							// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
-							n_elements_over_point[k] = ele_check(i, output_para, No_Control_point, Position_Knots, Total_Knot_to_patch_dim, No_knot, Order, temp_element_n, line_No_Total_element);
+							n_elements_over_point[k] = ele_check(i, output_para, temp_element_n, info);
 							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
 							{
 								n_elements_over_point[k] = 0;
@@ -958,20 +900,20 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 				// 昇順ソート
 				sort(Total_n_elements, element_n_point);
 				// 重複削除
-				NNLOVER[e] = duplicate_delete(Total_n_elements, e, NELOVER, element_n_point); // NNLOVER: 要素 e に重なる要素の総数
+				info.NNLOVER[e] = duplicate_delete(Total_n_elements, e, element_n_point, info); // info.NNLOVER: 要素 e に重なる要素の総数
 			}
 		}
 	}
 
-	for (re = 0; re < real_Total_Element_on_mesh[mesh_n_over]; re++)
+	for (re = 0; re < info.real_Total_Element_on_mesh[mesh_n_over]; re++)
 	{
-		e = real_element[re + real_Total_Element_to_mesh[mesh_n_over]];
+		e = info.real_element[re + info.real_Total_Element_to_mesh[mesh_n_over]];
 
-		Check_coupled_No[NNLOVER[e]]++;
+		Check_coupled_No[info.NNLOVER[e]]++;
 
-		if (MAX_NNLOVER < NNLOVER[e])
+		if (MAX_NNLOVER < info.NNLOVER[e])
 		{
-			MAX_NNLOVER = NNLOVER[e];
+			MAX_NNLOVER = info.NNLOVER[e];
 		}
 	}
 
@@ -979,7 +921,7 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 	printf("MAX_NNLOVER = %d\n", MAX_NNLOVER);
 	for (i = 0; i <= MAX_NNLOVER; i++)
 	{
-		double Percent_Check_coupled_No = (double)Check_coupled_No[i] * 100.0 / (double)real_Total_Element_on_mesh[mesh_n_over];
+		double Percent_Check_coupled_No = (double)Check_coupled_No[i] * 100.0 / (double)info.real_Total_Element_on_mesh[mesh_n_over];
 		printf("Check_coupled_No[%d] = %d\t\t%.2lf %%\n", i, Check_coupled_No[i], Percent_Check_coupled_No);
 	}
 	
@@ -987,43 +929,43 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 }
 
 
-void Make_Loc_Glo(int *real_Total_Element_on_mesh, int *real_Total_Element_to_mesh, int *real_element, int *NNLOVER, int *NELOVER)
+void Make_Loc_Glo(information info)
 {
 	int i, j, k;
 	int jj;
 	int e;
 	int count;
 
-	int j_n = real_Total_Element_to_mesh[Total_mesh] - real_Total_Element_on_mesh[0];
+	int j_n = info.real_Total_Element_to_mesh[Total_mesh] - info.real_Total_Element_on_mesh[0];
 
-	for (i = 0; i < real_Total_Element_on_mesh[0]; i++)
+	for (i = 0; i < info.real_Total_Element_on_mesh[0]; i++)
 	{
-		e = real_element[i];
+		e = info.real_element[i];
 		count = 0;
 
 		for (j = 0; j < j_n; j++)
 		{
-			jj = real_element[real_Total_Element_to_mesh[1] + j]; //ローカルメッシュ上のreal element番号
+			jj = info.real_element[info.real_Total_Element_to_mesh[1] + j]; //ローカルメッシュ上のreal element番号
 
-			if (NNLOVER[jj] > 0)
+			if (info.NNLOVER[jj] > 0)
 			{
-				for (k = 0; k < NNLOVER[jj]; k++)
+				for (k = 0; k < info.NNLOVER[jj]; k++)
 				{
-					if (NELOVER[jj * MAX_N_ELEMENT_OVER + k] == e)
+					if (info.NELOVER[jj * MAX_N_ELEMENT_OVER + k] == e)
 					{
-						NELOVER[e * MAX_N_ELEMENT_OVER + count] = jj;
+						info.NELOVER[e * MAX_N_ELEMENT_OVER + count] = jj;
 						count++;
 					}
 				}
 			}
 		}
-		NNLOVER[e] = count;
+		info.NNLOVER[e] = count;
 	}
 }
 
 
 // Newton Raphsonによって出力されたxi,etaから重なる要素を求める
-int ele_check(int patch_n, double para_coord[DIMENSION], int *No_Control_point, double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *Order, int *temp_element_n, int *line_No_Total_element)
+int ele_check(int patch_n, double *para_coord, int *temp_element_n, information info)
 {
 	int i, j, k, l;
 	int kk, ll;
@@ -1043,24 +985,24 @@ int ele_check(int patch_n, double para_coord[DIMENSION], int *No_Control_point, 
 		}
 		RangeCheck_flag = 0;
 
-		for (k = 0; k < No_Control_point[patch_n * DIMENSION + j] - 1; k++)
+		for (k = 0; k < info.No_Control_point[patch_n * DIMENSION + j] - 1; k++)
 		{
 			if (RangeCheck_flag == 1)
 				break;
 
 			// Local要素の頂点がGlobalパッチ内にない場合
-			if (para_coord[j] < Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + 0] || para_coord[j] > Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + No_knot[patch_n * DIMENSION + j] - 1])
+			if (para_coord[j] < info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + 0] || para_coord[j] > info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.No_knot[patch_n * DIMENSION + j] - 1])
 			{
 				RangeCheck_flag++;
 			}
 
 			// Local要素の頂点がGlobal要素内部にある場合
-			if (para_coord[j] < Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k])
+			if (para_coord[j] < info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.Order[patch_n * DIMENSION + j] + k])
 			{
 				int kk = 0;
 				for (kk = 0; kk < k + 1; kk++)
 				{
-					if (para_coord[j] > Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k - kk])
+					if (para_coord[j] > info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.Order[patch_n * DIMENSION + j] + k - kk])
 					{
 						temp_ad[j][l] = k - kk;
 						l++;
@@ -1071,17 +1013,17 @@ int ele_check(int patch_n, double para_coord[DIMENSION], int *No_Control_point, 
 			}
 
 			// Local要素の頂点がGlobal要素境界上にある場合
-			if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k])
+			if (para_coord[j] == info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.Order[patch_n * DIMENSION + j] + k])
 			{
 				//頂点の座標がGlobalパッチの始点上にある場合
-				if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + 0])
+				if (para_coord[j] == info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + 0])
 				{
 					temp_ad[j][l] = k;
 					l++;
 					break;
 				}
 				//頂点の座標がGlobalパッチの終点上にある場合
-				if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + No_knot[patch_n * DIMENSION + j] - 1])
+				if (para_coord[j] == info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.No_knot[patch_n * DIMENSION + j] - 1])
 				{
 					temp_ad[j][l] = k - 1;
 					l++;
@@ -1095,16 +1037,16 @@ int ele_check(int patch_n, double para_coord[DIMENSION], int *No_Control_point, 
 					temp_ad[j][l] = k;
 					l++;
 				}
-				for (kk = 0; kk < Order[patch_n * DIMENSION + j]; kk++)
+				for (kk = 0; kk < info.Order[patch_n * DIMENSION + j]; kk++)
 				{
-					if (para_coord[j] == Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k + kk + 1])
+					if (para_coord[j] == info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.Order[patch_n * DIMENSION + j] + k + kk + 1])
 					// 多重ノット(次数分ループ)
 					{
 						printf("C0 continuity\n");
 						temp_ad[j][l] = k + kk;
 						l++;
 					}
-					if (para_coord[j] != Position_Knots[Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + Order[patch_n * DIMENSION + j] + k + kk + 1])
+					if (para_coord[j] != info.Position_Knots[info.Total_Knot_to_patch_dim[patch_n * DIMENSION + j] + info.Order[patch_n * DIMENSION + j] + k + kk + 1])
 						break;
 				}
 				RangeCheck_flag++;
@@ -1122,7 +1064,7 @@ int ele_check(int patch_n, double para_coord[DIMENSION], int *No_Control_point, 
 		{
 			for (ll = 0; ll < No_line[0]; ll++)
 			{
-				temp_element_n[l * No_line[0] + ll] = temp_ad[0][ll] + temp_ad[1][l] * line_No_Total_element[patch_n * DIMENSION + 0];
+				temp_element_n[l * No_line[0] + ll] = temp_ad[0][ll] + temp_ad[1][l] * info.line_No_Total_element[patch_n * DIMENSION + 0];
 			}
 		}
 	}
@@ -1152,18 +1094,18 @@ void sort(int total, int *element_n_point)
 
 
 //重複削除
-int duplicate_delete(int total, int element_n, int *NELOVER, int *element_n_point)
+int duplicate_delete(int total, int element_n, int *element_n_point, information info)
 {
 	int i, j;
 
 	j = 0;
-	NELOVER[element_n * MAX_N_ELEMENT_OVER + j] = element_n_point[0];
+	info.NELOVER[element_n * MAX_N_ELEMENT_OVER + j] = element_n_point[0];
 	j++;
 	for (i = 1; i < total; i++)
 	{
 		if (element_n_point[i] != element_n_point[i - 1])
 		{
-			NELOVER[element_n * MAX_N_ELEMENT_OVER + j] = element_n_point[i];
+			info.NELOVER[element_n * MAX_N_ELEMENT_OVER + j] = element_n_point[i];
 			j++;
 		}
 	}
@@ -1173,34 +1115,25 @@ int duplicate_delete(int total, int element_n, int *NELOVER, int *element_n_poin
 
 
 // Preprocessing
-void Preprocessing(int m, int e, double *Gauss_Coordinate, double *Gauss_Coordinate_ex, double *B_Matrix, double *B_Matrix_ex,
-				   double *Jac, double *Jac_ex, int *real_Total_Element_to_mesh, double *Node_Coordinate, int *Total_Control_Point_to_mesh,
-				   int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
-				   double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+void Preprocessing(int m, int e, information info)
 {
-	double *a_matrix = (double *)malloc(sizeof(double) * POW_Ng_extended * DIMENSION * DIMENSION); // a_matrix[POW_Ng_extended * DIMENSION * DIMENSION]
-	double *dSF = (double *)malloc(sizeof(double) * POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
-	double *dSF_ex = (double *)malloc(sizeof(double) * POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION); // dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
+	double *a_matrix = (double *)malloc(sizeof(double) * POW_Ng_extended * DIMENSION * DIMENSION);					// a_matrix[POW_Ng_extended * DIMENSION * DIMENSION]
+	double *dSF = (double *)malloc(sizeof(double) * POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION);				// dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
+	double *dSF_ex = (double *)malloc(sizeof(double) * POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION);	// dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
 
 	// ガウス点の物理座標を計算
-	Make_Gauss_Coordinate(m, e, Gauss_Coordinate, Gauss_Coordinate_ex, Node_Coordinate, Total_Control_Point_to_mesh,
-						  Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-						  Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+	Make_Gauss_Coordinate(m, e, info);
 
 	// ガウス点でのヤコビアン, Bマトリックスを計算
-	Make_dSF(m, e, dSF, dSF_ex, Element_patch, No_Control_point_ON_ELEMENT,
-			 Controlpoint_of_Element, Total_Control_Point_to_mesh, Node_Coordinate, INC, Order,
-			 Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
-	Make_Jac(m, e, Jac, Jac_ex, dSF, dSF_ex, a_matrix, Node_Coordinate, Controlpoint_of_Element, No_Control_point_ON_ELEMENT, Element_patch);
-	Make_B_Matrix(m, e, B_Matrix, B_Matrix_ex, dSF, dSF_ex, a_matrix, No_Control_point_ON_ELEMENT, Element_patch);
+	Make_dSF(m, e, dSF, dSF_ex, info);
+	Make_Jac(m, e, dSF, dSF_ex, a_matrix, info);
+	Make_B_Matrix(m, e, dSF, dSF_ex, a_matrix, info);
 
 	free(a_matrix), free(dSF), free(dSF_ex);
 }
 
 
-void Make_Gauss_Coordinate(int m, int e, double *Gauss_Coordinate, double *Gauss_Coordinate_ex, double *Node_Coordinate, int *Total_Control_Point_to_mesh,
-						   int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
-						   double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+void Make_Gauss_Coordinate(int m, int e, information info)
 {
 	int i, j, k;
 	double temp_coordinate[DIMENSION];
@@ -1211,21 +1144,19 @@ void Make_Gauss_Coordinate(int m, int e, double *Gauss_Coordinate, double *Gauss
 		temp_coordinate[0] = Gxi[i][0];
 		temp_coordinate[1] = Gxi[i][1];
 		
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
+		for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[e]]; j++)
 		{
-			R = Shape_func(j, temp_coordinate, e, Node_Coordinate, Total_Control_Point_to_mesh,
-						   Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-						   Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point);
+			R = Shape_func(j, temp_coordinate, e, info);
 
 			for (k = 0; k < DIMENSION; k++)
 			{
 				if (m == 0)
 				{
-					Gauss_Coordinate[e * GP_2D * DIMENSION + i * DIMENSION + k] += R * Node_Coordinate[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + j] * (DIMENSION + 1) + k];
+					info.Gauss_Coordinate[e * GP_2D * DIMENSION + i * DIMENSION + k] += R * info.Node_Coordinate[info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + j] * (DIMENSION + 1) + k];
 				}
 				else if (m == 1)
 				{
-					Gauss_Coordinate_ex[e * GP_2D * DIMENSION + i * DIMENSION + k] += R * Node_Coordinate[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + j] * (DIMENSION + 1) + k];
+					info.Gauss_Coordinate_ex[e * GP_2D * DIMENSION + i * DIMENSION + k] += R * info.Node_Coordinate[info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + j] * (DIMENSION + 1) + k];
 				}
 			}
 		}
@@ -1233,9 +1164,7 @@ void Make_Gauss_Coordinate(int m, int e, double *Gauss_Coordinate, double *Gauss
 }
 
 
-void Make_dSF(int m, int e, double *dSF, double *dSF_ex, int *Element_patch, int *No_Control_point_ON_ELEMENT,
-			  int *Controlpoint_of_Element, int *Total_Control_Point_to_mesh, double *Node_Coordinate, int *INC, int *Order,
-			  double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information info)
 {
 	int i, j, k;
 	double temp_coordinate[DIMENSION];
@@ -1245,21 +1174,17 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, int *Element_patch, int
 		temp_coordinate[0] = Gxi[i][0];
 		temp_coordinate[1] = Gxi[i][1];
 
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
+		for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[e]]; j++)
 		{
 			for (k = 0; k < DIMENSION; k++)
 			{
 				if (m == 0)
 				{
-					dSF[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + j * DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
-				   																					 Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
-				   																					 Total_Knot_to_patch_dim, No_knot, No_Control_point);
+					dSF[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + j * DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
 				}
 				else if (m == 1)
 				{
-					dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + j * DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
-				   																						Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
-				   																						Total_Knot_to_patch_dim, No_knot, No_Control_point);
+					dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + j * DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
 				}
 			}
 		}
@@ -1267,7 +1192,7 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, int *Element_patch, int
 }
 
 
-void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dSF_ex, double *a_matrix, double *Node_Coordinate, int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT, int *Element_patch)
+void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information info)
 {
 	int i, j, k, l;
 	double J;
@@ -1280,15 +1205,15 @@ void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dS
 			for (k = 0; k < DIMENSION; k++)
 			{
 				a[j][k] = 0.0;
-				for (l = 0; l < No_Control_point_ON_ELEMENT[Element_patch[e]]; l++)
+				for (l = 0; l < info.No_Control_point_ON_ELEMENT[info.Element_patch[e]]; l++)
 				{
 					if (m == 0)
 					{
-						a[j][k] += dSF[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + l * DIMENSION + k] * Node_Coordinate[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (DIMENSION + 1) + j];
+						a[j][k] += dSF[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + l * DIMENSION + k] * info.Node_Coordinate[info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (DIMENSION + 1) + j];
 					}
 					else if (m == 1)
 					{
-						a[j][k] += dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + l * DIMENSION + k] * Node_Coordinate[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (DIMENSION + 1) + j];
+						a[j][k] += dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION + l * DIMENSION + k] * info.Node_Coordinate[info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (DIMENSION + 1) + j];
 					}
 				}
 			}
@@ -1306,11 +1231,11 @@ void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dS
 
 		if (m == 0)
 		{
-			Jac[e * GP_2D + i] = J;
+			info.Jac[e * GP_2D + i] = J;
 		}
 		else if (m == 1)
 		{
-			Jac_ex[e * GP_2D + i] = J;
+			info.Jac_ex[e * GP_2D + i] = J;
 		}
 
 		for (j = 0; j < DIMENSION; j++)
@@ -1330,7 +1255,7 @@ void Make_Jac(int m, int e, double *Jac, double *Jac_ex, double *dSF, double *dS
 }
 
 
-void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *dSF, double *dSF_ex, double *a_matrix, int *No_Control_point_ON_ELEMENT, int *Element_patch)
+void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information info)
 {
 	int i, j, k, l;
 	double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT);	// b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
@@ -1339,7 +1264,7 @@ void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-			for (k = 0; k < No_Control_point_ON_ELEMENT[Element_patch[e]]; k++)
+			for (k = 0; k < info.No_Control_point_ON_ELEMENT[info.Element_patch[e]]; k++)
 			{
 				b[j * MAX_NO_CCpoint_ON_ELEMENT + k] = 0.0;
 				for (l = 0; l < DIMENSION; l++)
@@ -1359,26 +1284,26 @@ void Make_B_Matrix(int m, int e, double *B_Matrix, double *B_Matrix_ex, double *
 		// 2次元
 		if (m == 0)
 		{
-			for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
+			for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[e]]; j++)
 			{
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
-				B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+				info.B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
+				info.B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
 			}
 		}
 		else if (m == 1)
 		{
-			for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[e]]; j++)
+			for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[e]]; j++)
 			{
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
-				B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+				info.B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
+				info.B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + j];
+				info.B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + j];
 			}
 		}
 	}
@@ -1503,8 +1428,8 @@ void Make_gauss_array(int select_GP)
 
 
 // K matrix
-// 応力歪マトリックス
-void Make_D_Matrix(double *D)
+// D Matrix
+void Make_D_Matrix(information info)
 {
 	int i, j;
 
@@ -1514,132 +1439,130 @@ void Make_D_Matrix(double *D)
 		if (DM == 0) // 平面応力状態
 		{
 			double Eone = E / (1.0 - nu * nu);
-			double D1[3][3] = {{Eone, nu * Eone, 0}, {nu * Eone, Eone, 0}, {0, 0, (1 - nu) / 2 * Eone}};
+			double D1[D_MATRIX_SIZE][D_MATRIX_SIZE] = {{Eone, nu * Eone, 0}, {nu * Eone, Eone, 0}, {0, 0, (1 - nu) / 2 * Eone}};
 
 			for (i = 0; i < D_MATRIX_SIZE; i++)
 				for (j = 0; j < D_MATRIX_SIZE; j++)
-					D[i * D_MATRIX_SIZE + j] = D1[i][j];
+					info.D[i * D_MATRIX_SIZE + j] = D1[i][j];
 		}
 		else if (DM == 1) // 平面ひずみ状態(2Dの場合はこっち)
 		{
 			double Eone = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
-			double D1[3][3] = {{Eone, nu / (1.0 - nu) * Eone, 0}, {nu / (1.0 - nu) * Eone, Eone, 0}, {0, 0, (1 - 2 * nu) / 2 / (1.0 - nu) * Eone}};
+			double D1[D_MATRIX_SIZE][D_MATRIX_SIZE] = {{Eone, nu / (1.0 - nu) * Eone, 0}, {nu / (1.0 - nu) * Eone, Eone, 0}, {0, 0, (1 - 2 * nu) / 2 / (1.0 - nu) * Eone}};
 
 			for (i = 0; i < D_MATRIX_SIZE; i++)
 				for (j = 0; j < D_MATRIX_SIZE; j++)
-					D[i * D_MATRIX_SIZE + j] = D1[i][j];
+					info.D[i * D_MATRIX_SIZE + j] = D1[i][j];
 		}
 	}
 }
 
 
 // 拘束されている行数を省いた行列の番号の制作
-void Make_Index_Dof(int *Total_Control_Point_to_mesh, int *Total_Constraint_to_mesh, int *Constraint_Node_Dir, int *Index_Dof)
+void Make_Index_Dof(information info)
 {
 	int i, k = 0;
 
 	// 拘束されている自由度(Degree Of free)をERRORにする
-	for (i = 0; i < Total_Constraint_to_mesh[Total_mesh]; i++)
+	for (i = 0; i < info.Total_Constraint_to_mesh[Total_mesh]; i++)
 	{
-		Index_Dof[Constraint_Node_Dir[i * 2 + 0] * DIMENSION + Constraint_Node_Dir[i * 2 + 1]] = ERROR;
+		info.Index_Dof[info.Constraint_Node_Dir[i * 2 + 0] * DIMENSION + info.Constraint_Node_Dir[i * 2 + 1]] = ERROR;
 	}
 	// ERROR以外に番号を付ける
-	for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh] * DIMENSION; i++)
+	for (i = 0; i < info.Total_Control_Point_to_mesh[Total_mesh] * DIMENSION; i++)
 	{
-		if (Index_Dof[i] != ERROR)
+		if (info.Index_Dof[i] != ERROR)
 		{
-			Index_Dof[i] = k;
+			info.Index_Dof[i] = k;
 			k++;
 		}
 	}
 
 	K_Whole_Size = k;
-	printf("K_Whole_Size = %d\n", k);
+	printf("K_Whole_Size=%d\n", k);
 }
 
 
-void Make_K_Whole_Ptr_Col(int *Total_Element_to_mesh, int *Total_Control_Point_to_mesh, int *Total_Control_Point_To_Node,
-						  int *No_Control_point_ON_ELEMENT, int *Element_patch, int *Controlpoint_of_Element, int *Node_To_Node, int *NNLOVER,
-						  int *NELOVER, int *Index_Dof, int *K_Whole_Ptr, int *K_Whole_Col)
+void Make_K_Whole_Ptr_Col(information info)
 {
 	int i, j, k, ii, jj;
 	int N, NE, i_index, j_index;
 
 	// 初期化
 	for (i = 0; i < K_Whole_Size + 1; i++)
-		K_Whole_Ptr[i] = 0;
+		info.K_Whole_Ptr[i] = 0;
 
 	// 大きく分割するためのループ
-	for (N = 0; N < Total_Control_Point_to_mesh[Total_mesh]; N += K_DIVISION_LENGE)
+	for (N = 0; N < info.Total_Control_Point_to_mesh[Total_mesh]; N += K_DIVISION_LENGE)
 	{
 		// 各節点に接する節点を取得
 		for (i = 0; i < K_DIVISION_LENGE; i++)
 		{
-			Total_Control_Point_To_Node[i] = 0;
+			info.Total_Control_Point_To_Node[i] = 0;
 		}
-		for (i = 0; i < Total_Element_to_mesh[Total_mesh]; i++)
+		for (i = 0; i < info.Total_Element_to_mesh[Total_mesh]; i++)
 		{
-			for (ii = 0; ii < No_Control_point_ON_ELEMENT[Element_patch[i]]; ii++)
+			for (ii = 0; ii < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; ii++)
 			{
-				NE = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + ii] - N;
+				NE = info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + ii] - N;
 				if (0 <= NE && NE < K_DIVISION_LENGE)
 				{
-					for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[i]]; j++) //ローカル要素
+					for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; j++) //ローカル要素
 					{
 						// 数字がない時
-						if (Total_Control_Point_To_Node[NE] == 0)
+						if (info.Total_Control_Point_To_Node[NE] == 0)
 						{
 							// 節点番号を取得
-							Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + 0] = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
-							Total_Control_Point_To_Node[NE]++;
+							info.Node_To_Node[NE * info.Total_Control_Point_to_mesh[Total_mesh] + 0] = info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
+							info.Total_Control_Point_To_Node[NE]++;
 						}
 						// 同じものがあったら
 						// k > 0 以降の取得
 						// kのカウント
-						for (k = 0; k < Total_Control_Point_To_Node[NE]; k++)
+						for (k = 0; k < info.Total_Control_Point_To_Node[NE]; k++)
 						{
-							if (Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] == Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j])
+							if (info.Node_To_Node[NE * info.Total_Control_Point_to_mesh[Total_mesh] + k] == info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j])
 							{
 								break;
 							}
 						}
 						// 未設定のNode_To_Node取得
-						if (k == Total_Control_Point_To_Node[NE])
+						if (k == info.Total_Control_Point_To_Node[NE])
 						{
-							Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
-							Total_Control_Point_To_Node[NE]++;
+							info.Node_To_Node[NE * info.Total_Control_Point_to_mesh[Total_mesh] + k] = info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j];
+							info.Total_Control_Point_To_Node[NE]++;
 						}
 					}
 					// 別メッシュとの重なりを考慮
-					if (NNLOVER[i] > 0)
+					if (info.NNLOVER[i] > 0)
 					{
-						for (jj = 0; jj < NNLOVER[i]; jj++)
+						for (jj = 0; jj < info.NNLOVER[i]; jj++)
 						{
-							for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++) //ローカル要素
+							for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[info.NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++) //ローカル要素
 							{
 								// 数字がない時
-								if (Total_Control_Point_To_Node[NE] == 0)
+								if (info.Total_Control_Point_To_Node[NE] == 0)
 								{
 									// 節点番号を取得
-									Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + 0] = Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
-									Total_Control_Point_To_Node[NE]++;
+									info.Node_To_Node[NE * info.Total_Control_Point_to_mesh[Total_mesh] + 0] = info.Controlpoint_of_Element[info.NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
+									info.Total_Control_Point_To_Node[NE]++;
 								}
 
 								// 同じものがあったら
 								// k > 0 以降の取得
 								// kのカウント
-								for (k = 0; k < Total_Control_Point_To_Node[NE]; k++)
+								for (k = 0; k < info.Total_Control_Point_To_Node[NE]; k++)
 								{
-									if (Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] == Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j])
+									if (info.Node_To_Node[NE * info.Total_Control_Point_to_mesh[Total_mesh] + k] == info.Controlpoint_of_Element[info.NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j])
 									{
 										break;
 									}
 								}
 								// 未設定のNode_To_Node取得
-								if (k == Total_Control_Point_To_Node[NE])
+								if (k == info.Total_Control_Point_To_Node[NE])
 								{
-									Node_To_Node[NE * Total_Control_Point_to_mesh[Total_mesh] + k] = Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
-									Total_Control_Point_To_Node[NE]++;
+									info.Node_To_Node[NE * info.Total_Control_Point_to_mesh[Total_mesh] + k] = info.Controlpoint_of_Element[info.NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CCpoint_ON_ELEMENT + j];
+									info.Total_Control_Point_To_Node[NE]++;
 								}
 							}
 						}
@@ -1650,24 +1573,24 @@ void Make_K_Whole_Ptr_Col(int *Total_Element_to_mesh, int *Total_Control_Point_t
 		// 順番に並び替える
 		for (i = 0; i < K_DIVISION_LENGE; i++)
 		{
-			if (N + i < Total_Control_Point_to_mesh[Total_mesh])
+			if (N + i < info.Total_Control_Point_to_mesh[Total_mesh])
 			{
-				for (j = 0; j < Total_Control_Point_To_Node[i]; j++)
+				for (j = 0; j < info.Total_Control_Point_To_Node[i]; j++)
 				{
-					int Min = Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + j], No = j;
-					for (k = j; k < Total_Control_Point_To_Node[i]; k++)
+					int Min = info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + j], No = j;
+					for (k = j; k < info.Total_Control_Point_To_Node[i]; k++)
 					{
-						if (Min > Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k])
+						if (Min > info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + k])
 						{
-							Min = Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k];
+							Min = info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + k];
 							No = k;
 						}
 					}
 					for (k = No; k > j; k--)
 					{
-						Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k] = Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + k - 1];
+						info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + k] = info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + k - 1];
 					}
-					Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + j] = Min;
+					info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + j] = Min;
 				}
 			}
 		}
@@ -1679,22 +1602,22 @@ void Make_K_Whole_Ptr_Col(int *Total_Element_to_mesh, int *Total_Control_Point_t
 		{
 			for (ii = 0; ii < DIMENSION; ii++)
 			{
-				if (N + i < Total_Control_Point_to_mesh[Total_mesh])
+				if (N + i < info.Total_Control_Point_to_mesh[Total_mesh])
 				{
-					i_index = Index_Dof[(N + i) * DIMENSION + ii];
+					i_index = info.Index_Dof[(N + i) * DIMENSION + ii];
 					k = 0;
 					if (i_index >= 0)
 					{
-						K_Whole_Ptr[i_index + 1] = K_Whole_Ptr[i_index];
-						for (j = 0; j < Total_Control_Point_To_Node[i]; j++)
+						info.K_Whole_Ptr[i_index + 1] = info.K_Whole_Ptr[i_index];
+						for (j = 0; j < info.Total_Control_Point_To_Node[i]; j++)
 						{
 							for (jj = 0; jj < DIMENSION; jj++)
 							{
-								j_index = Index_Dof[Node_To_Node[i * Total_Control_Point_to_mesh[Total_mesh] + j] * DIMENSION + jj];
+								j_index = info.Index_Dof[info.Node_To_Node[i * info.Total_Control_Point_to_mesh[Total_mesh] + j] * DIMENSION + jj];
 								if (j_index >= 0 && j_index >= i_index)
 								{
-									K_Whole_Ptr[i_index + 1]++;
-									K_Whole_Col[K_Whole_Ptr[i_index] + k] = j_index;
+									info.K_Whole_Ptr[i_index + 1]++;
+									info.K_Whole_Col[info.K_Whole_Ptr[i_index] + k] = j_index;
 									k++;
 								}
 							}
@@ -1708,11 +1631,7 @@ void Make_K_Whole_Ptr_Col(int *Total_Element_to_mesh, int *Total_Control_Point_t
 
 
 // valを求める
-void Make_K_Whole_Val(int *real_Total_Element_to_mesh, int *real_element, int *Element_mesh, int *NNLOVER,
-					  int *No_Control_point_ON_ELEMENT, int *Element_patch, double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex,
-					  double *D, int *Index_Dof, int *Controlpoint_of_Element, int *K_Whole_Ptr, int *K_Whole_Col, double *K_Whole_Val, int *NELOVER,
-					  double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots, int *Total_Knot_to_patch_dim,
-					  int *Order, int *ENC, int *Total_Control_Point_to_mesh, double *Node_Coordinate, int *INC, int *No_knot, int *No_Control_point)
+void Make_K_Whole_Val(information info)
 {
 	int i, j, j1, j2, k1, k2, l;
 	int a, b, re;
@@ -1720,53 +1639,49 @@ void Make_K_Whole_Val(int *real_Total_Element_to_mesh, int *real_element, int *E
 	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
 	double *coupled_K_EL= (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);		// coupled_K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
 
-	for (re = 0; re < real_Total_Element_to_mesh[Total_mesh]; re++)
+	for (re = 0; re < info.real_Total_Element_to_mesh[Total_mesh]; re++)
 	{
-		i = real_element[re];
-		printf("element : %d\n\n", i);
+		i = info.real_element[re];
 
-		if (Element_mesh[i] == 0 && re == 0) // 2つめの条件は効率化のため
+		if (info.Element_mesh[i] == 0 && re == 0) // 2つめの条件は効率化のため
 		{
-			// GP_2D = POW_Ng;
 			Make_gauss_array(0);
 		}
-		else if (Element_mesh[i] > 0)
+		else if (info.Element_mesh[i] > 0)
 		{
-			if (NNLOVER[i] == 1 && (NNLOVER[real_element[re - 1]] != 1 || Element_mesh[real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
+			if (info.NNLOVER[i] == 1 && (info.NNLOVER[info.real_element[re - 1]] != 1 || info.Element_mesh[info.real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
 			{
-				// GP_2D = POW_Ng;
 				Make_gauss_array(0);
 			}
-			else if (NNLOVER[i] >= 2 && (NNLOVER[real_element[re - 1]] == 1 || Element_mesh[real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
+			else if (info.NNLOVER[i] >= 2 && (info.NNLOVER[info.real_element[re - 1]] == 1 || info.Element_mesh[info.real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
 			{
-				// GP_2D = POW_Ng_extended;
 				Make_gauss_array(1);
 			}
 		}
 
 		// 各要素のK_ELを求める
-		Make_K_EL(i, K_EL, No_Control_point_ON_ELEMENT, Element_patch, Jac, Jac_ex, B_Matrix, B_Matrix_ex, D);
+		Make_K_EL(i, K_EL, info);
 
 		// Valを求める
-		for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; j1++)
+		for (j1 = 0; j1 < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; j1++)
 		{
 			for (j2 = 0; j2 < DIMENSION; j2++)
 			{
-				a = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
+				a = info.Index_Dof[info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
 				if (a >= 0)
 				{
-					for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; k1++)
+					for (k1 = 0; k1 < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; k1++)
 					{
 						for (k2 = 0; k2 < DIMENSION; k2++)
 						{
-							b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
+							b = info.Index_Dof[info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
 							if (b >= 0 && b >= a)
 							{
-								for (l = K_Whole_Ptr[a]; l < K_Whole_Ptr[a + 1]; l++)
+								for (l = info.K_Whole_Ptr[a]; l < info.K_Whole_Ptr[a + 1]; l++)
 								{
-									if (K_Whole_Col[l] == b)
+									if (info.K_Whole_Col[l] == b)
 									{
-										K_Whole_Val[l] += K_EL[(j1 * DIMENSION + j2) * MAX_KIEL_SIZE + k1 * DIMENSION + k2];
+										info.K_Whole_Val[l] += K_EL[(j1 * DIMENSION + j2) * MAX_KIEL_SIZE + k1 * DIMENSION + k2];
 										break;
 									}
 								}
@@ -1777,38 +1692,33 @@ void Make_K_Whole_Val(int *real_Total_Element_to_mesh, int *real_element, int *E
 			}
 		}
 
-		if (Element_mesh[i] > 0 && NNLOVER[i] > 0) // ローカルメッシュ上の要素について, 重なっている要素が存在するとき
+		if (info.Element_mesh[i] > 0 && info.NNLOVER[i] > 0) // ローカルメッシュ上の要素について, 重なっている要素が存在するとき
 		{
-			for (j = 0; j < NNLOVER[i]; j++)
+			for (j = 0; j < info.NNLOVER[i]; j++)
 			{
 				// 各要素のcoupled_K_ELを求める
-				Make_coupled_K_EL(i, NELOVER[i * MAX_N_ELEMENT_OVER + j], coupled_K_EL, No_Control_point_ON_ELEMENT, 
-								  Jac, Jac_ex, B_Matrix, B_Matrix_ex, D,
-								  Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex, Position_Knots,
-								  Total_Knot_to_patch_dim, Order, ENC, Controlpoint_of_Element,
-								  Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC,
-								  No_knot, No_Control_point);
+				Make_coupled_K_EL(i, info.NELOVER[i * MAX_N_ELEMENT_OVER + j], coupled_K_EL, info);
 
 				// Valを求める
-				for (j1 = 0; j1 < No_Control_point_ON_ELEMENT[Element_patch[NELOVER[i * MAX_N_ELEMENT_OVER + j]]]; j1++)
+				for (j1 = 0; j1 < info.No_Control_point_ON_ELEMENT[info.Element_patch[info.NELOVER[i * MAX_N_ELEMENT_OVER + j]]]; j1++)
 				{
 					for (j2 = 0; j2 < DIMENSION; j2++)
 					{
-						a = Index_Dof[Controlpoint_of_Element[NELOVER[i * MAX_N_ELEMENT_OVER + j] * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
+						a = info.Index_Dof[info.Controlpoint_of_Element[info.NELOVER[i * MAX_N_ELEMENT_OVER + j] * MAX_NO_CCpoint_ON_ELEMENT + j1] * DIMENSION + j2];
 						if (a >= 0)
 						{
-							for (k1 = 0; k1 < No_Control_point_ON_ELEMENT[Element_patch[i]]; k1++)
+							for (k1 = 0; k1 < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; k1++)
 							{
 								for (k2 = 0; k2 < DIMENSION; k2++)
 								{
-									b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
+									b = info.Index_Dof[info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + k1] * DIMENSION + k2];
 									if (b >= 0 && b >= a)
 									{
-										for (l = K_Whole_Ptr[a]; l < K_Whole_Ptr[a + 1]; l++)
+										for (l = info.K_Whole_Ptr[a]; l < info.K_Whole_Ptr[a + 1]; l++)
 										{
-											if (K_Whole_Col[l] == b)
+											if (info.K_Whole_Col[l] == b)
 											{
-												K_Whole_Val[l] += coupled_K_EL[(j1 * DIMENSION + j2) * MAX_KIEL_SIZE + k1 * DIMENSION + k2];
+												info.K_Whole_Val[l] += coupled_K_EL[(j1 * DIMENSION + j2) * MAX_KIEL_SIZE + k1 * DIMENSION + k2];
 												break;
 											}
 										}
@@ -1827,12 +1737,11 @@ void Make_K_Whole_Val(int *real_Total_Element_to_mesh, int *real_element, int *E
 
 
 // 要素合成マトリックス
-void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *Element_patch,
-			   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D)
+void Make_K_EL(int El_No, double *K_EL, information info)
 {
 	int i, j, k, l;
 	
-	int KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[El_No]] * DIMENSION;
+	int KIEL_SIZE = info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]] * DIMENSION;
 
 	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
@@ -1851,28 +1760,28 @@ void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *E
 		// J, B の作成
 		if (GP_2D == POW_Ng)
 		{
-			J = Jac[El_No * GP_2D + i];
+			J = info.Jac[El_No * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info.B_Matrix[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
 		else if (GP_2D == POW_Ng_extended)
 		{
-			J = Jac_ex[El_No * GP_2D + i];
+			J = info.Jac_ex[El_No * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info.B_Matrix_ex[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
 
-		BDBJ(KIEL_SIZE, B, D, J, K1);
+		BDBJ(KIEL_SIZE, B, J, K1, info);
 		for (k = 0; k < KIEL_SIZE; k++)
 		{
 			for (l = 0; l < KIEL_SIZE; l++)
@@ -1887,17 +1796,12 @@ void Make_K_EL(int El_No, double *K_EL, int *No_Control_point_ON_ELEMENT, int *E
 
 
 // 結合要素剛性マトリックス
-void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *No_Control_point_ON_ELEMENT, 
-					   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D,
-					   double *Loc_parameter_on_Glo, double *Loc_parameter_on_Glo_ex, double *Position_Knots,
-					   int *Total_Knot_to_patch_dim, int *Order, int *ENC, int *Controlpoint_of_Element,
-					   int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC,
-					   int *No_knot, int *No_Control_point)
+void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, information info)
 {
 	int i, j, jj, k, l;
 
 	int BDBJ_flag;
-	int KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[El_No_glo]] * DIMENSION;
+	int KIEL_SIZE = info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No_glo]] * DIMENSION;
 
 	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
@@ -1915,49 +1819,49 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *
 	for (i = 0; i < GP_2D; i++)
 	{
 		// J, B, BG の作成
-		double para[DIMENSION];
-		double G_Gxi[DIMENSION];
+		double para[DIMENSION] = {0.0};
+		double G_Gxi[DIMENSION] = {0.0};
 
 		if (GP_2D == POW_Ng)
 		{
-			J = Jac[El_No_loc * GP_2D + i];
+			J = info.Jac[El_No_loc * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
-				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = B_Matrix[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info.B_Matrix[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
-			para[0] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
-			para[1] = Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
+			para[0] = info.Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
+			para[1] = info.Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
 		}
 		else if (GP_2D == POW_Ng_extended)
 		{
-			J = Jac_ex[El_No_loc * GP_2D + i];
+			J = info.Jac_ex[El_No_loc * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
-				for (k = 0; k < MAX_KIEL_SIZE; k ++)
+				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = B_Matrix_ex[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info.B_Matrix_ex[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
-			para[0] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
-			para[1] = Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
+			para[0] = info.Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
+			para[1] = info.Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
 		}
 
 		// 要素内外判定
-		if (para[0] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]] &&
-			para[0] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] &&
-			para[1] >= Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]] &&
-			para[1] <  Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1])
+		if (para[0] >= info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 0] + info.Order[0 * DIMENSION + 0] + info.ENC[El_No_glo * DIMENSION + 0]] &&
+			para[0] <  info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 0] + info.Order[0 * DIMENSION + 0] + info.ENC[El_No_glo * DIMENSION + 0] + 1] &&
+			para[1] >= info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 1] + info.Order[0 * DIMENSION + 1] + info.ENC[El_No_glo * DIMENSION + 1]] &&
+			para[1] <  info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 1] + info.Order[0 * DIMENSION + 1] + info.ENC[El_No_glo * DIMENSION + 1] + 1])
 		{
 			BDBJ_flag = 1;
 
 			// 親要素座標の算出
-			G_Gxi[0] = -1.0 + 2.0 * (para[0] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]])
-						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + Order[0 * DIMENSION + 0] + ENC[El_No_glo * DIMENSION + 0]]);
-			G_Gxi[1] = -1.0 + 2.0 * (para[1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]])
-						/ (Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1] + 1] - Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + Order[0 * DIMENSION + 1] + ENC[El_No_glo * DIMENSION + 1]]);
+			G_Gxi[0] = -1.0 + 2.0 * (para[0] - info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 0] + info.Order[0 * DIMENSION + 0] + info.ENC[El_No_glo * DIMENSION + 0]])
+						/ (info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 0] + info.Order[0 * DIMENSION + 0] + info.ENC[El_No_glo * DIMENSION + 0] + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 0] + info.Order[0 * DIMENSION + 0] + info.ENC[El_No_glo * DIMENSION + 0]]);
+			G_Gxi[1] = -1.0 + 2.0 * (para[1] - info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 1] + info.Order[0 * DIMENSION + 1] + info.ENC[El_No_glo * DIMENSION + 1]])
+						/ (info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 1] + info.Order[0 * DIMENSION + 1] + info.ENC[El_No_glo * DIMENSION + 1] + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 1] + info.Order[0 * DIMENSION + 1] + info.ENC[El_No_glo * DIMENSION + 1]]);
 		}
 		else
 		{
@@ -1968,11 +1872,9 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *
 		if (BDBJ_flag)
 		{
 			// 重なるグローバル要素のBマトリックス
-			Make_BG_Matrix(El_No_glo, BG, G_Gxi, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
-						   Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
-						   Total_Knot_to_patch_dim, No_knot, No_Control_point);
+			Make_BG_Matrix(El_No_glo, BG, G_Gxi, info);
 			// BGTDBLJの計算
-			coupled_BDBJ(KIEL_SIZE, B, D, BG, J, K1);
+			coupled_BDBJ(KIEL_SIZE, B, BG, J, K1, info);
 			for (k = 0; k < KIEL_SIZE; k++)
 			{
 				for (l = 0; l < KIEL_SIZE; l++)
@@ -1988,9 +1890,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, int *
 
 
 // BGマトリックスを求める関数
-void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT,
-					int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC, int *Order, double *Position_Knots,
-					int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information info)
 {
 	double a[DIMENSION][DIMENSION];
 	double *b = (double *)malloc(sizeof(double) * DIMENSION * MAX_NO_CCpoint_ON_ELEMENT); // b[DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
@@ -2002,12 +1902,9 @@ void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *C
 		for (j = 0; j < DIMENSION; j++)
 		{
 			a[i][j] = 0.0;
-			for (k = 0; k < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; k++)
+			for (k = 0; k < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; k++)
 			{
-				a[i][j] += dShape_func(k, j, Local_coord, El_No, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
-									   Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
-									   Total_Knot_to_patch_dim, No_knot, No_Control_point)
-						 * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + k] * (DIMENSION + 1) + i];
+				a[i][j] += dShape_func(k, j, Local_coord, El_No, info) * info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + k] * (DIMENSION + 1) + i];
 			}
 		}
 	}
@@ -2016,21 +1913,18 @@ void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *C
 
 	for (i = 0; i < DIMENSION; i++)
 	{
-		for (j = 0; j < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; j++)
+		for (j = 0; j < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; j++)
 		{
 			b[i * MAX_NO_CCpoint_ON_ELEMENT + j] = 0.0;
 			for (k = 0; k < DIMENSION; k++)
 			{
-				b[i * MAX_NO_CCpoint_ON_ELEMENT + j] += a[k][i]
-													  * dShape_func(j, k, Local_coord, El_No, Controlpoint_of_Element, No_Control_point_ON_ELEMENT,
-																	Total_Control_Point_to_mesh, Element_patch, Node_Coordinate, INC, Order, Position_Knots,
-																	Total_Knot_to_patch_dim, No_knot, No_Control_point);
+				b[i * MAX_NO_CCpoint_ON_ELEMENT + j] += a[k][i] * dShape_func(j, k, Local_coord, El_No, info);
 			}
 		}
 	}
 
 	// 2次元
-	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
+	for (i = 0; i < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; i++)
 	{
 		BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
 		BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
@@ -2045,19 +1939,19 @@ void Make_BG_Matrix(int El_No, double *BG, double Local_coord[DIMENSION], int *C
 
 
 // ガウスの数値積分
-void BDBJ(int KIEL_SIZE, double *B, double *D, double J, double *K_EL)
+void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information info)
 {
 	int i, j, k;
 	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
 
-	// [B]T[D][B]Jの計算
+	// [B]T[info.D][B]Jの計算
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
 		for (j = 0; j < D_MATRIX_SIZE; j++)
 		{
 			for (k = 0; k < D_MATRIX_SIZE; k++)
 			{
-				BD[i * D_MATRIX_SIZE + j] += B[k * MAX_KIEL_SIZE + i] * D[k * D_MATRIX_SIZE + j];
+				BD[i * D_MATRIX_SIZE + j] += B[k * MAX_KIEL_SIZE + i] * info.D[k * D_MATRIX_SIZE + j];
 			}
 		}
 	}
@@ -2080,19 +1974,19 @@ void BDBJ(int KIEL_SIZE, double *B, double *D, double J, double *K_EL)
 
 
 // 結合ガウスの数値積分
-void coupled_BDBJ(int KIEL_SIZE, double *B, double *D, double *BG, double J, double *K_EL)
+void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, information info)
 {
 	int i, j, k;
 	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
 
-	//[B]T[D][B]Jの計算
+	//[B]T[info.D][B]Jの計算
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
 		for (j = 0; j < D_MATRIX_SIZE; j++)
 		{
 			for (k = 0; k < D_MATRIX_SIZE; k++)
 			{
-				BD[i * D_MATRIX_SIZE + j] += BG[k * MAX_KIEL_SIZE + i] * D[k * D_MATRIX_SIZE + j];
+				BD[i * D_MATRIX_SIZE + j] += BG[k * MAX_KIEL_SIZE + i] * info.D[k * D_MATRIX_SIZE + j];
 			}
 		}
 	}
@@ -2115,48 +2009,46 @@ void coupled_BDBJ(int KIEL_SIZE, double *B, double *D, double *BG, double J, dou
 
 
 // F vector
-// 荷重の行列を作る
-void Make_F_Vec(double *rhs_vec, int *Total_Load_to_mesh, int *Index_Dof, int *Load_Node_Dir, double *Value_of_Load)
+void Make_F_Vec(information info)
 {
 	int i, index;
+
 	for (i = 0; i < K_Whole_Size; i++)
-		rhs_vec[i] = 0.0;
-	
-	for (i = 0; i < Total_Load_to_mesh[Total_mesh]; i++)
+		info.rhs_vec[i] = 0.0;
+
+	for (i = 0; i < info.Total_Load_to_mesh[Total_mesh]; i++)
 	{
-		index = Index_Dof[Load_Node_Dir[i * 2 + 0] * DIMENSION + Load_Node_Dir[i * 2 + 1]];
+		index = info.Index_Dof[info.Load_Node_Dir[i * 2 + 0] * DIMENSION + info.Load_Node_Dir[i * 2 + 1]];
 		if (index >= 0)
-			rhs_vec[index] += Value_of_Load[i];
+			info.rhs_vec[index] += info.Value_of_Load[i];
 	}
 }
 
 
 // 強制変位対策
-void Make_F_Vec_disp_const(int *Total_Constraint_to_mesh, int *real_Total_Element_to_mesh, int *No_Control_point_ON_ELEMENT, int *Element_patch,
-						   int *Index_Dof, int *Controlpoint_of_Element, int *real_El_No_on_mesh, int *Total_Element_to_mesh, 
-						   int *Constraint_Node_Dir, double *Value_of_Constraint, double *rhs_vec, int *real_element,
-						   double *Jac, double *Jac_ex, double *B_Matrix, double *B_Matrix_ex, double *D)
+void Make_F_Vec_disp_const(information info)
 {
 	int ie, idir, inode, jdir, jnode, kk_const;
 	int ii, iii, b, bb, jj, j1, j2, ii_local, jj_local;
 
 	int i;
+	int KIEL_SIZE;
 
 	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
 
 	Make_gauss_array(0);
 
-	for (ie = 0; ie < real_Total_Element_to_mesh[Total_mesh]; ie++)
+	for (ie = 0; ie < info.real_Total_Element_to_mesh[Total_mesh]; ie++)
 	{
-		i = real_element[ie];
-		int KIEL_SIZE = No_Control_point_ON_ELEMENT[Element_patch[i]] * DIMENSION;
+		i = info.real_element[ie];
+		KIEL_SIZE = info.No_Control_point_ON_ELEMENT[info.Element_patch[i]] * DIMENSION;
 
 		iii = 0;
 		for (idir = 0; idir < DIMENSION; idir++)
 		{
-			for (inode = 0; inode < No_Control_point_ON_ELEMENT[Element_patch[i]]; inode++)
+			for (inode = 0; inode < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; inode++)
 			{
-				b = Index_Dof[Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir];
+				b = info.Index_Dof[info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir];
 				if (b < 0)
 					iii++;
 			}
@@ -2164,31 +2056,30 @@ void Make_F_Vec_disp_const(int *Total_Constraint_to_mesh, int *real_Total_Elemen
 
 		if (iii > 0)
 		{
-			Make_K_EL(i, K_EL, No_Control_point_ON_ELEMENT, Element_patch, Jac, Jac_ex, B_Matrix, B_Matrix_ex, D);
+			Make_K_EL(i, K_EL, info);
 			for (idir = 0; idir < DIMENSION; idir++)
 			{
-				for (inode = 0; inode < No_Control_point_ON_ELEMENT[Element_patch[i]]; inode++)
+				for (inode = 0; inode < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; inode++)
 				{
-					// ii = Controlpoint_of_Element[real_El_No_on_mesh[Total_mesh * Total_Element_to_mesh[Total_mesh] + ie] * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir;
-					ii = Controlpoint_of_Element[0 + inode] * DIMENSION + idir;
-					b = Index_Dof[ii];
+					ii = info.Controlpoint_of_Element[info.real_element[ie] * MAX_NO_CCpoint_ON_ELEMENT + inode] * DIMENSION + idir;
+					b = info.Index_Dof[ii];
 					if (b >= 0)
 					{
 						ii_local = inode * DIMENSION + idir;
 						for (jdir = 0; jdir < DIMENSION; jdir++)
 						{
-							for (jnode = 0; jnode < No_Control_point_ON_ELEMENT[Element_patch[i]]; jnode++)
+							for (jnode = 0; jnode < info.No_Control_point_ON_ELEMENT[info.Element_patch[i]]; jnode++)
 							{
-								jj = Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] * DIMENSION + jdir;
-								bb = Index_Dof[jj];
+								jj = info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] * DIMENSION + jdir;
+								bb = info.Index_Dof[jj];
 								if (bb < 0)
 								{
 									jj_local = jnode * DIMENSION + jdir;
-									for (kk_const = 0; kk_const < Total_Constraint_to_mesh[Total_mesh]; kk_const++)
+									for (kk_const = 0; kk_const < info.Total_Constraint_to_mesh[Total_mesh]; kk_const++)
 									{
-										if (Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] == Constraint_Node_Dir[kk_const * 2 + 0] && jdir == Constraint_Node_Dir[kk_const * 2 + 1])
+										if (info.Controlpoint_of_Element[i * MAX_NO_CCpoint_ON_ELEMENT + jnode] == info.Constraint_Node_Dir[kk_const * 2 + 0] && jdir == info.Constraint_Node_Dir[kk_const * 2 + 1])
 										{
-											rhs_vec[b] -= K_EL[ii_local * MAX_KIEL_SIZE + jj_local] * Value_of_Constraint[kk_const];
+											info.rhs_vec[b] -= K_EL[ii_local * MAX_KIEL_SIZE + jj_local] * info.Value_of_Constraint[kk_const];
 										}
 									}
 								}
@@ -2204,27 +2095,25 @@ void Make_F_Vec_disp_const(int *Total_Constraint_to_mesh, int *real_Total_Elemen
 
 
 // 分布荷重の等価節点力を足す
-void Add_Equivalent_Nodal_Force_to_F_Vec(int *Total_Control_Point_to_mesh, int *Index_Dof, double *rhs_vec, double *Equivalent_Nodal_Force)
+void Add_Equivalent_Nodal_Force_to_F_Vec(information info)
 {
 	int i, j, index;
 	for (j = 0; j < DIMENSION; j++)
 	{
-		for (i = 0; i < Total_Control_Point_to_mesh[Total_mesh]; i++)
+		for (i = 0; i < info.Total_Control_Point_to_mesh[Total_mesh]; i++)
 		{
-			index = Index_Dof[i * DIMENSION + j];
+			index = info.Index_Dof[i * DIMENSION + j];
 			if (index >= 0)
 			{
-				rhs_vec[index] += Equivalent_Nodal_Force[i * DIMENSION + j];
+				info.rhs_vec[index] += info.Equivalent_Nodal_Force[i * DIMENSION + j];
 			}
 		}
 	}
 }
 
 
-
-// PCG solver
-// 前処理付共役勾配法により[K]{d}={f}を解く
-void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, double *sol_vec, double *rhs_vec, int *Total_Control_Point_on_mesh, int *Index_Dof)
+// PCG solver, 前処理付共役勾配法により[K]{d}={f}を解く
+void PCG_Solver(int max_itetarion, double eps, information info)
 {
 	int i, j, k;
 	int ndof = K_Whole_Size;
@@ -2240,37 +2129,37 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 
 	// 初期化
 	for (i = 0; i < ndof; i++)
-		sol_vec[i] = 0.0;
+		info.sol_vec[i] = 0.0;
 
 	// 前処理行列作成
 	double *M = (double *)malloc(sizeof(double) * MAX_NON_ZERO);
 	int *M_Ptr = (int *)malloc(sizeof(int) * MAX_K_WHOLE_SIZE + 1);
 	int *M_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);
-	Make_M(M, M_Ptr, M_Col, ndof, Total_Control_Point_on_mesh, K_Whole_Val, K_Whole_Ptr, K_Whole_Col, Index_Dof);
+	Make_M(M, M_Ptr, M_Col, ndof, info);
 
 	// 第0近似解に対する残差の計算
 	double *ax = (double *)calloc(ndof, sizeof(double));
 	for (i = 0; i < ndof; i++)
 	{
-		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		for (j = info.K_Whole_Ptr[i]; j < info.K_Whole_Ptr[i + 1]; j++)
 		{
-			ax[i] += K_Whole_Val[j] * sol_vec[K_Whole_Col[j]];
-			if (i != K_Whole_Col[j])
+			ax[i] += info.K_Whole_Val[j] * info.sol_vec[info.K_Whole_Col[j]];
+			if (i != info.K_Whole_Col[j])
 			{
-				ax[K_Whole_Col[j]] += K_Whole_Val[j] * sol_vec[i];
+				ax[info.K_Whole_Col[j]] += info.K_Whole_Val[j] * info.sol_vec[i];
 			}
 		}
 	}
 	for (i = 0; i < ndof; i++)
 	{
-		r[i] = rhs_vec[i] - ax[i];
+		r[i] = info.rhs_vec[i] - ax[i];
 	}
 	free(ax);
 
 	// 第0近似解に対する残差の計算
 	// for (i = 0; i < ndof; i++)
 	// {
-	// 	r[i] = rhs_vec[i];
+	// 	r[i] = info.rhs_vec[i];
 	// }
 
 	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし,p_0 = (LDL^T)^-1 r_0 = M^-1 r_0
@@ -2295,16 +2184,16 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 				int temp1;
 				if (i <= j)
 				{
-					temp1 = RowCol_to_icount(i, j, K_Whole_Ptr, K_Whole_Col); // temp_array_K[i][j]
+					temp1 = RowCol_to_icount(i, j, info); // temp_array_K[i][j]
 				}
 				else if (i > j)
 				{
-					temp1 = RowCol_to_icount(j, i, K_Whole_Ptr, K_Whole_Col); // temp_array_K[i][j] = temp_array_K[j][i]
+					temp1 = RowCol_to_icount(j, i, info); // temp_array_K[i][j] = temp_array_K[j][i]
 				}
 
 				if (temp1 != -1)
 				{
-					temp_array_K[j] = K_Whole_Val[temp1];
+					temp_array_K[j] = info.K_Whole_Val[temp1];
 				}
 			}
 			y[i] = inner_product(ndof, temp_array_K, p);
@@ -2319,7 +2208,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 		// 解x, 残差rの更新
 		for (i = 0; i < ndof; i++)
 		{
-			sol_vec[i] += alpha * p[i];
+			info.sol_vec[i] += alpha * p[i];
 			r[i] -= alpha * y[i];
 		}
 
@@ -2344,7 +2233,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 		for (i = 0; i < ndof; i++)
 		{
 			e1 += p[i] * p[i];
-			e2 += sol_vec[i] * sol_vec[i];
+			e2 += info.sol_vec[i] * info.sol_vec[i];
 		}
 		e = fabs(alpha) * sqrt(e1 / e2);
 		if (e < eps)
@@ -2356,7 +2245,7 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 		// βの計算とPの更新
 		// beta = rr1 / rr0; //旧
 		// beta = - rr1 / temp_scaler; // 新
-		beta = -inner_product(ndof, y, r2) / temp_scaler;
+		beta = - inner_product(ndof, y, r2) / temp_scaler;
 
 		for (i = 0; i < ndof; i++)
 		{
@@ -2390,15 +2279,15 @@ void PCG_Solver(int max_itetarion, double eps, double *K_Whole_Val, int *K_Whole
 }
 
 
-void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Point_on_mesh, double *K_Whole_Val, int *K_Whole_Ptr, int *K_Whole_Col, int *Index_Dof)
+void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, information info)
 {
 	int i, j;
 	int ndof_glo = 0;
 
 	// グローバルパッチのdofを求める
-	for (i = 0; i < Total_Control_Point_on_mesh[0] * DIMENSION; i++)
+	for (i = 0; i < info.Total_Control_Point_on_mesh[0] * DIMENSION; i++)
 	{
-		if (Index_Dof[i] != ERROR)
+		if (info.Index_Dof[i] != ERROR)
 		{
 			ndof_glo++;
 		}
@@ -2414,19 +2303,19 @@ void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, int *Total_Control_Poin
 	{
 		M_Ptr[i + 1] = M_Ptr[i];
 
-		for (j = K_Whole_Ptr[i]; j < K_Whole_Ptr[i + 1]; j++)
+		for (j = info.K_Whole_Ptr[i]; j < info.K_Whole_Ptr[i + 1]; j++)
 		{
-			if (i < ndof_glo && K_Whole_Col[j] < ndof_glo)
+			if (i < ndof_glo && info.K_Whole_Col[j] < ndof_glo)
 			{
-				M[counter] = K_Whole_Val[j];
-				M_Col[counter] = K_Whole_Col[j];
+				M[counter] = info.K_Whole_Val[j];
+				M_Col[counter] = info.K_Whole_Col[j];
 				counter++;
 				M_Ptr[i + 1]++;
 			}
 			else if (i >= ndof_glo)
 			{
-				M[counter] = K_Whole_Val[j];
-				M_Col[counter] = K_Whole_Col[j];
+				M[counter] = info.K_Whole_Val[j];
+				M_Col[counter] = info.K_Whole_Col[j];
 				counter++;
 				M_Ptr[i + 1]++;
 			}
@@ -2528,15 +2417,15 @@ int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *sol
 }
 
 
-int RowCol_to_icount(int row, int col, int *K_Whole_Ptr, int *K_Whole_Col)
+int RowCol_to_icount(int row, int col, information info)
 {
-	for (int j = K_Whole_Ptr[row]; j < K_Whole_Ptr[row + 1]; j++)
+	for (int j = info.K_Whole_Ptr[row]; j < info.K_Whole_Ptr[row + 1]; j++)
 	{
-		if (K_Whole_Col[j] == col)
+		if (info.K_Whole_Col[j] == col)
 		{
 			return j;
 		}
-		else if (K_Whole_Col[j] > col)
+		else if (info.K_Whole_Col[j] > col)
 		{
 			return -1;
 		}
@@ -2599,9 +2488,7 @@ double InverseMatrix_3x3(double M[DIMENSION][DIMENSION])
 
 
 // Shape Function
-double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *Node_Coordinate, int *Total_Control_Point_to_mesh,
-				  int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
-				  double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+double Shape_func(int I_No, double *Local_coord, int El_No, information info)
 {
 	int i, j;
 	double R, weight_func = 0.0;
@@ -2609,29 +2496,29 @@ double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *No
 	double Position_Data_param[DIMENSION];
 
 	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
-	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
+	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
+	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * info.Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CCpoint_ON_ELEMENT; i++)
 	{
 		shape_func[i] = 1.0;
 	}
 
-	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
+	for (i = 0; i < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; i++)
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-			ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, INC, Position_Knots, Total_Knot_to_patch_dim, Controlpoint_of_Element, Element_patch);
-			ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, No_knot, Total_Control_Point_to_mesh, Position_Knots, Total_Knot_to_patch_dim, Element_patch, Order, No_Control_point);
-			shape_func[i] *= Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + j]];
+			ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, info);
+			ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, info);
+			shape_func[i] *= Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + info.Order[info.Element_patch[El_No] * DIMENSION + j]];
 		}
-		weight_func += shape_func[i] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		weight_func += shape_func[i] * info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
 	}
 
 	free(Shape), free(dShape);
 
-	if (I_No < No_Control_point_ON_ELEMENT[Element_patch[El_No]])
-		R = shape_func[I_No] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No] * (DIMENSION + 1) + DIMENSION] / weight_func;
+	if (I_No < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]])
+		R = shape_func[I_No] * info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No] * (DIMENSION + 1) + DIMENSION] / weight_func;
 
 	else
 		R = ERROR;
@@ -2641,121 +2528,114 @@ double Shape_func(int I_No, double Local_coord[DIMENSION], int El_No, double *No
 }
 
 
-void ShapeFunc_from_paren(double Position_Data_param[DIMENSION], double Local_coord[DIMENSION], int j, int e, int *INC,
-						  double *Position_Knots, int *Total_Knot_to_patch_dim, int *Controlpoint_of_Element, int *Element_patch)
+void ShapeFunc_from_paren(double *Position_Data_param, double *Local_coord, int j, int e, information info)
 {
 	int i = 0;
 
-	i = INC[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + 0] * DIMENSION + j];
-	Position_Data_param[j] = ((Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + i + 1] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + i]) * Local_coord[j] + (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + i + 1] + Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + i])) / 2.0;
+	i = info.INC[info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + 0] * DIMENSION + j];
+	Position_Data_param[j] = ((info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + i + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + i]) * Local_coord[j] + (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + i + 1] + info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + i])) / 2.0;
 }
 
 
-void ShapeFunction1D(double Position_Data_param[DIMENSION], int j, int e, double *Shape, double *dShape, int *No_knot, int *Total_Control_Point_to_mesh,
-					 double *Position_Knots, int *Total_Knot_to_patch_dim,int *Element_patch, int *Order, int *No_Control_point)
+void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, double *dShape, information info)
 {
 	int ii;
 	int p;
 
-	for (ii = 0; ii < No_knot[Element_patch[e] * DIMENSION + j]; ii++)
+	for (ii = 0; ii < info.No_knot[info.Element_patch[e] * DIMENSION + j]; ii++)
 	{
-		if (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] == Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1])
+		if (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] == info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1])
 		{
-			Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 0.0;
+			Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 0.0;
 		}
-		else if (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] != Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1] && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] <= Position_Data_param[j] && Position_Data_param[j] < Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1])
+		else if (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] != info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1] && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] <= Position_Data_param[j] && Position_Data_param[j] < info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1])
 		{
-			Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 1.0;
+			Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 1.0;
 		}
-		else if (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] != Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1] && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1] == Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + (No_knot[Element_patch[e] * DIMENSION + j] - 1)] && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] <= Position_Data_param[j] && Position_Data_param[j] <= Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1])
+		else if (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] != info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1] && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1] == info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + (info.No_knot[info.Element_patch[e] * DIMENSION + j] - 1)] && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] <= Position_Data_param[j] && Position_Data_param[j] <= info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1])
 		{
-			Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 1.0;
+			Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 1.0;
 		}
 		else
 		{
-			Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 0.0;
+			Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + 0] = 0.0;
 		}
 	}
 
-	for (ii = 0; ii < No_knot[Element_patch[e] * DIMENSION + j]; ii++)
+	for (ii = 0; ii < info.No_knot[info.Element_patch[e] * DIMENSION + j]; ii++)
 	{
-		for (p = 1; p <= Order[Element_patch[e] * DIMENSION + j]; p++)
+		for (p = 1; p <= info.Order[info.Element_patch[e] * DIMENSION + j]; p++)
 		{
-			Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p] = 0.0;
+			Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p] = 0.0;
 		}
 	}
 
 	double left_term, right_term;
-	for (p = 1; p <= Order[Element_patch[e] * DIMENSION + j]; p++)
+	for (p = 1; p <= info.Order[info.Element_patch[e] * DIMENSION + j]; p++)
 	{
-		for (ii = 0; ii < No_knot[Element_patch[e] * DIMENSION + j]; ii++)
+		for (ii = 0; ii < info.No_knot[info.Element_patch[e] * DIMENSION + j]; ii++)
 		{
 			left_term = 0.0;
 			right_term = 0.0;
 
-			if ((Position_Data_param[j] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii]) * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p - 1] == 0 && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + p] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] == 0)
+			if ((Position_Data_param[j] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii]) * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p - 1] == 0 && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + p] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] == 0)
 				left_term = 0.0;
 			else
 			{
-				left_term = (Position_Data_param[j] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii]) / (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + p] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii]) * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p - 1];
+				left_term = (Position_Data_param[j] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii]) / (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + p] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii]) * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p - 1];
 			}
-			if ((Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + p + 1] - Position_Data_param[j]) * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + p - 1] == 0 && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + p + 1] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1] == 0)
+			if ((info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + p + 1] - Position_Data_param[j]) * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + p - 1] == 0 && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + p + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1] == 0)
 				right_term = 0.0;
 			else
 			{
-				right_term = (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + p + 1] - Position_Data_param[j]) / (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + p + 1] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1]) * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + p - 1];
+				right_term = (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + p + 1] - Position_Data_param[j]) / (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + p + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1]) * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + p - 1];
 			}
-			Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p] = left_term + right_term;
+			Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p] = left_term + right_term;
 		}
 	}
 
 	double dleft_term, dright_term;
-	for (ii = 0; ii < No_Control_point[Element_patch[e] * DIMENSION + j] + 1; ii++)
+	for (ii = 0; ii < info.No_Control_point[info.Element_patch[e] * DIMENSION + j] + 1; ii++)
 	{
 		dleft_term = 0.0;
 		dright_term = 0.0;
 
-		if (Order[Element_patch[e] * DIMENSION + j] * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + Order[Element_patch[e] * DIMENSION + j] - 1] == 0 && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + Order[Element_patch[e] * DIMENSION + j]] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii] == 0)
+		if (info.Order[info.Element_patch[e] * DIMENSION + j] * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + info.Order[info.Element_patch[e] * DIMENSION + j] - 1] == 0 && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + info.Order[info.Element_patch[e] * DIMENSION + j]] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii] == 0)
 			dleft_term = 0.0;
 		else
-			dleft_term = Order[Element_patch[e] * DIMENSION + j] / (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + Order[Element_patch[e] * DIMENSION + j]] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii]) * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + Order[Element_patch[e] * DIMENSION + j] - 1];
+			dleft_term = info.Order[info.Element_patch[e] * DIMENSION + j] / (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + info.Order[info.Element_patch[e] * DIMENSION + j]] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii]) * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + info.Order[info.Element_patch[e] * DIMENSION + j] - 1];
 
-		if (Order[Element_patch[e] * DIMENSION + j] * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + Order[Element_patch[e] * DIMENSION + j] - 1] == 0 && Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + Order[Element_patch[e] * DIMENSION + j] + 1] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1] == 0)
+		if (info.Order[info.Element_patch[e] * DIMENSION + j] * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + info.Order[info.Element_patch[e] * DIMENSION + j] - 1] == 0 && info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + info.Order[info.Element_patch[e] * DIMENSION + j] + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1] == 0)
 			dright_term = 0.0;
 		else
-			dright_term = Order[Element_patch[e] * DIMENSION + j] / (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + Order[Element_patch[e] * DIMENSION + j] + 1] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + ii + 1]) * Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + Order[Element_patch[e] * DIMENSION + j] - 1];
+			dright_term = info.Order[info.Element_patch[e] * DIMENSION + j] / (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + info.Order[info.Element_patch[e] * DIMENSION + j] + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + ii + 1]) * Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + info.Order[info.Element_patch[e] * DIMENSION + j] - 1];
 
-		dShape[j * Total_Control_Point_to_mesh[Total_mesh] + ii] = dleft_term - dright_term;
+		dShape[j * info.Total_Control_Point_to_mesh[Total_mesh] + ii] = dleft_term - dright_term;
 	}
 }
 
 
-double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No, int *Controlpoint_of_Element, int *No_Control_point_ON_ELEMENT,
-				   int *Total_Control_Point_to_mesh, int *Element_patch, double *Node_Coordinate, int *INC, int *Order, double *Position_Knots,
-				   int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point)
+double dShape_func(int I_No, int xez, double *Local_coord, int El_No, information info)
 {
 	double dR;
 
-	double *dShape_func1 = (double *)malloc(sizeof(double) * Total_Control_Point_to_mesh[Total_mesh]); // dShape_func1[MAX_N_NODE];
-	double *dShape_func2 = (double *)malloc(sizeof(double) * Total_Control_Point_to_mesh[Total_mesh]); // dShape_func2[MAX_N_NODE];
+	double *dShape_func1 = (double *)malloc(sizeof(double) * info.Total_Control_Point_to_mesh[Total_mesh]); // dShape_func1[MAX_N_NODE];
+	double *dShape_func2 = (double *)malloc(sizeof(double) * info.Total_Control_Point_to_mesh[Total_mesh]); // dShape_func2[MAX_N_NODE];
 
-	NURBS_deriv(Local_coord, El_No, Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element, INC, Element_patch, Order, No_Control_point_ON_ELEMENT,
-				Position_Knots, Total_Knot_to_patch_dim, No_knot, No_Control_point, dShape_func1, dShape_func2);
+	NURBS_deriv(Local_coord, El_No, dShape_func1, dShape_func2, info);
 
 	if (xez != 0 && xez != 1)
 		dR = ERROR;
 
-	else if (I_No < No_Control_point_ON_ELEMENT[Element_patch[El_No]])
+	else if (I_No < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]])
 	{
 		if (xez == 0)
 		{
-			dR = dShape_func1[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]]
-			   * dShapeFunc_from_paren(xez, El_No, INC, Controlpoint_of_Element, Position_Knots, Total_Knot_to_patch_dim, Element_patch);
+			dR = dShape_func1[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]] * dShapeFunc_from_paren(xez, El_No, info);
 		}
 		else if (xez == 1)
 		{
-			dR = dShape_func2[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]]
-			   * dShapeFunc_from_paren(xez, El_No, INC, Controlpoint_of_Element, Position_Knots, Total_Knot_to_patch_dim, Element_patch);
+			dR = dShape_func2[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + I_No]] * dShapeFunc_from_paren(xez, El_No, info);
 		}
 	}
 	else
@@ -2766,10 +2646,7 @@ double dShape_func(int I_No, int xez, double Local_coord[DIMENSION], int El_No, 
 }
 
 
-void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordinate, int *Total_Control_Point_to_mesh,
-				 int *Controlpoint_of_Element, int *INC, int *Element_patch, int *Order, int *No_Control_point_ON_ELEMENT,
-				 double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_knot, int *No_Control_point,
-				 double *dShape_func1, double *dShape_func2)
+void NURBS_deriv(double *Local_coord, int El_No, double *dShape_func1, double *dShape_func2, information info)
 {
 	int i, j;
 	double weight_func = 0.0;
@@ -2779,47 +2656,47 @@ void NURBS_deriv(double Local_coord[DIMENSION], int El_No, double *Node_Coordina
 	double Position_Data_param[DIMENSION];
 
 	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CCpoint_ON_ELEMENT);
-	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
+	double *Shape = (double *)malloc(sizeof(double) * DIMENSION * info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[DIMENSION][MAX_N_NODE][10]
+	double *dShape = (double *)malloc(sizeof(double) * DIMENSION * info.Total_Control_Point_to_mesh[Total_mesh]); // dShape[DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CCpoint_ON_ELEMENT; i++)
 	{
 		shape_func[i] = 1.0;
 	}
 
-	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
+	for (i = 0; i < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; i++)
 	{
 		for (j = 0; j < DIMENSION; j++)
 		{
-			ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, INC, Position_Knots, Total_Knot_to_patch_dim, Controlpoint_of_Element, Element_patch);
-			ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, No_knot, Total_Control_Point_to_mesh, Position_Knots, Total_Knot_to_patch_dim, Element_patch, Order, No_Control_point);
-			shape_func[i] *= Shape[j * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + j]];
+			ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, info);
+			ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, info);
+			shape_func[i] *= Shape[j * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + j] * MAX_ORDER + info.Order[info.Element_patch[El_No] * DIMENSION + j]];
 		}
-		weight_func += shape_func[i] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		weight_func += shape_func[i] * info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
 	}
-	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
+	for (i = 0; i < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; i++)
 	{
-		dWeight_func1 += dShape[0 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 1]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
-		dWeight_func2 += Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] * Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		dWeight_func1 += dShape[0 * info.Total_Control_Point_to_mesh[Total_mesh] + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + info.Order[info.Element_patch[El_No] * DIMENSION + 1]] * info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
+		dWeight_func2 += Shape[0 * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + info.Order[info.Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * info.Total_Control_Point_to_mesh[Total_mesh] + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] * info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION];
 	}
-	for (i = 0; i < No_Control_point_ON_ELEMENT[Element_patch[El_No]]; i++)
+	for (i = 0; i < info.No_Control_point_ON_ELEMENT[info.Element_patch[El_No]]; i++)
 	{
-		dShape_func1[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * dShape[0 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 1]] - dWeight_func1 * shape_func[i]) / (weight_func * weight_func);
-		dShape_func2[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = Node_Coordinate[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * Shape[0 * (Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + Order[Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * Total_Control_Point_to_mesh[Total_mesh] + INC[Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
+		dShape_func1[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * dShape[0 * info.Total_Control_Point_to_mesh[Total_mesh] + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0]] * Shape[1 * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1] * MAX_ORDER + info.Order[info.Element_patch[El_No] * DIMENSION + 1]] - dWeight_func1 * shape_func[i]) / (weight_func * weight_func);
+		dShape_func2[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i]] = info.Node_Coordinate[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * (DIMENSION + 1) + DIMENSION] * (weight_func * Shape[0 * (info.Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 0] * MAX_ORDER + info.Order[info.Element_patch[El_No] * DIMENSION + 0]] * dShape[1 * info.Total_Control_Point_to_mesh[Total_mesh] + info.INC[info.Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + i] * DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
 	}
 
 	free(Shape), free(dShape), free(shape_func);
 }
 
 
-double dShapeFunc_from_paren(int j, int e, int *INC, int *Controlpoint_of_Element, double *Position_Knots, int *Total_Knot_to_patch_dim, int *Element_patch)
+double dShapeFunc_from_paren(int j, int e, information info)
 {
 	int i;
 	double dPosition_Data_param;
 
-	i = INC[Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + 0] * DIMENSION + j];
+	i = info.INC[info.Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + 0] * DIMENSION + j];
 
-	dPosition_Data_param = (Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + i + 1] - Position_Knots[Total_Knot_to_patch_dim[Element_patch[e] * DIMENSION + j] + i]) / 2.0;
+	dPosition_Data_param = (info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + i + 1] - info.Position_Knots[info.Total_Knot_to_patch_dim[info.Element_patch[e] * DIMENSION + j] + i]) / 2.0;
 	return dPosition_Data_param;
 }
 
@@ -2947,7 +2824,7 @@ double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double
 			sum1 = 0.0;
 			sum2 = 0.0;
 
-			// for (int temp_i = 0; temp_i < No_knot[0][0]; temp_i++)
+			// for (int temp_i = 0; temp_i < info.No_knot[0][0]; temp_i++)
 			// {
 			// 	printf("knot_vec[%d] = %f\n", temp_i, knot_vec[temp_i]);
 			// }
@@ -3530,9 +3407,7 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 int Calc_xi_eta(double px, double py,
 				double *input_knot_vec_xi, double *input_knot_vec_eta,
 				int cntl_p_n_xi, int cntl_p_n_eta, int order_xi, int order_eta,
-				double *output_xi, double *output_eta,
-				double *Position_Knots, int *Total_Knot_to_patch_dim, int *No_Control_point, int *Order,
-				double *Control_Coord_x, double *Control_Coord_y, double *Control_Weight, int *No_knot)
+				double *output_xi, double *output_eta, information info)
 {
 	double temp_xi, temp_eta;
 	double temp_x, temp_y;
@@ -3549,15 +3424,15 @@ int Calc_xi_eta(double px, double py,
 	int repeat = 100;
 	double tol = 10e-14;
 
-	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * No_knot[0 * DIMENSION + 0]);
-	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * No_knot[0 * DIMENSION + 1]);
-	for (i = 0; i < No_knot[0 * DIMENSION + 0]; i++)
+	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info.No_knot[0 * DIMENSION + 0]);
+	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info.No_knot[0 * DIMENSION + 1]);
+	for (i = 0; i < info.No_knot[0 * DIMENSION + 0]; i++)
 	{
-		temp_Position_Knots_xi[i] = Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 0] + i];
+		temp_Position_Knots_xi[i] = info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 0] + i];
 	}
-	for (i = 0; i < No_knot[0 * DIMENSION + 1]; i++)
+	for (i = 0; i < info.No_knot[0 * DIMENSION + 1]; i++)
 	{
-		temp_Position_Knots_eta[i] = Position_Knots[Total_Knot_to_patch_dim[0 * DIMENSION + 1] + i];
+		temp_Position_Knots_eta[i] = info.Position_Knots[info.Total_Knot_to_patch_dim[0 * DIMENSION + 1] + i];
 	}
 
 	// 初期値の設定
@@ -3569,9 +3444,9 @@ int Calc_xi_eta(double px, double py,
 	for (i = 0; i < repeat; i++)
 	{
 		rNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
-					   Control_Coord_x, Control_Coord_y,
-					   No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-					   Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+					   info.Control_Coord_x, info.Control_Coord_y,
+					   info.No_Control_point[0 * DIMENSION + 0], info.No_Control_point[0 * DIMENSION + 1],
+					   info.Control_Weight, info.Order[0 * DIMENSION + 0], info.Order[0 * DIMENSION + 1],
 					   temp_xi, temp_eta,
 					   &temp_x, &temp_y,
 					   &temp_matrix[0][0], &temp_matrix[0][1],
@@ -3615,9 +3490,9 @@ int Calc_xi_eta(double px, double py,
 	for (i = 0; i < repeat; i++)
 	{
 		lNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
-					   Control_Coord_x, Control_Coord_y,
-					   No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-					   Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+					   info.Control_Coord_x, info.Control_Coord_y,
+					   info.No_Control_point[0 * DIMENSION + 0], info.No_Control_point[0 * DIMENSION + 1],
+					   info.Control_Weight, info.Order[0 * DIMENSION + 0], info.Order[0 * DIMENSION + 1],
 					   temp_xi, temp_eta,
 					   &temp_x, &temp_y,
 					   &temp_matrix[0][0], &temp_matrix[0][1],
@@ -3661,9 +3536,9 @@ int Calc_xi_eta(double px, double py,
 	for (i = 0; i < repeat; i++)
 	{
 		rlNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
-						Control_Coord_x, Control_Coord_y,
-						No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-						Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+						info.Control_Coord_x, info.Control_Coord_y,
+						info.No_Control_point[0 * DIMENSION + 0], info.No_Control_point[0 * DIMENSION + 1],
+						info.Control_Weight, info.Order[0 * DIMENSION + 0], info.Order[0 * DIMENSION + 1],
 						temp_xi, temp_eta,
 						&temp_x, &temp_y,
 						&temp_matrix[0][0], &temp_matrix[0][1],
@@ -3707,9 +3582,9 @@ int Calc_xi_eta(double px, double py,
 	for (i = 0; i < repeat; i++)
 	{
 		lrNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
-						Control_Coord_x, Control_Coord_y,
-						No_Control_point[0 * DIMENSION + 0], No_Control_point[0 * DIMENSION + 1],
-						Control_Weight, Order[0 * DIMENSION + 0], Order[0 * DIMENSION + 1],
+						info.Control_Coord_x, info.Control_Coord_y,
+						info.No_Control_point[0 * DIMENSION + 0], info.No_Control_point[0 * DIMENSION + 1],
+						info.Control_Weight, info.Order[0 * DIMENSION + 0], info.Order[0 * DIMENSION + 1],
 						temp_xi, temp_eta,
 						&temp_x, &temp_y,
 						&temp_matrix[0][0], &temp_matrix[0][1],
@@ -3750,11 +3625,258 @@ int Calc_xi_eta(double px, double py,
 }
 
 
+// Postprocessing
+void Make_Displacement(information info)
+{
+	int i, j;
+
+	for(i = 0; i < info.Total_Constraint_to_mesh[Total_mesh]; i++)
+    {
+		info.Displacement[info.Constraint_Node_Dir[i * 2 + 0] * DIMENSION + info.Constraint_Node_Dir[i * 2 + 1]] = info.Value_of_Constraint[i];
+    }
+
+	for(i = 0; i < info.Total_Control_Point_to_mesh[Total_mesh]; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+			int index = info.Index_Dof[i * DIMENSION + j];
+			if (index >= 0)
+				info.Displacement[i * DIMENSION + j] = info.sol_vec[index];
+		}
+	}
+}
+
+
 // for s_IGA overlay
 
 
 // output
-void K_output_svg(int *K_Whole_Ptr, int *K_Whole_Col)
+void output_for_viewer(information info)
+{
+	// 全てのローカルパッチについて1つのinput.txt作成, 重ね合わせ結果出力のため
+	int i, j, k;
+
+	int l_patch, g_patch;
+	int l_cntl_p, g_cntl_p;
+	int l_cnst, g_cnst;
+	int l_load, g_load;
+	int l_dist, g_dist;
+	int l_temp;
+
+	g_patch = info.Total_Patch_to_mesh[1];
+	g_cntl_p = info.Total_Control_Point_to_mesh[1];
+	g_cnst = info.Total_Constraint_to_mesh[1];
+	g_load = info.Total_Load_to_mesh[1];
+	g_dist = info.Total_DistributeForce_to_mesh[1];
+
+	fp = fopen("input_local.txt", "w");
+	fprintf(fp, "%.3f\t%.6f\n\n", E, nu);
+
+	l_patch = info.Total_Patch_to_mesh[Total_mesh] - g_patch;
+	fprintf(fp, "%d\n\n", l_patch);
+
+	l_cntl_p = info.Total_Control_Point_to_mesh[Total_mesh] - g_cntl_p;
+	fprintf(fp, "%d\n\n", l_cntl_p);
+
+	for (i = 0; i < l_patch; i++)
+	{
+		fprintf(fp, "%d\t%d\n", info.Order[(i + g_patch) * DIMENSION + 0], info.Order[(i + g_patch) * DIMENSION + 1]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_patch; i++)
+	{
+		fprintf(fp, "%d\t%d\n", info.No_knot[(i + g_patch) * DIMENSION + 0], info.No_knot[(i + g_patch) * DIMENSION + 1]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_patch; i++)
+	{
+		fprintf(fp, "%d\t%d\n", info.No_Control_point[(i + g_patch) * DIMENSION + 0], info.No_Control_point[(i + g_patch) * DIMENSION + 1]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_patch; i++)
+	{
+		for (j = 0; j < info.No_Control_point_in_patch[i + g_patch]; j++)
+		{
+			l_temp = info.Patch_Control_point[info.Total_Control_Point_to_patch[i + g_patch] + j] - g_cntl_p;
+			fprintf(fp, "%d\t", l_temp);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp,"\n");
+
+	l_cnst = info.Total_Constraint_to_mesh[Total_mesh] - g_cnst;
+	l_load = info.Total_Load_to_mesh[Total_mesh] - g_load;
+	l_dist = info.Total_DistributeForce_to_mesh[Total_mesh] - g_dist;
+	fprintf(fp,"%d\t%d\t%d\n\n", l_cnst, l_load, l_dist);
+
+	for (i = 0; i < l_patch; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+			for (k = 0; k < info.No_knot[(i + g_patch) * DIMENSION + j]; k++)
+			{
+				fprintf(fp, "%.5f\t", info.Position_Knots[info.Total_Knot_to_patch_dim[(i + g_patch) * DIMENSION + j] + k]);
+			}
+			fprintf(fp, "\n");
+		}
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_cntl_p; i++)
+	{
+		fprintf(fp, "%d\t", i);
+		for (j = 0; j < DIMENSION + 1; j++)
+		{
+			fprintf(fp, "%.10f\t", info.Node_Coordinate[(i + g_cntl_p) * (DIMENSION + 1) + j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_cnst; i++)
+	{
+		l_temp = info.Constraint_Node_Dir[(i + g_cnst) * 2 + 0] - g_cntl_p;
+		fprintf(fp, "%d\t%d\t%.10f\n", l_temp, info.Constraint_Node_Dir[(i + g_cnst) * 2 + 1], info.Value_of_Constraint[i + g_cnst]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_load; i++)
+	{
+		l_temp = info.Load_Node_Dir[(i + g_load) * 2 + 0] - g_cntl_p;
+		fprintf(fp, "%d\t%d\t%.10f\n", l_temp, info.Load_Node_Dir[(i + g_load) * 2 + 1], info.Value_of_Load[i + g_load]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < l_dist; i++)
+	{
+		fprintf(fp, "%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+				info.type_load_array[i + g_dist],
+				info.iPatch_array[i + g_dist],
+				info.iCoord_array[i + g_dist],
+				info.val_Coord_array[i + g_dist],
+				info.Range_Coord_array[(i + g_dist) * 2 + 0],
+				info.Range_Coord_array[(i + g_dist) * 2 + 1],
+				info.Coeff_Dist_Load_array[(i + g_dist) * 3 + 0],
+				info.Coeff_Dist_Load_array[(i + g_dist) * 3 + 1],
+				info.Coeff_Dist_Load_array[(i + g_dist) * 3 + 2]);
+	}
+	fclose(fp);
+
+	fp = fopen("input_for_NURBS.txt", "w");
+	fprintf(fp, "%.3f\t%.6f\n\n", E, nu);
+
+	fprintf(fp, "%d\n\n", info.Total_Patch_to_mesh[Total_mesh]);
+
+	fprintf(fp, "%d\n\n", info.Total_Control_Point_to_mesh[Total_mesh]);
+
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t%d\n", info.Order[i * DIMENSION + 0], info.Order[i * DIMENSION + 1]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t%d\n", info.No_knot[i * DIMENSION + 0], info.No_knot[i * DIMENSION + 1]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t%d\n", info.No_Control_point[i * DIMENSION + 0], info.No_Control_point[i * DIMENSION + 1]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		for (j = 0; j < info.No_Control_point_in_patch[i]; j++)
+		{
+			fprintf(fp, "%d\t", info.Patch_Control_point[info.Total_Control_Point_to_patch[i] + j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp,"\n");
+
+	fprintf(fp,"%d\t%d\t%d\n\n",
+				info.Total_Constraint_to_mesh[Total_mesh],
+				info.Total_Load_to_mesh[Total_mesh],
+				info.Total_DistributeForce_to_mesh[Total_mesh]);
+
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		for (j = 0; j < DIMENSION; j++)
+		{
+			for (k = 0; k < info.No_knot[i * DIMENSION + j]; k++)
+			{
+				fprintf(fp, "%.5f\t", info.Position_Knots[info.Total_Knot_to_patch_dim[i * DIMENSION + j] + k]);
+			}
+			fprintf(fp, "\n");
+		}
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_Control_Point_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t", i);
+		for (j = 0; j < DIMENSION + 1; j++)
+		{
+			fprintf(fp, "%.10f\t", info.Node_Coordinate[i * (DIMENSION + 1) + j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_Constraint_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t%d\t%.10f\n",
+				info.Constraint_Node_Dir[i * 2 + 0],
+				info.Constraint_Node_Dir[i * 2 + 1],
+				info.Value_of_Constraint[i]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_Load_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t%d\t%.10f\n",
+				info.Load_Node_Dir[i * 2 + 0],
+				info.Load_Node_Dir[i * 2 + 1],
+				info.Value_of_Load[i]);
+	}
+	fprintf(fp,"\n");
+
+	for (i = 0; i < info.Total_DistributeForce_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp, "%d\t%d\t%d\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",
+				info.type_load_array[i],
+				info.iPatch_array[i],
+				info.iCoord_array[i],
+				info.val_Coord_array[i],
+				info.Range_Coord_array[i * 2 + 0],
+				info.Range_Coord_array[i * 2 + 1],
+				info.Coeff_Dist_Load_array[i * 3 + 0],
+				info.Coeff_Dist_Load_array[i * 3 + 1],
+				info.Coeff_Dist_Load_array[i * 3 + 2]);
+	}
+
+	fclose(fp);
+
+	fp = fopen("info.Displacement.dat", "w");
+	fprintf(fp, "label=info.Displacement\n");
+	fprintf(fp, "num_items=%d\n", info.Total_Control_Point_to_mesh[Total_mesh]);
+	fprintf(fp, "\n");
+	for (j = 0; j < info.Total_Control_Point_to_mesh[Total_mesh]; j++)
+	{
+		fprintf(fp, "%d:	%.16e %.16e ", j, info.Displacement[j * DIMENSION + 0], info.Displacement[j * DIMENSION + 1]);
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+}
+
+
+void K_output_svg(information info)
 {
 	// [K] = [[K^G, K^GL], [K^GL, K^L]]
 
@@ -3797,11 +3919,11 @@ void K_output_svg(int *K_Whole_Ptr, int *K_Whole_Col)
 			int temp_count;
 			if (i <= j)
 			{
-				temp_count = RowCol_to_icount(i, j, K_Whole_Ptr, K_Whole_Col);
+				temp_count = RowCol_to_icount(i, j, info);
 			}
 			else if (i > j)
 			{
-				temp_count = RowCol_to_icount(j, i, K_Whole_Ptr, K_Whole_Col);
+				temp_count = RowCol_to_icount(j, i, info);
 			}
 
 			if (temp_count != -1)
@@ -3829,4 +3951,5 @@ void K_output_svg(int *K_Whole_Ptr, int *K_Whole_Col)
 	fprintf(fp, "</svg>");
 	fclose(fp);
 }
+
 

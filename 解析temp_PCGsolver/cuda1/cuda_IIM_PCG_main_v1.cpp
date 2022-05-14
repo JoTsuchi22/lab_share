@@ -26,10 +26,10 @@
 
 int main(int argc, char **argv)
 {
-	clock_t start, end;
 	int i, j, k;
 	int tm;
-	infomation info, *info_ptr;
+	clock_t start, end;
+	information info, *info_ptr;
 	info_ptr = &info;
 
 	Total_mesh = argc - 1;
@@ -79,11 +79,7 @@ int main(int argc, char **argv)
 	// ファイル読み込み1回目
     for (tm = 0; tm < Total_mesh; tm++)
     {
-		Get_Input_1(tm, Total_Knot_to_mesh,
-					Total_Patch_on_mesh, Total_Patch_to_mesh,
-					Total_Control_Point_on_mesh, Total_Control_Point_to_mesh,
-					Total_Constraint_to_mesh, Total_Load_to_mesh, Total_DistributeForce_to_mesh,
-					argv);
+		Get_Input_1(tm, argv, info);
 	}
 	
 	// memory allocation
@@ -137,19 +133,7 @@ int main(int argc, char **argv)
 	// ファイル読み込み2回目
 	for (tm = 0; tm < Total_mesh; tm++)
     {
-		Get_Input_2(tm, Total_Knot_to_mesh,
-					Total_Patch_to_mesh, Total_Control_Point_to_mesh,
-					Total_Element_on_mesh, Total_Element_to_mesh,
-					Total_Constraint_to_mesh, Total_Load_to_mesh, Total_DistributeForce_to_mesh,
-					Order, No_knot, No_Control_point, No_Control_point_in_patch,
-					Patch_Control_point, Position_Knots, No_Control_point_ON_ELEMENT,
-					Node_Coordinate, Control_Coord_x, Control_Coord_y, Control_Weight,
-					Constraint_Node_Dir, Value_of_Constraint,
-					Load_Node_Dir, Value_of_Load,
-					type_load_array, iPatch_array, iCoord_array,
-					val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array,
-					Total_Control_Point_to_patch, Total_Knot_to_patch_dim,
-					argv);
+		Get_Input_2(tm, argv, info);
 	}
 
 	printf("\nFinish Get Input data\n\n");
@@ -183,26 +167,10 @@ int main(int argc, char **argv)
 	info_ptr->Equivalent_Nodal_Force = Equivalent_Nodal_Force;
 
 	// INC 等の作成
-	Make_INC(tm, Total_Patch_on_mesh, Total_Patch_to_mesh,
-			 Total_Element_on_mesh, Total_Element_to_mesh,
-			 Total_Control_Point_on_mesh, Total_Control_Point_to_mesh,
-			 Total_DistributeForce_to_mesh,
-			 INC, Patch_Control_point, Total_Control_Point_to_patch,
-			 No_Control_point, Controlpoint_of_Element,
-			 Element_patch, Element_mesh,
-			 difference, Total_Knot_to_patch_dim,
-			 Total_element_all_ID, ENC,
-			 real_element_line, line_No_real_element,
-			 line_No_Total_element, real_element,
-			 real_El_No_on_mesh, real_Total_Element_on_mesh,
-			 real_Total_Element_to_mesh, Equivalent_Nodal_Force,
-			 type_load_array, iPatch_array, iCoord_array,
-			 val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array,
-			 Order, No_knot, Total_Knot_to_mesh, Node_Coordinate,
-			 Position_Knots, No_Control_point_ON_ELEMENT);
+	Make_INC(tm, info);
 
 	// memory free
-	free(Patch_Control_point), free(real_element_line), free(Total_element_all_ID), free(difference);
+	free(real_element_line), free(Total_element_all_ID), free(difference);
 
 	// memory allocation
 	if (DIMENSION == 2)
@@ -238,14 +206,8 @@ int main(int argc, char **argv)
 	for (i = 1; i < Total_mesh; i++)
 	{
 		int mesh_n_org = 0;
-		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org, NNLOVER, NELOVER,
-												Gauss_Coordinate, Gauss_Coordinate_ex, Jac, Jac_ex, B_Matrix, B_Matrix_ex, Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex,
-												real_Total_Element_to_mesh, Node_Coordinate, Total_Control_Point_to_mesh, Controlpoint_of_Element,
-												INC, Element_patch, Order, No_Control_point_ON_ELEMENT, Position_Knots,
-												Total_Knot_to_patch_dim, No_knot, No_Control_point,
-												Control_Coord_x, Control_Coord_y, Control_Weight,
-												real_Total_Element_on_mesh, real_element, Total_Patch_on_mesh, line_No_Total_element);
-		Make_Loc_Glo(real_Total_Element_on_mesh, real_Total_Element_to_mesh, real_element, NNLOVER, NELOVER);
+		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org, info);
+		Make_Loc_Glo(info);
 	}
 	printf("\nFinish check_over_parameter\n\n");
 
@@ -259,25 +221,19 @@ int main(int argc, char **argv)
 	int *K_Whole_Ptr = (int *)calloc(MAX_K_WHOLE_SIZE + 1, sizeof(int));	// K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1]
 	int *K_Whole_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);			// K_Whole_Col[MAX_NON_ZERO]
 	double *K_Whole_Val = (double *)calloc(MAX_NON_ZERO, sizeof(double));	// K_Whole_Val[MAX_NON_ZERO]
-	infoptr->D = D;
-	infoptr->Node_To_Node = Node_To_Node;
-	infoptr->Total_Control_Point_To_Node = Total_Control_Point_To_Node;
-	infoptr->Index_Dof = Index_Dof;
-	infoptr->K_Whole_Ptr = K_Whole_Ptr;
-	infoptr->K_Whole_Col = K_Whole_Col;
-	infoptr->K_Whole_Val = K_Whole_Val;
+	info_ptr->D = D;
+	info_ptr->Node_To_Node = Node_To_Node;
+	info_ptr->Total_Control_Point_To_Node = Total_Control_Point_To_Node;
+	info_ptr->Index_Dof = Index_Dof;
+	info_ptr->K_Whole_Ptr = K_Whole_Ptr;
+	info_ptr->K_Whole_Col = K_Whole_Col;
+	info_ptr->K_Whole_Val = K_Whole_Val;
 
     // 全体剛性マトリックスの制作
-	Make_D_Matrix(D);
-	Make_Index_Dof(Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Constraint_Node_Dir, Index_Dof);
-	Make_K_Whole_Ptr_Col(Total_Element_to_mesh, Total_Control_Point_to_mesh, Total_Control_Point_To_Node,
-						 No_Control_point_ON_ELEMENT, Element_patch, Controlpoint_of_Element, Node_To_Node, NNLOVER,
-						 NELOVER, Index_Dof, K_Whole_Ptr, K_Whole_Col);
-    Make_K_Whole_Val(real_Total_Element_to_mesh, real_element, Element_mesh, NNLOVER,
-					 No_Control_point_ON_ELEMENT, Element_patch, Jac, Jac_ex, B_Matrix, B_Matrix_ex,
-					 D, Index_Dof, Controlpoint_of_Element, K_Whole_Ptr, K_Whole_Col, K_Whole_Val, NELOVER,
-					 Loc_parameter_on_Glo, Loc_parameter_on_Glo_ex, Position_Knots, Total_Knot_to_patch_dim,
-					 Order, ENC, Total_Control_Point_to_mesh, Node_Coordinate, INC, No_knot, No_Control_point);
+	Make_D_Matrix(info);
+	Make_Index_Dof(info);
+	Make_K_Whole_Ptr_Col(info);
+    Make_K_Whole_Val(info);
     printf("\nFinish Make_K_Whole\n\n");
 
 	// memory free
@@ -290,12 +246,9 @@ int main(int argc, char **argv)
 	info_ptr->rhs_vec = rhs_vec;
 
 	// 荷重ベクトルの制作
-	Make_F_Vec(rhs_vec, Total_Load_to_mesh, Index_Dof, Load_Node_Dir, Value_of_Load);
-	Make_F_Vec_disp_const(Total_Constraint_to_mesh, real_Total_Element_to_mesh, No_Control_point_ON_ELEMENT, Element_patch,
-						  Index_Dof, Controlpoint_of_Element, real_El_No_on_mesh, Total_Element_to_mesh, 
-						  Constraint_Node_Dir, Value_of_Constraint, rhs_vec, real_element,
-						  Jac, Jac_ex, B_Matrix, B_Matrix_ex, D);
-	Add_Equivalent_Nodal_Force_to_F_Vec(Total_Control_Point_to_mesh, Index_Dof, rhs_vec, Equivalent_Nodal_Force);
+	Make_F_Vec(info);
+	Make_F_Vec_disp_const(info);
+	Add_Equivalent_Nodal_Force_to_F_Vec(info);
     printf("\nFinish Make_F_Vec\n\n");
 
 	// memory free
@@ -304,7 +257,7 @@ int main(int argc, char **argv)
 	// PCG法
     printf("\nStart PCG solver\n\n");
     int max_itr = K_Whole_Size;
-	PCG_Solver(max_itr, EPS, K_Whole_Val, K_Whole_Ptr, K_Whole_Col, sol_vec, rhs_vec, Total_Control_Point_on_mesh, Index_Dof);
+	PCG_Solver(max_itr, EPS, info);
 	printf("\nFinish PCG solver\n\n");
 
 	// memory free
@@ -314,7 +267,7 @@ int main(int argc, char **argv)
 	info_ptr->Displacement = Displacement;
 
 	// Postprocessing
-	Make_Displacement(Total_Constraint_to_mesh, Displacement, Constraint_Node_Dir, Value_of_Constraint, Total_Control_Point_to_mesh, Index_Dof, sol_vec)
+	Make_Displacement(info);
 	printf("\nFinish Make_Displacement\n\n");
 	end = clock();
 	printf("\nAnalysis time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
@@ -330,29 +283,38 @@ int main(int argc, char **argv)
 	// Kマトリックスのsvg出力
 	if (Output_SVG == 0)
 	{
-		K_output_svg(K_Whole_Ptr, K_Whole_Col);
+		K_output_svg(info);
 		printf("\nFinish K_output_svg\n\n");
 	}
 
 	// viewer のための出力
-	output_for_viewer(Total_Patch_to_mesh, Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Total_Constraint_to_mesh,
-					  Total_Load_to_mesh, Total_DistributeForce_to_mesh, Order, No_knot, No_Control_point,
-					  No_Control_point_in_patch, Patch_Control_point, Total_Control_Point_to_patch, Position_Knots,
-					  Total_Knot_to_patch_dim, Node_Coordinate, Constraint_Node_Dir, Value_of_Constraint,
-					  Load_Node_Dir, Value_of_Load, type_load_array, iPatch_array, iCoord_array,
-					  val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array, Displacement);
+	output_for_viewer(info);
 	printf("\nFinish output_for_viewer\n\n");
 
 	// 重ね合わせをスキップしてJ積分を行う
 	if (SKIP_S_IGA != 1)
 	{
 		printf("\nStart s_IGA overlay\n\n");
-		s_IGA_overlay(Total_Patch_to_mesh, Total_Control_Point_to_mesh, Total_Constraint_to_mesh, Total_Constraint_to_mesh,
-					  Total_Load_to_mesh, Total_DistributeForce_to_mesh, Order, No_knot, No_Control_point,
-					  No_Control_point_in_patch, Patch_Control_point, Total_Control_Point_to_patch, Position_Knots,
-					  Total_Knot_to_patch_dim, Node_Coordinate, Constraint_Node_Dir, Value_of_Constraint,
-					  Load_Node_Dir, Value_of_Load, type_load_array, iPatch_array, iCoord_array,
-					  val_Coord_array, Range_Coord_array, Coeff_Dist_Load_array, Displacement);
+		start = clock();
+
+		// memory allocation
+		DIVISION_ELEMENT = (DIVISION_ELE + 1) * (DIVISION_ELE + 1);
+		double *coord_x = (double *)malloc(sizeof(double) * 2 * Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT); // coord_x[MAX_POINTS][MAX_POINTS]
+		double *coord_y = (double *)malloc(sizeof(double) * 2 * Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT); // coord_y[MAX_POINTS][MAX_POINTS]
+		double *disp_x = (double *)malloc(sizeof(double) * 2 * Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT); // disp_x[MAX_POINTS][MAX_POINTS]
+		double *disp_y = (double *)malloc(sizeof(double) * 2 * Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT); // disp_y[MAX_POINTS][MAX_POINTS]
+		double *strain = (double *)malloc(sizeof(double) * 2 * Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT * 3); // strain[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1][3] // 0: xx, 1: yy, 2: xy
+		double *stress = (double *)malloc(sizeof(double) * 2 * Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT * 3); // stress[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1][3]
+		info_ptr->coord_x = coord_x;
+		info_ptr->coord_y = coord_y;
+		info_ptr->disp_x = disp_x;
+		info_ptr->disp_y = disp_y;
+		info_ptr->strain = strain;
+		info_ptr->stress = stress;
+
+		s_IGA_overlay(info);
+		end = clock();
+		printf("\noverlay time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
 		printf("\nFinish s_IGA overlay\n\n");
 	}
 	else if (SKIP_S_IGA == 1)
