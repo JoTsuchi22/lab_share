@@ -5,11 +5,9 @@
 #include <assert.h>
 #include <time.h>
 
-
 // header
 #include "s_IGA_header.h"
 #include "s_IGA_sub.h"
-
 
 // ファイル読み込み1回目
 void Get_Input_1(int tm, char **argv, information info)
