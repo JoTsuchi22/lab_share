@@ -3,11 +3,11 @@
 
 01:	mkdir_temp cuda_IIM_PCG_v1.x
 	mv ./cuda_IIM_PCG_v1.x ./temp/cuda_IIM_PCG_v1.x
-	mv ./cuda_IIM_PCG_v1.exp ./temp/uda_IIM_PCG_v1.exp
+	mv ./cuda_IIM_PCG_v1.exp ./temp/cuda_IIM_PCG_v1.exp
 	mv ./cuda_IIM_PCG_v1.lib ./temp/cuda_IIM_PCG_v1.lib
 
 cuda_IIM_PCG_v1.x:	cuda_IIM_PCG_main_v1.cu cuda_IIM_PCG_sub_v1.cpp IIM_PCG_header.h IIM_PCG_main.h IIM_PCG_sub.h
-	nvcc -O2 -Xcompiler "/wd 4819" -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cu cuda_IIM_PCG_sub_v1.cpp
+	nvcc  -o cuda_IIM_PCG_v1.x cuda_IIM_PCG_main_v1.cu cuda_IIM_PCG_sub_v1.cpp
 
 02:	mkdir_temp cpp_IIM_PCG_v1.x
 
