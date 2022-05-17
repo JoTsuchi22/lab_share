@@ -15,12 +15,12 @@
 // static int Order[MAX_N_INPUTFILE][MAX_DIMENSION];
 // static int Order_before[MAX_N_INPUTFILE][MAX_DIMENSION];
 static int knot_n[MAX_N_INPUTFILE][MAX_DIMENSION];
-static int Control_point_n[MAX_N_INPUTFILE][MAX_DIMENSION];
-static int Control_point_n_before[MAX_N_INPUTFILE][MAX_DIMENSION];
+// static int Control_point_n[MAX_N_INPUTFILE][MAX_DIMENSION];
+// static int Control_point_n_before[MAX_N_INPUTFILE][MAX_DIMENSION];
 static double knot[MAX_N_INPUTFILE][MAX_DIMENSION][MAX_N_KNOT];
-static double x[MAX_N_INPUTFILE][MAX_N_Controlpoint_in_Patch];
-static double y[MAX_N_INPUTFILE][MAX_N_Controlpoint_in_Patch];
-static double w[MAX_N_INPUTFILE][MAX_N_Controlpoint_in_Patch];
+// static double x[MAX_N_INPUTFILE][MAX_N_Controlpoint_in_Patch];
+// static double y[MAX_N_INPUTFILE][MAX_N_Controlpoint_in_Patch];
+// static double w[MAX_N_INPUTFILE][MAX_N_Controlpoint_in_Patch];
 static int OE_n[MAX_N_INPUTFILE][MAX_DIMENSION];
 static int KI_uniform_n[MAX_N_INPUTFILE][MAX_DIMENSION];
 static int KI_cp_n[MAX_N_INPUTFILE][MAX_DIMENSION];
@@ -50,29 +50,27 @@ static double Bezier_x[MAX_N_Controlpoint_each_parameter][MAX_ORDER];
 static double Bezier_y[MAX_N_Controlpoint_each_parameter][MAX_ORDER];
 static double Bezier_w[MAX_N_Controlpoint_each_parameter][MAX_ORDER];
 static int number_of_Bezier_line;
-static int error_check = 0;
-static int mode;
-
-// for 3D
-static int DIMENSION;
-static int Total_Control_Point;
 
 FILE *fp;
 
-struct information {
-    double *Order;
-    double *KV;
-    double *CP;
-    double *Order_before;
-    double *KV_before;
-    double *CP_before;
-    
-    int KV_info;
-    int CP_info;
+struct info_global {
+    int DIMENSION;
+    int Total_Control_Point;
+    int mode;
 };
 
-void Get_InputData(int tm, char *filename);
-void Print_error();
+struct info_each_DIMENSION {
+    int CP_info;
+    int KV_info;
+    int Order;
+    int CP_info_before;
+    int Order_before;
+
+    double *CP;
+    double *KV;
+};
+
+void Get_InputData(int tm, char *filename, information info);
 void KI_calc_point_array(int tm);
 void KI_calc_knot_1D(int tm, int insert_parameter_axis);
 void KI_define_temp_point_array(int tm, int line_number, int insert_parameter_axis);
@@ -109,55 +107,51 @@ int main(int argc, char *argv[])
 {
     int i;
     int Total_file, tm;
-    information info, *info_ptr;
-    info_ptr = &info;
 
     Total_file = argc - 1;
 
-    // memory allocation
-    int *Order = (int *)malloc(sizeof(int) * MAX_DIMENSION);
-    int *KV_info = (int *)malloc(sizeof(int) * MAX_DIMENSION);
-    int *CP_info = (int *)malloc(sizeof(int) * MAX_DIMENSION);
-    int *Order_before = (int *)malloc(sizeof(int) * MAX_DIMENSION);
-    int *KV_info_before = (int *)malloc(sizeof(int) * MAX_DIMENSION);
-    int *CP_info_before = (int *)malloc(sizeof(int) * MAX_DIMENSION);
-    info_ptr->Order = Order;
-    info_ptr->KV_info = KV_info;
-    info_ptr->CP_info = CP_info;
-    info_ptr->Order_before = Order_before;
-    info_ptr->KV_info_before = KV_info_before;
-    info_ptr->CP_info_before = CP_info_before;
-
     for (tm = 0; tm < Total_file; tm++)
     {
-        // ファイル読み込み
-        Get_InputData(tm, argv[tm + 1]);
-        if (error_check == 1)
+        // memory allocation
+        info_global info_glo, *info_glo_ptr;
+        info_glo_ptr = &info_glo;
+
+        // ファイル読み込み, 1回目
+        Get_InputData_1(tm, argv[tm + 1], info_glo, info);
+        Debug_printf(tm, "Get_InputData_1");
+        
+        // memory allocation
+        info_each_DIMENSION info[info_glo.DIMENSION], *info_ptr[info_glo.DIMENSION];
+        for (i = 0; i < info_glo.DIMENSION; i++)
         {
-            Print_error();
-            break;
+            info_ptr[i] = &info[i];
         }
-        Debug_printf(tm, "Get_InputData");
+        double *Knot = (double *)malloc(sizeof(double) * info.DIMENSION * );
+        info_ptr->Order = Order;
+
+        // ファイル読み込み, 2回目
+        Get_InputData_2(tm, argv[tm + 1], info);
+        Debug_printf(tm, "Get_InputData_2");
 
         // オーダーエレベーション
-        for (i = 0; i < DIMENSION; i++)
+        for (i = 0; i < info.DIMENSION; i++)
         {
             OE_2D(tm, i);
             Debug_printf(tm, "Order Elevation");
         }
 
         // ノットインサーション
-        for (i = 0; i < DIMENSION; i++)
+        for (i = 0; i < info.DIMENSION; i++)
         {
-            if (mode == 0)
+            if (info.mode == 0)
             {
                 KI_non_uniform_2D(tm, i, 1);
             }
-            else if (mode == 1)
+            else if (info.mode == 1)
             {
                 KI_cp_2D(tm, i);
             }
-            else if (mode == 2)
+            else if (info.mode == 2)
             {
                 KI_uniform_2D(tm, i);
             }
@@ -166,6 +160,8 @@ int main(int argc, char *argv[])
 
         // 結果を出力
         OutputData(tm, argv[tm + 1]);
+
+        free(Knot), free(), free();
     }
 
     free(Order), free(), free(), free(), free(), free(), free();
@@ -174,7 +170,8 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void Get_InputData(int tm, char *filename)
+// 読み込み1回目
+void Get_InputData_1(int tm, char *filename, info_global info_glo, info_each_DIMENSION info)
 {
     int i, j, k;
     int temp_i;
@@ -187,39 +184,41 @@ void Get_InputData(int tm, char *filename)
     fscanf(fp, "%d", &temp_i);
     fgets(s, 256, fp);
     printf("DIMENSION:%d\n", temp_i);
-    DIMENSION = temp_i;
+    info_glo.DIMENSION = temp_i;
 
     // 各方向の次数
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_Order);
-        printf("Order[%d][%d]=%d\n", tm, j, temp_Order);
-        Order[tm][j] = temp_Order;
-        Order_before[tm][j] = temp_Order;
+        fscanf(fp, "%d", &temp_i);
+        printf("Order[%d]=%d\n", j, temp_i);
+        Order[j] = temp_i;
+        Order_before[j] = temp_i;
     }
     fgets(s, 256, fp);
 
     // 各方向のノットベクトルの個数
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_knot_n);
-        printf("knot_n[%d][%d]=%d\n", tm, j, temp_knot_n);
-        knot_n[tm][j] = temp_knot_n;
+        fscanf(fp, "%d", &temp_i);
+        printf("KV[%d]=%d\n", tm, j, temp_i);
+        knot_n[tm][j] = temp_i;
     }
     fgets(s, 256, fp);
 
     // 各方向のコントロールポイントの個数
-    for (j = 0; j < DIMENSION; j++)
+    info_glo.Total_Control_Point = 1;
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_Control_point_n);
-        printf("Control_point_n[%d][%d]:%d\n", tm, j, temp_Control_point_n);
-        Control_point_n[tm][j] = temp_Control_point_n;
-        Control_point_n_before[tm][j] = temp_Control_point_n;
+        fscanf(fp, "%d", &temp_i);
+        printf("Control_point_n[%d][%d]:%d\n", tm, j, temp_i);
+        Control_point_n[tm][j] = temp_i;
+        Control_point_n_before[tm][j] = temp_i;
+        info_glo.Total_Control_Point *= temp_i;
     }
     fgets(s, 256, fp);
 
     // 各方向のノットベクトル
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
         for (k = 0; k < knot_n[tm][j]; k++)
         {
@@ -232,60 +231,57 @@ void Get_InputData(int tm, char *filename)
     fgets(s, 256, fp);
 
     // コントロールポイントの座標
-    for (i = 0; i < Total_Control_Point; i++)
+    k = 0;
+    for (i = 0; i < info_glo.Total_Control_Point; i++)
     {
-        fscanf(fp, "%d", &temp_num);
-        fscanf(fp, "%lf", &temp_d);
-        x[tm][i] = temp_d;
-        fscanf(fp, "%lf", &temp_d);
-        y[tm][i] = temp_d;
-        fscanf(fp, "%lf", &temp_d);
-        w[tm][i] = temp_d;
-        printf("%d\t", temp_num);
-        printf("%.16e\t", x[tm][i]);
-        printf("%.16e\t", x[tm][i]);
-        printf("%.16e\n", [tm][i]);
+        fscanf(fp, "%d", &temp_i);
+        for (j = 0; j < info_glo.DIMENSION + 1; j++)
+        {
+            fscanf(fp, "%lf", &temp_d);
+            info.CP[k] = temp_d;
+            k++;
+        }
     }
     fgets(s, 256, fp);
 
-    //ξη方向のo.e.の回数
-    for (j = 0; j < DIMENSION; j++)
+    // 各方向のo.e.の回数
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_OE_n);
-        printf("OE_n[%d][%d]:%d\n", tm, j, temp_OE_n);
-        OE_n[tm][j] = temp_OE_n;
+        fscanf(fp, "%d", &temp_i);
+        printf("OE_n[%d][%d]:%d\n", tm, j, temp_i);
+        OE_n[tm][j] = temp_i;
     }
     fgets(s, 256, fp);
 
-    //ξη方向のk.i.(等分割)の回数
-    for (j = 0; j < DIMENSION; j++)
+    // 各方向のk.i.(等分割)の回数
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_KI_uniform_n);
-        printf("KI_uniform_n[%d][%d]:%d\n", tm, j, temp_KI_uniform_n);
-        KI_uniform_n[tm][j] = temp_KI_uniform_n;
+        fscanf(fp, "%d", &temp_i);
+        printf("KI_uniform_n[%d][%d]:%d\n", tm, j, temp_i);
+        KI_uniform_n[tm][j] = temp_i;
     }
     fgets(s, 256, fp);
 
-    //ξη方向のk.i.(コントロールポイントに合わせて等分割)の回数
-    for (j = 0; j < DIMENSION; j++)
+    // 各方向のk.i.(コントロールポイントに合わせて等分割)の回数
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_KI_cp_n);
-        printf("KI_cp_n[%d][%d]:%d\n", tm, j, temp_KI_cp_n);
-        KI_cp_n[tm][j] = temp_KI_cp_n;
+        fscanf(fp, "%d", &temp_i);
+        printf("KI_cp_n[%d][%d]:%d\n", tm, j, temp_i);
+        KI_cp_n[tm][j] = temp_i;
     }
     fgets(s, 256, fp);
 
-    //ξη方向のk.i.(任意のノット)の回数
-    for (j = 0; j < DIMENSION; j++)
+    // 各方向のk.i.(任意のノット)の回数
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
-        fscanf(fp, "%d", &temp_KI_non_uniform_n);
-        printf("KI_non_uniform_n[%d][%d]:%d\n", tm, j, temp_KI_non_uniform_n);
-        KI_non_uniform_n[tm][j] = temp_KI_non_uniform_n;
+        fscanf(fp, "%d", &temp_i);
+        printf("KI_non_uniform_n[%d][%d]:%d\n", tm, j, temp_i);
+        KI_non_uniform_n[tm][j] = temp_i;
     }
     fgets(s, 256, fp);
 
-    //ξη方向の挿入するノット
-    for (j = 0; j < DIMENSION; j++)
+    // 各方向の挿入するノット
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
         if (KI_non_uniform_n[tm][j] != 0)
         {
@@ -299,12 +295,12 @@ void Get_InputData(int tm, char *filename)
         }
     }
 
-    //コントロールポイントに合わせて分割と任意のノット挿入を同時に行っていないか確認
+    // コントロールポイントに合わせて分割と任意のノット挿入を同時に行っていないか確認
     int temp_check_a = 0;
     int temp_check_b = 0;
     int temp_check_c = 0;
     int temp_check_total = 0;
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info_glo.DIMENSION; j++)
     {
         if (KI_non_uniform_n[tm][j] != 0)
         {
@@ -321,36 +317,33 @@ void Get_InputData(int tm, char *filename)
     }
     if (temp_check_a > 0)
     {
-        mode = 0;
+        info_glo.mode = 0;
         temp_check_total++;
     }
     if (temp_check_b > 0)
     {
-        mode = 1;
+        info_glo.mode = 1;
         temp_check_total++;
     }
     if (temp_check_c > 0)
     {
-        mode = 2;
+        info_glo.mode = 2;
         temp_check_total++;
     }
 
     if (temp_check_total > 1)
     {
-        error_check = 1;
-    }
-    else
-    {
-        error_check = 0;
+        printf("インプットデータが間違っています．\n
+                ノットインサーションの各操作(3種類)は同時に行えません．\n
+                操作を行わない該当するパラメータを(0  0)としてください．\n");
+        break;
     }
 
     fclose(fp);
 }
 
-void Print_error()
-{
-    printf("インプットデータが間違っています．\nノットインサーションの各操作(3種類)は同時に行えません．\n操作を行わない該当するパラメータを(0  0)としてください．\n");
-}
+
+
 
 void KI_calc_point_array(int tm)
 {
@@ -513,7 +506,7 @@ void KI_calc_T_1D(int tm, int insert_parameter_axis)
         }
     }
 
-    //内積の計算
+    // 内積の計算
     for (i = 0; i < l + vec_length1[tm][insert_parameter_axis]; i++)
     {
         for (j = 0; j < l; j++)
@@ -1223,7 +1216,7 @@ void KR_calc_Tinv_1D(int tm, int removal_parameter_axis)
         }
     }
 
-    //疑似逆行列の計算
+    // 疑似逆行列の計算
     // if m <= n, A_pinv = A^T (A A^T)^(-1)
     // (A A^T)^(-1)の解がない, A_pinv = (A (A^T A)^(-1))^T
 
@@ -1489,13 +1482,13 @@ void Debug_printf(int tm, char *section)
     printf("status:\t\t\t\t%s\n\n", section);
 
     printf("Dimension\n");
-    printf("%d\n\n", DIMENSION);
+    printf("%d\n\n", info.DIMENSION);
 
     printf("Total Control Point\n");
     printf("%d\n\n", Total_Control_Point[tm]);
 
     printf("Order\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (j == 0)
         {
@@ -1509,7 +1502,7 @@ void Debug_printf(int tm, char *section)
     printf("\n\n");
 
     printf("number of knot vector\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (j == 0)
         {
@@ -1523,7 +1516,7 @@ void Debug_printf(int tm, char *section)
     printf("\n\n");
 
     printf("number of Control Point\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (j == 0)
         {
@@ -1537,7 +1530,7 @@ void Debug_printf(int tm, char *section)
     printf("\n\n");
 
     printf("knot vector\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         for (i = 0; i < knot_n[tm][j]; i++)
         {
@@ -1565,7 +1558,7 @@ void Debug_printf(int tm, char *section)
     printf("\n");
 
     printf("Order of Elevation\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (j == 0)
         {
@@ -1579,7 +1572,7 @@ void Debug_printf(int tm, char *section)
     printf("\n\n");
 
     printf("number of uniform Knot Insertion\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (j == 0)
         {
@@ -1593,7 +1586,7 @@ void Debug_printf(int tm, char *section)
     printf("\n\n");
 
     printf("number of non-uniform Knot Insertion\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (j == 0)
         {
@@ -1607,7 +1600,7 @@ void Debug_printf(int tm, char *section)
     printf("\n\n");
 
     printf("insert knot\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         if (KI_non_uniform_n[tm][j] != 0)
         {
@@ -1673,9 +1666,9 @@ void OutputData(int tm, char *filename)
     fprintf(fp, "%d\n\n", Total_Control_Point[tm]);
 
     // fprintf(fp, "Order\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
-        if (j == DIMENSION - 1)
+        if (j == info.DIMENSION - 1)
         {
             fprintf(fp, "%d", Order[tm][j]);
         }
@@ -1687,9 +1680,9 @@ void OutputData(int tm, char *filename)
     fprintf(fp, "\n\n");
 
     // fprintf(fp, "number of Knot Vector\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
-        if (j == DIMENSION - 1)
+        if (j == info.DIMENSION - 1)
         {
             fprintf(fp, "%d", knot_n[tm][j]);
         }
@@ -1701,9 +1694,9 @@ void OutputData(int tm, char *filename)
     fprintf(fp, "\n\n");
 
     // fprintf(fp, "number of Control Point\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
-        if (j == DIMENSION - 1)
+        if (j == info.DIMENSION - 1)
         {
             fprintf(fp, "%d", Control_point_n[tm][j]);
         }
@@ -1715,7 +1708,7 @@ void OutputData(int tm, char *filename)
     fprintf(fp, "\n\n");
 
     // fprintf(fp, "knot vector\n");
-    for (j = 0; j < DIMENSION; j++)
+    for (j = 0; j < info.DIMENSION; j++)
     {
         for (i = 0; i < knot_n[tm][j]; i++)
         {
