@@ -3,12 +3,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-// #define MAX_N_INPUTFILE 5
-#define MAX_DIMENSION 3
-#define MAX_ORDER 3
-#define MAX_N_Controlpoint_each_parameter 1000
-#define MAX_N_Controlpoint_in_Patch MAX_N_Controlpoint_each_parameter * MAX_N_Controlpoint_each_parameter
-#define MAX_N_KNOT MAX_N_Controlpoint_each_parameter + MAX_ORDER + 1
+// #define MAX_DIMENSION 3
+// #define MAX_ORDER 3
+// #define MAX_N_Controlpoint_each_parameter 1000
+// #define MAX_N_Controlpoint_in_Patch MAX_N_Controlpoint_each_parameter * MAX_N_Controlpoint_each_parameter
+// #define MAX_N_KNOT MAX_N_Controlpoint_each_parameter + MAX_ORDER + 1
 
 // static int Dimension[MAX_N_INPUTFILE];
 // static int Total_Control_Point[MAX_N_INPUTFILE];
@@ -103,33 +102,35 @@ void Debug_printf(int tm, char *section);
 void Fix_numerical_error(int tm);
 void OutputData(int tm, char *filename);
 
-int main(int argc, char *argv[])
+
+int main(int argc, char **argv)
 {
-    int i;
-    int Total_file, tm;
+    int i, tm;
 
-    Total_file = argc - 1;
-
-    for (tm = 0; tm < Total_file; tm++)
+    for (tm = 0; tm < argc - 1; tm++)
     {
-        // memory allocation
+        // declare struct
         info_global info_glo, *info_glo_ptr;
         info_glo_ptr = &info_glo;
 
-        // ファイル読み込み, 1回目
-        Get_InputData_1(tm, argv[tm + 1], info_glo, info);
-        Debug_printf(tm, "Get_InputData_1");
-        
-        // memory allocation
+        // get dim
+        Get_DIM(tm, argv[tm + 1], info_glo);
+
+        // declare struct
         info_each_DIMENSION info[info_glo.DIMENSION], *info_ptr[info_glo.DIMENSION];
         for (i = 0; i < info_glo.DIMENSION; i++)
         {
             info_ptr[i] = &info[i];
         }
-        double *Knot = (double *)malloc(sizeof(double) * info.DIMENSION * );
-        info_ptr->Order = Order;
 
-        // ファイル読み込み, 2回目
+        // ファイル読み込み1回目
+        Get_InputData_1(tm, argv[tm + 1], info_glo);
+        Debug_printf(tm, "Get_InputData_1");
+
+        // memory allocation
+        
+
+        // ファイル読み込み2回目
         Get_InputData_2(tm, argv[tm + 1], info);
         Debug_printf(tm, "Get_InputData_2");
 
@@ -170,7 +171,24 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// 読み込み1回目
+
+// DIMENSION 読み込み
+void Get_DIM(int tm, char *filename, info_global info_glo)
+{
+    int temp_i;
+
+    fp = fopen(filename, "r");
+
+    // DIMENSION
+    fscanf(fp, "%d", &temp_i);
+    printf("DIMENSION:%d\n", temp_i);
+    info_glo.DIMENSION = temp_i;
+
+    fclose(fp);
+}
+
+
+// ファイル読み込み1回目
 void Get_InputData_1(int tm, char *filename, info_global info_glo, info_each_DIMENSION info)
 {
     int i, j, k;
