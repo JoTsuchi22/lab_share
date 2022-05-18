@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
         // memory allocation
         double *Weight = (double *)malloc(sizeof(double) * info_glo.Total_Control_Point);
-        info_glo->Weight = Weight;
+        info_glo_ptr->Weight = Weight;
         int temp = 0;
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         // オーダーエレベーション
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
-            OE_2D(j);
+            OE(j);
             Debug_printf(i, "Order Elevation");
         }
 
@@ -71,11 +71,11 @@ int main(int argc, char **argv)
         {
             if (info_glo.mode == 0)
             {
-                KI_non_uniform_2D(j, 1);
+                KI_non_uniform(j, 1);
             }
             else if (info_glo.mode == 1)
             {
-                KI_cp_2D(j);
+                KI_cp(j);
             }
             Debug_printf("Knot Insertion");
         }
@@ -352,26 +352,7 @@ void Get_InputData_2(char *filename, info_global info_glo, info_each_DIMENSION i
 }
 
 
-void KI_calc_point_array(info_global info_glo, info_each_DIMENSION info)
-{
-    int i, j;
-    int temp1 = 0, temp2 = 0;
-    for (i = 0; i < Control_point_n[tm][1]; i++)
-    {
-        for (j = 0; j < Control_point_n[tm][0]; j++)
-        {
-            x_array[temp1][temp2] = x[tm][temp1 + (Control_point_n[tm][0] * temp2)];
-            y_array[temp1][temp2] = y[tm][temp1 + (Control_point_n[tm][0] * temp2)];
-            w_array[temp1][temp2] = w[tm][temp1 + (Control_point_n[tm][0] * temp2)];
-            temp1++;
-        }
-        temp1 = 0;
-        temp2++;
-    }
-}
-
-
-void KI_calc_knot_1D(int tm, int insert_parameter_axis)
+void KI_calc_knot_1D(int insert_parameter_axis)
 {
     int i;
     for (i = 0; i < MAX_N_KNOT; i++)
@@ -419,6 +400,8 @@ void KI_calc_knot_1D(int tm, int insert_parameter_axis)
             temp3++;
         }
     }
+
+    realloc()
 }
 
 
@@ -625,37 +608,80 @@ void KI_reset_array()
 }
 
 
-void KI_non_uniform_2D(int insert_parameter_axis, int KI_non_uniform)
+void KI_non_uniform(int insert_parameter_axis, int insert_knot_n, double *insert_knot_in_KI, info_global info_glo, info_each_DIMENSION info)
 {
-    int i;
+    int i, j;
     int other_axis = 0;
-    if (insert_parameter_axis == 0)
-    {
-        other_axis = 1;
-    }
-    else if (insert_parameter_axis == 1)
-    {
-        other_axis = 0;
-    }
+    int other_axis_1 = 0, other_axis_2 = 0;
 
-    if (KI_non_uniform == 1)
+    KI_calc_knot_1D(int insert_parameter_axis);
+
+    if (info_glo.DIMENSION == 2)
     {
-        vec_length1[tm][insert_parameter_axis] = KI_non_uniform_n[tm][insert_parameter_axis];
-        for (i = 0; i < vec_length1[tm][insert_parameter_axis]; i++)
+        if (insert_parameter_axis == 0)
         {
-            insert_knot_in_KI[tm][insert_parameter_axis][i] = insert_knot[tm][insert_parameter_axis][i];
+            other_axis = 1;
+        }
+        else if (insert_parameter_axis == 1)
+        {
+            other_axis = 0;
+        }
+
+        for (i = 0; i < info[other_axis].CP_n; i++)
+        {
+            double *line_x = (double *)malloc(sizeof(double) * );
+            double *line_y = (double *)malloc(sizeof(double) * );
+            double *line_w = (double *)malloc(sizeof(double) * );
+            double *new_line_x = (double *)malloc(sizeof(double) * );
+            double *new_line_y = (double *)malloc(sizeof(double) * );
+            double *new_line_w = (double *)malloc(sizeof(double) * );
+
+            free(line_x), free(line_y), free(line_w);
+            free(new_line_x), free(new_line_y), free(new_line_w);
+        }
+    }
+    else if(info_glo.DIMENSION == 3)
+    {
+        if (insert_parameter_axis == 0)
+        {
+            other_axis_1 = 1, other_axis_2 = 2;
+        }
+        else if (insert_parameter_axis == 1)
+        {
+            other_axis_1 = 0, other_axis_2 = 2;
+        }
+        else if (insert_parameter_axis == 2)
+        {
+            other_axis_1 = 0, other_axis_2 = 1;
+        }
+
+        for (i = 0; i < info[other_axis_1].CP_n; i++)
+        {
+            for (j = 0; j < info[other_axis_2].CP_n; j++)
+            {
+                double *line_x = (double *)malloc(sizeof(double) * );
+                double *line_y = (double *)malloc(sizeof(double) * );
+                double *line_z = (double *)malloc(sizeof(double) * );
+                double *line_w = (double *)malloc(sizeof(double) * );
+                double *new_line_x = (double *)malloc(sizeof(double) * );
+                double *new_line_y = (double *)malloc(sizeof(double) * );
+                double *new_line_z = (double *)malloc(sizeof(double) * );
+                double *new_line_w = (double *)malloc(sizeof(double) * );
+
+                realloc_CP;
+                free(line_x), free(line_y), free(line_z), free(line_w);
+                free(new_line_x), free(new_line_y), free(new_line_z), free(new_line_w);
+            }
         }
     }
 
-    KI_calc_point_array(tm);
+
+
+
+
 
     for (i = 0; i < Control_point_n[tm][other_axis]; i++)
     {
-        if (i == 0)
-        {
-            KI_calc_knot_1D(tm, insert_parameter_axis);
-        }
-
         KI_define_temp_point_array(tm, i, insert_parameter_axis);
         KI_calc_T_1D(tm, insert_parameter_axis);
         KI_update_point_array(tm, i, insert_parameter_axis);
@@ -679,10 +705,10 @@ void Calc_cp_insert_knot(int tm, int insert_parameter_axis)
 }
 
 
-void KI_cp_2D(int tm, int insert_parameter_axis)
+void KI_cp(int tm, int insert_parameter_axis)
 {
     Calc_cp_insert_knot(tm, insert_parameter_axis);
-    KI_non_uniform_2D(tm, insert_parameter_axis, 0);
+    KI_non_uniform(tm, insert_parameter_axis, 0);
 }
 
 
@@ -807,7 +833,7 @@ void OE_define_temp_point_array(int tm, int line_number, int elevation_parameter
 }
 
 
-void Bezier_Order_Elevation_2D(int tm, int elevation_parameter_axis, int Bezier_line_number)
+void Bezier_Order_Elevation(int tm, int elevation_parameter_axis, int Bezier_line_number)
 {
     int i, j;
     int n = Order[tm][elevation_parameter_axis];
@@ -992,7 +1018,7 @@ void Bezier_update(int tm, int elevation_parameter_axis)
 }
 
 
-void Calc_Bezier_2D(int tm, int elevation_parameter_axis, int other_axis)
+void Calc_Bezier(int tm, int elevation_parameter_axis, int other_axis)
 {
     int i, j, k;
     int n, l, l_other;
@@ -1027,7 +1053,7 @@ void Calc_Bezier_2D(int tm, int elevation_parameter_axis, int other_axis)
         }
         for (j = 0; j < number_of_Bezier_line; j++)
         {
-            Bezier_Order_Elevation_2D(tm, elevation_parameter_axis, j);
+            Bezier_Order_Elevation(tm, elevation_parameter_axis, j);
         }
         Bezier_update_point_array(tm, i, elevation_parameter_axis);
     }
@@ -1396,7 +1422,7 @@ void KR_reset_array()
 }
 
 
-void KR_non_uniform_2D(int tm, int removal_parameter_axis)
+void KR_non_uniform(int tm, int removal_parameter_axis)
 {
     int i;
     int other_axis = 0;
@@ -1428,7 +1454,7 @@ void KR_non_uniform_2D(int tm, int removal_parameter_axis)
 }
 
 
-void OE_2D(int tm, int elevation_parameter_axis)
+void OE(int tm, int elevation_parameter_axis)
 {
     int other_axis = 0;
     if (elevation_parameter_axis == 0)
@@ -1443,13 +1469,13 @@ void OE_2D(int tm, int elevation_parameter_axis)
     if (OE_n[tm][elevation_parameter_axis] > 0)
     {
         Calc_insert_knot_in_OE(tm, elevation_parameter_axis);
-        KI_non_uniform_2D(tm, elevation_parameter_axis, 0);
+        KI_non_uniform(tm, elevation_parameter_axis, 0);
 
         OE_calc_point_array(tm);
-        Calc_Bezier_2D(tm, elevation_parameter_axis, other_axis);
+        Calc_Bezier(tm, elevation_parameter_axis, other_axis);
         Bezier_update(tm, elevation_parameter_axis);
 
-        KR_non_uniform_2D(tm, elevation_parameter_axis);
+        KR_non_uniform(tm, elevation_parameter_axis);
     }
 }
 
