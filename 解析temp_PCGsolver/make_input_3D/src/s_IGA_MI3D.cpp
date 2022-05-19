@@ -62,14 +62,15 @@ int main(int argc, char **argv)
         // オーダーエレベーション
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
+            if (info[j].OE_n != 0 )
             OE(j);
-            Debug_printf(i, "Order Elevation");
+            Debug_printf("Order Elevation");
         }
 
         // ノットインサーション
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
-            if (info_glo.mode == 0)
+            if (info_glo.mode == 0 && info[j].KI_non_uniform_n != 0)
             {
                 KI_non_uniform(j, 1);
             }
@@ -405,39 +406,26 @@ void KI_calc_knot_1D(int insert_parameter_axis)
 }
 
 
-void KI_calc_T_1D(int insert_parameter_axis)
+void KI_calc_T_1D(int insert_parameter_axis, int insert_knot_n, info_global info_glo, info_each_DIMENSION info, line_weight w, line_coordinate DIM)
 {
     int i, j, k;
 
     int l = info[insert_parameter_axis].CP_n;
     int n = info[insert_parameter_axis].Order;
 
+    // pre processing
     for (i = 0; i < l; i++)
     {
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
             DIM[j].line[i] = DIM[j].line[i] * w.line[i];
         }
-        // temp_x1[i] = temp_x_array[i] * temp_w_array[i];
-        // temp_y1[i] = temp_y_array[i] * temp_w_array[i];
-        // temp_w1[i] = temp_w_array[i];
     }
 
-    double T[n + 1][l + vec_length1[tm][insert_parameter_axis]][l];
-
-    for (int i = 0; i < n + 1; i++)
-    {
-        for (int j = 0; j < l + vec_length1[tm][insert_parameter_axis]; j++)
-        {
-            for (int k = 0; k < l; k++)
-            {
-                T[i][j][k] = 0.0;
-            }
-        }
-    }
+    double *T = (double *)calloc((n + 1) * (l + insert_knot_n) * l, sizeof(double)); // T[n + 1][l + vec_length1[tm][insert_parameter_axis]][l]
 
     double a = 0.0, b = 0.0;
-    for (i = 0; i < l + vec_length1[tm][insert_parameter_axis]; i++)
+    for (i = 0; i < l + insert_knot_n; i++)
     {
         for (k = 0; k < n + 1; k++)
         {
@@ -478,7 +466,7 @@ void KI_calc_T_1D(int insert_parameter_axis)
         }
     }
 
-    // 内積の計算
+    // inner product
     for (i = 0; i < l + vec_length1[tm][insert_parameter_axis]; i++)
     {
         for (j = 0; j < l; j++)
@@ -495,12 +483,15 @@ void KI_calc_T_1D(int insert_parameter_axis)
         }
     }
 
+    // post processing
     for (i = 0; i < l + vec_length1[tm][insert_parameter_axis]; i++)
     {
         temp_x_array[i] = temp_x2[i] / temp_w2[i];
         temp_y_array[i] = temp_y2[i] / temp_w2[i];
         temp_w_array[i] = temp_w2[i];
     }
+
+    free(T);
 }
 
 
@@ -590,6 +581,7 @@ void KI_reset_array()
 void KI_non_uniform(int insert_parameter_axis, int insert_knot_n, double *insert_knot_in_KI, info_global info_glo, info_each_DIMENSION info)
 {
     int temp_Total_CP = 0;
+    int temp_Total_KV = 0;
     int i, j, k, l;
     int other_axis = 0;
     int other_axis_1 = 0, other_axis_2 = 0;
@@ -609,6 +601,7 @@ void KI_non_uniform(int insert_parameter_axis, int insert_knot_n, double *insert
             temp_Total_CP = info[0].CP_n * (info[1].CP_n + insert_knot_n);
         }
         double *temp_Coordinate = (double *)malloc(sizeof(double) * info_glo.DIMENSION * temp_Total_CP);
+        double *temp_Knot_Vector = (double *)malloc(sizeof(double) * info_glo.DIMENSION * temp_Total_KV);
 
         for (i = 0; i < info[other_axis].CP_n; i++)
         {
@@ -657,12 +650,15 @@ void KI_non_uniform(int insert_parameter_axis, int insert_knot_n, double *insert
             KI_calc_T_1D(insert_parameter_axis);
 
             // update
-            KI_update_point_array(tm, i, insert_parameter_axis);
+            KI_update_point_array(i, insert_parameter_axis);
 
             free(line_x), free(line_y), free(line_w);
             free(new_line_x), free(new_line_y), free(new_line_w);
         }
-        KI_update(tm, insert_parameter_axis);
+        
+        realloc_CP, realloc_KV;
+
+        KI_update(insert_parameter_axis);
         KI_reset_array();
         free(temp_Coordinate);
     }
@@ -742,14 +738,16 @@ void KI_non_uniform(int insert_parameter_axis, int insert_knot_n, double *insert
                 KI_calc_T_1D(insert_parameter_axis);
 
                 // update
-                KI_update_point_array(tm, i, insert_parameter_axis);
+                KI_update_point_array(i, insert_parameter_axis);
 
                 free(line_x), free(line_y), free(line_z), free(line_w);
                 free(new_line_x), free(new_line_y), free(new_line_z), free(new_line_w);
             }
         }
-        realloc_CP;
-        KI_update(tm, insert_parameter_axis);
+
+        realloc_CP, realloc_KV;
+        
+        KI_update(insert_parameter_axis);
         KI_reset_array();
         free(temp_Coordinate);
     }
