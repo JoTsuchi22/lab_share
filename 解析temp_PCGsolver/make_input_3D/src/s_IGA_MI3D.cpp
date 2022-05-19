@@ -405,43 +405,22 @@ void KI_calc_knot_1D(int insert_parameter_axis)
 }
 
 
-void KI_define_temp_point_array(int tm, int line_number, int insert_parameter_axis)
-{
-    int i;
-    if (insert_parameter_axis == 0)
-    {
-        for (i = 0; i < Control_point_n[tm][insert_parameter_axis]; i++)
-        {
-            temp_x_array[i] = x_array[i][line_number];
-            temp_y_array[i] = y_array[i][line_number];
-            temp_w_array[i] = w_array[i][line_number];
-        }
-    }
-    else if (insert_parameter_axis == 1)
-    {
-        for (i = 0; i < Control_point_n[tm][insert_parameter_axis]; i++)
-        {
-            temp_x_array[i] = x_array[line_number][i];
-            temp_y_array[i] = y_array[line_number][i];
-            temp_w_array[i] = w_array[line_number][i];
-        }
-    }
-}
-
-
-void KI_calc_T_1D(int tm, int insert_parameter_axis)
+void KI_calc_T_1D(int insert_parameter_axis)
 {
     int i, j, k;
-    int l, n;
 
-    l = Control_point_n[tm][insert_parameter_axis];
-    n = Order[tm][insert_parameter_axis];
+    int l = info[insert_parameter_axis].CP_n;
+    int n = info[insert_parameter_axis].Order;
 
     for (i = 0; i < l; i++)
     {
-        temp_x1[i] = temp_x_array[i] * temp_w_array[i];
-        temp_y1[i] = temp_y_array[i] * temp_w_array[i];
-        temp_w1[i] = temp_w_array[i];
+        for (j = 0; j < info_glo.DIMENSION; j++)
+        {
+            DIM[j].line[i] = DIM[j].line[i] * w.line[i];
+        }
+        // temp_x1[i] = temp_x_array[i] * temp_w_array[i];
+        // temp_y1[i] = temp_y_array[i] * temp_w_array[i];
+        // temp_w1[i] = temp_w_array[i];
     }
 
     double T[n + 1][l + vec_length1[tm][insert_parameter_axis]][l];
@@ -610,85 +589,170 @@ void KI_reset_array()
 
 void KI_non_uniform(int insert_parameter_axis, int insert_knot_n, double *insert_knot_in_KI, info_global info_glo, info_each_DIMENSION info)
 {
-    int i, j;
+    int temp_Total_CP = 0;
+    int i, j, k, l;
     int other_axis = 0;
     int other_axis_1 = 0, other_axis_2 = 0;
 
-    KI_calc_knot_1D(int insert_parameter_axis);
+    KI_calc_knot_1D(insert_parameter_axis);
 
     if (info_glo.DIMENSION == 2)
     {
         if (insert_parameter_axis == 0)
         {
             other_axis = 1;
+            temp_Total_CP = (info[0].CP_n + insert_knot_n) * info[1].CP_n;
         }
         else if (insert_parameter_axis == 1)
         {
             other_axis = 0;
+            temp_Total_CP = info[0].CP_n * (info[1].CP_n + insert_knot_n);
         }
+        double *temp_Coordinate = (double *)malloc(sizeof(double) * info_glo.DIMENSION * temp_Total_CP);
 
         for (i = 0; i < info[other_axis].CP_n; i++)
         {
-            double *line_x = (double *)malloc(sizeof(double) * );
-            double *line_y = (double *)malloc(sizeof(double) * );
-            double *line_w = (double *)malloc(sizeof(double) * );
-            double *new_line_x = (double *)malloc(sizeof(double) * );
-            double *new_line_y = (double *)malloc(sizeof(double) * );
-            double *new_line_w = (double *)malloc(sizeof(double) * );
+            // memory allocation
+            line_weight w, *w_ptr;
+            line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo.DIMENSION);
+            line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo.DIMENSION);
+            w_ptr = &w;
+            for (j = 0; j < info_glo.DIMENSION; j++)
+            {
+                DIM_ptr[j] = &DIM[j];
+            }
+            double *line_x = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+            double *line_y = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+            double *line_w = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+            double *new_line_x = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+            double *new_line_y = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+            double *new_line_w = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+            DIM_ptr[0]->line = line_x;
+            DIM_ptr[1]->line = line_y;
+            w_ptr->line = line_w;
+            DIM_ptr[0]->new_line = new_line_x;
+            DIM_ptr[1]->new_line = new_line_y;
+            w_ptr->new_line = new_line_w;
+
+            // get line info
+            for (j = 0; j < info[insert_parameter_axis].CP_n; j++)
+            {
+                int temp = 0;
+                if (insert_parameter_axis == 0)
+                {
+                    temp = j * info[other_axis].CP_n + i;
+                }
+                else if (insert_parameter_axis == 1)
+                {
+                    temp = i * info[other_axis].CP_n + j;
+                }
+
+                for (k = 0; k < info_glo.DIMENSION; k++)
+                {
+                    DIM[k].line[j] = info[k].CP[temp];
+                }
+                w.line[j] = info_glo.Weight[temp];
+            }
+
+            KI_calc_T_1D(insert_parameter_axis);
+
+            // update
+            KI_update_point_array(tm, i, insert_parameter_axis);
 
             free(line_x), free(line_y), free(line_w);
             free(new_line_x), free(new_line_y), free(new_line_w);
         }
+        KI_update(tm, insert_parameter_axis);
+        KI_reset_array();
+        free(temp_Coordinate);
     }
     else if(info_glo.DIMENSION == 3)
     {
         if (insert_parameter_axis == 0)
         {
             other_axis_1 = 1, other_axis_2 = 2;
+            temp_Total_CP = (info[0].CP_n + insert_knot_n) * info[1].CP_n * info[2].CP_n;
         }
         else if (insert_parameter_axis == 1)
         {
             other_axis_1 = 0, other_axis_2 = 2;
+            temp_Total_CP = info[0].CP_n * (info[1].CP_n + insert_knot_n) * info[2].CP_n;
         }
         else if (insert_parameter_axis == 2)
         {
             other_axis_1 = 0, other_axis_2 = 1;
+            temp_Total_CP = info[0].CP_n * info[1].CP_n * (info[2].CP_n + insert_knot_n);
         }
+        double *temp_Coordinate = (double *)malloc(sizeof(double) * info_glo.DIMENSION * temp_Total_CP);
 
         for (i = 0; i < info[other_axis_1].CP_n; i++)
         {
             for (j = 0; j < info[other_axis_2].CP_n; j++)
             {
-                double *line_x = (double *)malloc(sizeof(double) * );
-                double *line_y = (double *)malloc(sizeof(double) * );
-                double *line_z = (double *)malloc(sizeof(double) * );
-                double *line_w = (double *)malloc(sizeof(double) * );
-                double *new_line_x = (double *)malloc(sizeof(double) * );
-                double *new_line_y = (double *)malloc(sizeof(double) * );
-                double *new_line_z = (double *)malloc(sizeof(double) * );
-                double *new_line_w = (double *)malloc(sizeof(double) * );
+                // memory allocation
+                line_weight w, *w_ptr;
+                line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo.DIMENSION);
+                line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo.DIMENSION);
+                w_ptr = &w;
+                for (k = 0; k < info_glo.DIMENSION; k++)
+                {
+                    DIM_ptr[k] = &DIM[k];
+                }
+                double *line_x = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+                double *line_y = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+                double *line_z = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+                double *line_w = (double *)malloc(sizeof(double) * info[insert_parameter_axis].CP_n);
+                double *new_line_x = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+                double *new_line_y = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+                double *new_line_z = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+                double *new_line_w = (double *)malloc(sizeof(double) * (info[insert_parameter_axis].CP_n + insert_knot_n));
+                DIM_ptr[0]->line = line_x;
+                DIM_ptr[1]->line = line_y;
+                DIM_ptr[2]->line = line_z;
+                w_ptr->line = line_w;
+                DIM_ptr[0]->new_line = new_line_x;
+                DIM_ptr[1]->new_line = new_line_y;
+                DIM_ptr[2]->new_line = new_line_z;
+                w_ptr->new_line = new_line_w;
 
-                realloc_CP;
+                // get line info
+                for (k = 0; k < info[insert_parameter_axis].CP_n; k++)
+                {
+                    int temp = 0;
+                    if (insert_parameter_axis == 0)
+                    {
+                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                    }
+                    else if (insert_parameter_axis == 1)
+                    {
+                        temp = i * (info[1].CP_n * info[2].CP_n) + k * info[2].CP_n + j;
+                    }
+                    else if (insert_parameter_axis == 2)
+                    {
+                        temp = i * (info[1].CP_n * info[2].CP_n) + j * info[2].CP_n + k;
+                    }
+
+                    for (l = 0; l < info_glo.DIMENSION; l++)
+                    {
+                        DIM[k].line[j] = info[k].CP[temp];
+                    }
+                    w.line[j] = info_glo.Weight[temp];
+                }
+
+                KI_calc_T_1D(insert_parameter_axis);
+
+                // update
+                KI_update_point_array(tm, i, insert_parameter_axis);
+
                 free(line_x), free(line_y), free(line_z), free(line_w);
                 free(new_line_x), free(new_line_y), free(new_line_z), free(new_line_w);
             }
         }
+        realloc_CP;
+        KI_update(tm, insert_parameter_axis);
+        KI_reset_array();
+        free(temp_Coordinate);
     }
-
-
-
-
-
-
-    for (i = 0; i < Control_point_n[tm][other_axis]; i++)
-    {
-        KI_define_temp_point_array(tm, i, insert_parameter_axis);
-        KI_calc_T_1D(tm, insert_parameter_axis);
-        KI_update_point_array(tm, i, insert_parameter_axis);
-    }
-
-    KI_update(tm, insert_parameter_axis);
-    KI_reset_array();
 }
 
 

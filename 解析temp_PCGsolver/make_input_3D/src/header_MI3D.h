@@ -55,7 +55,7 @@ struct info_global {
     int Total_Control_Point;
     int mode;
 
-    double *Weight
+    double *Weight;
 };
 
 struct info_each_DIMENSION {
@@ -73,13 +73,22 @@ struct info_each_DIMENSION {
     double *insert_knot;
 };
 
+struct line_coordinate {
+    double *line;
+    double *new_line;
+};
+
+struct line_weight {
+    double *line;
+    double *new_line;
+};
+
 // Get input data
 void Get_DIM(char *filename, info_global info_glo);
 void Get_InputData_1(char *filename, information info_glo, info_each_DIMENSION info);
 void Get_InputData_2(char *filename, information info_glo, info_each_DIMENSION info);
 // Knot Insertion
 void KI_calc_knot_1D(int insert_parameter_axis);
-void KI_define_temp_point_array(int line_number, int insert_parameter_axis);
 void KI_calc_T_1D(int insert_parameter_axis);
 void KI_update_point_array(int line_number, int insert_parameter_axis);
 void KI_update(int insert_parameter_axis);
