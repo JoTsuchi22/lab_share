@@ -65,8 +65,8 @@ int main(int argc, char **argv)
         {
             info_ptr[j]->KV = &Knot_Vector[temp1];
             info_ptr[j]->CP = &Coordinate[temp2];
-            info_ptr[j]->temp_KV = &Knot_Vector[temp1];
-            info_ptr[j]->temp_CP = &Coordinate[temp2];
+            info_ptr[j]->temp_KV = &temp_Knot_Vector[temp1];
+            info_ptr[j]->temp_CP = &temp_Coordinate[temp2];
             info_ptr[j]->insert_knot = &Insert_Knot_Vector[temp3];
             if (info_glo.mode == 1)
             {
@@ -334,6 +334,7 @@ void Get_InputData_2(char *filename, info_global *info_glo, info_each_DIMENSION 
                 info_glo->Weight[i] = temp_d;
             }
         }
+        printf("\n");
     }
     fgets(s, 256, fp);
 
@@ -923,6 +924,17 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
 
                 // calc line
                 Calc_Bezier(elevation_axis, info_glo, info, &w, DIM);
+
+                if (elevation_axis == 0 && i == 0 && j == 0)
+                {
+                    printf("CHECK\n");
+                    printf("%d\n", info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+                    for (int kk = 0; kk < info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2); kk++)
+                    {
+                        printf("%le\t", DIM[0].new_line[kk]);
+                    }
+                    printf("\n");
+                }
 
                 // update
                 for (k = 0; k < info[elevation_axis].CP_n + insert_knot_n; k++)
