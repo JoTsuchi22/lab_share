@@ -1172,21 +1172,13 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        B_DIM[k].temp_line[j + 1] = B_DIM[k].line[j];
+                        B_DIM[k].temp_line[j] = B_DIM[k].line[j];
                     }
                     B_w.temp_line[j] = B_w.line[j];
                 }
             }
             if (i != info[elevation_axis].OE_n - 1 && info[elevation_axis].OE_n != 1)
             {
-                for (j = 0; j < n + 1; j++)
-                {
-                    for (k = 0; k < info_glo->DIMENSION; k++)
-                    {
-                        B_DIM[k].line[j + 1] = B_DIM[k].temp_line[j];
-                    }
-                    B_w.line[j + 1] = B_w.temp_line[j];
-                }
                 for (j = 0; j < n + 1; j++)
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
