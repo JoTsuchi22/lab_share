@@ -67,8 +67,5 @@ void KR_calc_knot_1D(int removal_axis, int removal_knot_n, double *removal_knot,
 void KR_calc_Tinv_1D(int removal_axis, int removal_knot_n, info_global *info_glo, info_each_DIMENSION *info, line_weight *w, line_coordinate *DIM);
 // Output
 void OutputData(char *filename, info_global *info_glo, info_each_DIMENSION *info);
-// DBG
-// void Debug_printf(char *section);
-
 
 #endif

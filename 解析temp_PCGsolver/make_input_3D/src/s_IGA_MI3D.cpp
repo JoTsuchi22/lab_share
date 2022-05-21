@@ -127,7 +127,6 @@ void Get_DIM(char *filename, info_global *info_glo)
 
     // DIMENSION
     fscanf(fp, "%d", &temp_i);
-    printf("DIMENSION = %d\n", temp_i);
     info_glo->DIMENSION = temp_i;
 
     fclose(fp);
@@ -152,7 +151,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (j = 0; j < info_glo->DIMENSION; j++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("info[%d].Order = %d\n", j, temp_i);
         info[j].Order = temp_i;
         info[j].Order_before = temp_i;
     }
@@ -162,7 +160,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (j = 0; j < info_glo->DIMENSION; j++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("info[%d].knot_n = %d\n", j, temp_i);
         info[j].knot_n = temp_i;
     }
     fgets(s, 256, fp);
@@ -172,7 +169,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (j = 0; j < info_glo->DIMENSION; j++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("info[%d].CP_n = %d\n", j, temp_i);
         info[j].CP_n = temp_i;
         info[j].CP_n_before = temp_i;
         info_glo->Total_Control_Point *= temp_i;
@@ -204,7 +200,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (j = 0; j < info_glo->DIMENSION; j++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("info[%d].OE_n = %d\n", j, temp_i);
         info[j].OE_n = temp_i;
     }
     fgets(s, 256, fp);
@@ -213,7 +208,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (j = 0; j < info_glo->DIMENSION; j++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("info[%d].KI_cp_n = %d\n",j, temp_i);
         info[j].KI_cp_n = temp_i;
     }
     fgets(s, 256, fp);
@@ -222,7 +216,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (j = 0; j < info_glo->DIMENSION; j++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("info[%d].KI_non_uniform_n = %d\n", j, temp_i);
         info[j].KI_non_uniform_n = temp_i;
     }
     fgets(s, 256, fp);
@@ -308,10 +301,8 @@ void Get_InputData_2(char *filename, info_global *info_glo, info_each_DIMENSION 
         for (k = 0; k < info[j].knot_n; k++)
         {
             fscanf(fp, "%lf", &temp_d);
-            printf("%.16e\t", temp_d);
             info[j].KV[k] = temp_d;
         }
-        printf("\n");
     }
     fgets(s, 256, fp);
 
@@ -319,22 +310,18 @@ void Get_InputData_2(char *filename, info_global *info_glo, info_each_DIMENSION 
     for (i = 0; i < info_glo->Total_Control_Point; i++)
     {
         fscanf(fp, "%d", &temp_i);
-        printf("%d\t", temp_i);
         for (j = 0; j < info_glo->DIMENSION + 1; j++)
         {
             fscanf(fp, "%lf", &temp_d);
             if (j < info_glo->DIMENSION)
             {
-                printf("%.16e\t", temp_d);
                 info[j].CP[i] = temp_d;
             }
             else if (j == info_glo->DIMENSION)
             {
-                printf("%.16e\t", temp_d);
                 info_glo->Weight[i] = temp_d;
             }
         }
-        printf("\n");
     }
     fgets(s, 256, fp);
 
@@ -367,10 +354,8 @@ void Get_InputData_2(char *filename, info_global *info_glo, info_each_DIMENSION 
             for (k = 0; k < info[j].KI_non_uniform_n; k++)
             {
                 fscanf(fp, "%lf", &temp_d);
-                printf("%.16e\t", temp_d);
                 info[j].insert_knot[k] = temp_d;
             }
-            printf("\n");
         }
     }
 
@@ -429,11 +414,11 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
                 int temp = 0;
                 if (insert_axis == 0)
                 {
-                    temp = j * info[1].CP_n + i;
+                    temp = i * info[0].CP_n + j;
                 }
                 else if (insert_axis == 1)
                 {
-                    temp = i * info[1].CP_n + j;
+                    temp = j * info[0].CP_n + i;
                 }
 
                 for (k = 0; k < info_glo->DIMENSION; k++)
@@ -452,11 +437,11 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
                 int temp = 0;
                 if (insert_axis == 0)
                 {
-                    temp = j * info[1].CP_n + i;
+                    temp = i * (info[0].CP_n + insert_knot_n) + j;
                 }
                 else if (insert_axis == 1)
                 {
-                    temp = i * (info[1].CP_n + insert_knot_n) + j;
+                    temp = j * info[0].CP_n + i;
                 }
 
                 for (k = 0; k < info_glo->DIMENSION; k++)
@@ -523,15 +508,15 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
                     int temp = 0;
                     if (insert_axis == 0)
                     {
-                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * info[0].CP_n) + i * info[0].CP_n + k;
                     }
                     else if (insert_axis == 1)
                     {
-                        temp = i * (info[1].CP_n * info[2].CP_n) + k * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * info[0].CP_n) + k * info[0].CP_n + i;
                     }
                     else if (insert_axis == 2)
                     {
-                        temp = i * (info[1].CP_n * info[2].CP_n) + j * info[2].CP_n + k;
+                        temp = k * (info[1].CP_n * info[0].CP_n) + j * info[0].CP_n + i;
                     }
 
                     for (l = 0; l < info_glo->DIMENSION; l++)
@@ -550,15 +535,15 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
                     int temp = 0;
                     if (insert_axis == 0)
                     {
-                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * (info[0].CP_n + insert_knot_n)) + i * (info[0].CP_n + insert_knot_n) + k;
                     }
                     else if (insert_axis == 1)
                     {
-                        temp = i * ((info[1].CP_n + insert_knot_n) * info[2].CP_n) + k * info[2].CP_n + j;
+                        temp = j * ((info[1].CP_n + insert_knot_n) * info[0].CP_n) + k * info[0].CP_n + i;
                     }
                     else if (insert_axis == 2)
                     {
-                        temp = i * (info[1].CP_n * (info[2].CP_n + insert_knot_n)) + j * (info[2].CP_n + insert_knot_n) + k;
+                        temp = k * (info[1].CP_n * info[0].CP_n) + j * info[0].CP_n + i;
                     }
 
                     for (l = 0; l < info_glo->DIMENSION; l++)
@@ -810,11 +795,11 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
                 int temp = 0;
                 if (elevation_axis == 0)
                 {
-                    temp = j * info[1].CP_n + i;
+                    temp = i * info[0].CP_n + j;
                 }
                 else if (elevation_axis == 1)
                 {
-                    temp = i * info[1].CP_n + j;
+                    temp = j * info[0].CP_n + i;
                 }
 
                 for (k = 0; k < info_glo->DIMENSION; k++)
@@ -828,16 +813,17 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
             Calc_Bezier(elevation_axis, info_glo, info, &w, DIM);
 
             // update
-            for (j = 0; j < info[elevation_axis].CP_n + insert_knot_n; j++)
+            int temp_CP_n = info[elevation_axis].OE_n * (info[elevation_axis].CP_n - info[elevation_axis].Order);
+            for (j = 0; j < info[elevation_axis].CP_n + temp_CP_n; j++)
             {
                 int temp = 0;
                 if (elevation_axis == 0)
                 {
-                    temp = j * info[1].CP_n + i;
+                    temp = i * (info[0].CP_n + temp_CP_n) + j;
                 }
                 else if (elevation_axis == 1)
                 {
-                    temp = i * (info[1].CP_n + insert_knot_n) + j;
+                    temp = j * info[0].CP_n + i;
                 }
 
                 for (k = 0; k < info_glo->DIMENSION; k++)
@@ -904,15 +890,15 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
                     int temp = 0;
                     if (elevation_axis == 0)
                     {
-                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * info[0].CP_n) + i * info[0].CP_n + k;
                     }
                     else if (elevation_axis == 1)
                     {
-                        temp = i * (info[1].CP_n * info[2].CP_n) + k * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * info[0].CP_n) + k * info[0].CP_n + i;
                     }
                     else if (elevation_axis == 2)
                     {
-                        temp = i * (info[1].CP_n * info[2].CP_n) + j * info[2].CP_n + k;
+                        temp = k * (info[1].CP_n * info[0].CP_n) + j * info[0].CP_n + i;
                     }
 
                     for (l = 0; l < info_glo->DIMENSION; l++)
@@ -925,32 +911,22 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
                 // calc line
                 Calc_Bezier(elevation_axis, info_glo, info, &w, DIM);
 
-                if (elevation_axis == 0 && i == 0 && j == 0)
-                {
-                    printf("CHECK\n");
-                    printf("%d\n", info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-                    for (int kk = 0; kk < info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2); kk++)
-                    {
-                        printf("%le\t", DIM[0].new_line[kk]);
-                    }
-                    printf("\n");
-                }
-
                 // update
-                for (k = 0; k < info[elevation_axis].CP_n + insert_knot_n; k++)
+                int temp_CP_n = info[elevation_axis].OE_n * (info[elevation_axis].CP_n - info[elevation_axis].Order);
+                for (k = 0; k < info[elevation_axis].CP_n + temp_CP_n; k++)
                 {
                     int temp = 0;
                     if (elevation_axis == 0)
                     {
-                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * (info[0].CP_n + temp_CP_n)) + i * (info[0].CP_n + temp_CP_n) + k;
                     }
                     else if (elevation_axis == 1)
                     {
-                        temp = i * ((info[1].CP_n + insert_knot_n) * info[2].CP_n) + k * info[2].CP_n + j;
+                        temp = j * ((info[1].CP_n + temp_CP_n) * info[0].CP_n) + k * info[0].CP_n + i;
                     }
                     else if (elevation_axis == 2)
                     {
-                        temp = i * (info[1].CP_n * (info[2].CP_n + insert_knot_n)) + j * (info[2].CP_n + insert_knot_n) + k;
+                        temp = k * (info[1].CP_n * info[0].CP_n) + j * info[0].CP_n + i;
                     }
 
                     for (l = 0; l < info_glo->DIMENSION; l++)
@@ -1139,8 +1115,6 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
     int i, j, k;
     int n = info[elevation_axis].Order;
 
-    double *alpha = (double *)malloc(sizeof(double) * (info[elevation_axis].Order + info[elevation_axis].OE_n + 2));
-
     if (info_glo->DIMENSION == 2)
     {
         // memory allocation
@@ -1182,15 +1156,15 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
             {
                 if (j != n)
                 {
-                    alpha[j] = (j + 1.0) / (n + 1.0);
+                    double alpha = (j + 1.0) / (n + 1.0);
 
-                    a_w = (1.0 - alpha[j]) * B_w.line[j + 1];
-                    b_w = alpha[j] * B_w.line[j];
+                    a_w = (1.0 - alpha) * B_w.line[j + 1];
+                    b_w = alpha * B_w.line[j];
                     B_w.temp_line[j] = a_w + b_w;
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        a = (1.0 - alpha[j]) * (B_DIM[k].line[j + 1] * B_w.line[j + 1]);
-                        b = alpha[j] * (B_DIM[k].line[j] * B_w.line[j]);
+                        a = (1.0 - alpha) * (B_DIM[k].line[j + 1] * B_w.line[j + 1]);
+                        b = alpha * (B_DIM[k].line[j] * B_w.line[j]);
                         B_DIM[k].temp_line[j] = (a + b) / B_w.temp_line[j];
                     }
                 }
@@ -1198,7 +1172,7 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        B_DIM[k].temp_line[j] = B_DIM[k].line[j];
+                        B_DIM[k].temp_line[j + 1] = B_DIM[k].line[j];
                     }
                     B_w.temp_line[j] = B_w.line[j];
                 }
@@ -1213,7 +1187,14 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
                     }
                     B_w.line[j + 1] = B_w.temp_line[j];
                 }
-
+                for (j = 0; j < n + 1; j++)
+                {
+                    for (k = 0; k < info_glo->DIMENSION; k++)
+                    {
+                        B_DIM[k].line[j + 1] = B_DIM[k].temp_line[j];
+                    }
+                    B_w.line[j + 1] = B_w.temp_line[j];
+                }
                 n++;
             }
         }
@@ -1277,15 +1258,15 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
             {
                 if (j != n)
                 {
-                    alpha[j] = (j + 1.0) / (n + 1.0);
+                    double alpha = (j + 1.0) / (n + 1.0);
 
-                    a_w = (1.0 - alpha[j]) * B_w.line[j + 1];
-                    b_w = alpha[j] * B_w.line[j];
+                    a_w = (1.0 - alpha) * B_w.line[j + 1];
+                    b_w = alpha * B_w.line[j];
                     B_w.temp_line[j] = a_w + b_w;
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        a = (1.0 - alpha[j]) * (B_DIM[k].line[j + 1] * B_w.line[j + 1]);
-                        b = alpha[j] * (B_DIM[k].line[j] * B_w.line[j]);
+                        a = (1.0 - alpha) * (B_DIM[k].line[j + 1] * B_w.line[j + 1]);
+                        b = alpha * (B_DIM[k].line[j] * B_w.line[j]);
                         B_DIM[k].temp_line[j] = (a + b) / B_w.temp_line[j];
                     }
                 }
@@ -1308,7 +1289,6 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
                     }
                     B_w.line[j + 1] = B_w.temp_line[j];
                 }
-
                 n++;
             }
         }
@@ -1327,8 +1307,6 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
         free(temp_line_x), free(temp_line_y), free(temp_line_z), free(temp_line_w);
         free(B_DIM), free(B_DIM_ptr);
     }
-
-    free(alpha);
 }
 
 
@@ -1412,11 +1390,11 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
                 int temp = 0;
                 if (removal_axis == 0)
                 {
-                    temp = j * info[1].CP_n + i;
+                    temp = i * info[0].CP_n + j;
                 }
                 else if (removal_axis == 1)
                 {
-                    temp = i * info[1].CP_n + j;
+                    temp = j * info[0].CP_n + i;
                 }
 
                 for (k = 0; k < info_glo->DIMENSION; k++)
@@ -1435,11 +1413,11 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
                 int temp = 0;
                 if (removal_axis == 0)
                 {
-                    temp = j * info[1].CP_n + i;
+                    temp = i * (info[0].CP_n - removal_knot_n) + j;
                 }
                 else if (removal_axis == 1)
                 {
-                    temp = i * (info[1].CP_n - removal_knot_n) + j;
+                    temp = j * info[0].CP_n + i;
                 }
 
                 for (k = 0; k < info_glo->DIMENSION; k++)
@@ -1506,15 +1484,15 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
                     int temp = 0;
                     if (removal_axis == 0)
                     {
-                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * info[0].CP_n) + i * info[0].CP_n + k;
                     }
                     else if (removal_axis == 1)
                     {
-                        temp = i * (info[1].CP_n * info[2].CP_n) + k * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * info[0].CP_n) + k * info[0].CP_n + i;
                     }
                     else if (removal_axis == 2)
                     {
-                        temp = i * (info[1].CP_n * info[2].CP_n) + j * info[2].CP_n + k;
+                        temp = k * (info[1].CP_n * info[0].CP_n) + j * info[0].CP_n + i;
                     }
 
                     for (l = 0; l < info_glo->DIMENSION; l++)
@@ -1533,15 +1511,15 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
                     int temp = 0;
                     if (removal_axis == 0)
                     {
-                        temp = k * (info[1].CP_n * info[2].CP_n) + i * info[2].CP_n + j;
+                        temp = j * (info[1].CP_n * (info[0].CP_n - removal_knot_n)) + i * (info[0].CP_n - removal_knot_n) + k;
                     }
                     else if (removal_axis == 1)
                     {
-                        temp = i * ((info[1].CP_n - removal_knot_n) * info[2].CP_n) + k * info[2].CP_n + j;
+                        temp = j * ((info[1].CP_n - removal_knot_n) * info[0].CP_n) + k * info[0].CP_n + i;
                     }
                     else if (removal_axis == 2)
                     {
-                        temp = i * (info[1].CP_n * (info[2].CP_n - removal_knot_n)) + j * (info[2].CP_n - removal_knot_n) + k;
+                        temp = k * (info[1].CP_n * info[0].CP_n) + j * info[0].CP_n + i;
                     }
 
                     for (l = 0; l < info_glo->DIMENSION; l++)
@@ -1926,140 +1904,3 @@ void OutputData(char *filename, info_global *info_glo, info_each_DIMENSION *info
 
     fclose(fp);
 }
-
-
-/*
-// DBG
-void Debug_printf(char *section)
-{
-    int i, j;
-
-    printf("----------------------------------------------------------\n");
-    printf("input file number:\t%d\n", tm);
-    printf("status:\t\t\t\t%s\n\n", section);
-
-    printf("Dimension\n");
-    printf("%d\n\n", info_glo->DIMENSION);
-
-    printf("Total Control Point\n");
-    printf("%d\n\n", Total_Control_Point[tm]);
-
-    printf("Order\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        if (j == 0)
-        {
-            printf("%d", Order[tm][j]);
-        }
-        else
-        {
-            printf("\t%d", Order[tm][j]);
-        }
-    }
-    printf("\n\n");
-
-    printf("number of knot vector\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        if (j == 0)
-        {
-            printf("%d", knot_n[tm][j]);
-        }
-        else
-        {
-            printf("\t%d", knot_n[tm][j]);
-        }
-    }
-    printf("\n\n");
-
-    printf("number of Control Point\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        if (j == 0)
-        {
-            printf("%d", Control_point_n[tm][j]);
-        }
-        else
-        {
-            printf("\t%d", Control_point_n[tm][j]);
-        }
-    }
-    printf("\n\n");
-
-    printf("knot vector\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        for (i = 0; i < knot_n[tm][j]; i++)
-        {
-            if (i == 0)
-            {
-                printf("%.16e", knot[tm][j][i]);
-            }
-            else
-            {
-                printf("\t%.16e", knot[tm][j][i]);
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-
-    printf("coordinate of Control Point\n");
-    for (i = 0; i < Total_Control_Point[tm]; i++)
-    {
-        printf("%d\t", i);
-        printf("%.16e\t", x[tm][i]);
-        printf("%.16e\t", y[tm][i]);
-        printf("%.16e\n", w[tm][i]);
-    }
-    printf("\n");
-
-    printf("Order of Elevation\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        if (j == 0)
-        {
-            printf("%d", OE_n[tm][j]);
-        }
-        else
-        {
-            printf("\t%d", OE_n[tm][j]);
-        }
-    }
-    printf("\n\n");
-
-    printf("number of non-uniform Knot Insertion\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        if (j == 0)
-        {
-            printf("%d", KI_non_uniform_n[tm][j]);
-        }
-        else
-        {
-            printf("\t%d", KI_non_uniform_n[tm][j]);
-        }
-    }
-    printf("\n\n");
-
-    printf("insert knot\n");
-    for (j = 0; j < info_glo->DIMENSION; j++)
-    {
-        if (KI_non_uniform_n[tm][j] != 0)
-        {
-            for (i = 0; i < KI_non_uniform_n[tm][j]; i++)
-            {
-                if (i == 0)
-                {
-                    printf("%.16e", insert_knot[tm][j][i]);
-                }
-                else
-                {
-                    printf("\t%.16e", insert_knot[tm][j][i]);
-                }
-            }
-            printf("\n");
-        }
-    }
-}
-*/
