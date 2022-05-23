@@ -4,64 +4,21 @@
 
 #include "header_MC3D.h"
 
-// #define DIMENSION 2                 // 2次元
-// #define MERGE_DISTANCE 1.0e-13      // コントロールポイントが同じ点と判定する距離
-#define MAX_DISP_CONSTRAINT 10      // 変位指定する変位量の最大個数
-#define MAX_DISP_CONSTRAINT_EDGE 10 // 変位指定する辺の最大個数
-#define MAX_DISTRIBUTED_LOAD 5      // 分布荷重の最大個数
-
-// static int Total_patch;
-// static double E_and_nu[2];
-// static int disp_constraint_n[DIMENSION];
-// static int disp_constraint_edge_n[DIMENSION][MAX_DISP_CONSTRAINT];
-// static double disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT];
-// static int disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_EDGE][3];
-// static int distributed_load_n;
-// static double distributed_load_info[MAX_DISTRIBUTED_LOAD][9];
-// static int counter = 0;
-// static int KV_to_here, CP_to_here, CP_result_to_here;
-// static int A_to_own, A_to_opponent, B_to_here;
-
-// FILE *fp;
-
-struct information {
-    double *Order;
-    double *KV;
-    double *CP;
-    
-    int KV_info;
-    int CP_info;
-};
-
-void Get_inputdata_boundary(char *filename);
-void Get_inputdata_patch_0(char *filename, int *temp_Order, int *temp_KV_info, int *temp_CP_info);
-void Get_inputdata_patch_1(char *filename, double *temp_KV, double *temp_CP, int *temp_A, double *temp_B, int *temp_KV_info, int *temp_CP_info, int num);
-void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num);
-void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result);
-void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after);
-void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
-                      int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n);
-void Output_by_Gnuplot(double *temp_CP_result);
-void Output_SVG(double *temp_B, double *temp_CP_result);
-void swap(int *a, int *b);
-int getLeft(int parent);
-int getRight(int parent);
-int getParent(int child);
-void addHeap(int *a, int size);
-void removeHeap(int *a, int size);
-void makeHeap(int *a, int num);
-void heapSort(int *a, int num);
-void Dedupe(int *a, int *num, int *a_new, int *num_new, int n);
 
 int main(int argc, char *argv[])
 {
     int i, j, k;
     int Total_input = argc - 1;
-    information info, *info_ptr;
-    info_ptr = &info;
+    info_global info_glo, *info_glo_ptr;
+    info_glo_ptr = &info_glo;
 
-    // ファイル読み込み
-    Get_inputdata_boundary(argv[1]); // boundaryのインプットデータ処理
+    // ファイル読み込み(1回目)
+    Get_inputdata_boundary_0(argv[1], &info_glo); // boundaryのインプットデータ処理
+
+
+    // ファイル読み込み(2回目)
+    Get_inputdata_boundary_1(argv[1]); // boundaryのインプットデータ処理
+
 
     // 動的メモリ確保
     int *Order = (int *)malloc(sizeof(int) * Total_patch * DIMENSION);   // int Order[パッチ番号][DIMENSION]
@@ -199,7 +156,90 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void Get_inputdata_boundary(char *filename)
+
+// get input data
+void Get_inputdata_boundary_0(char *filename, info_global *info_glo)
+{
+    int i, j, k;
+    char s[256];
+
+    int temp_i;
+    double temp_d;
+
+    fp = fopen(filename, "r");
+
+    // DIMENSION
+    fscanf(fp, "%d", &temp_i);
+    info_glo->DIMENSION = temp_i;
+    printf("DIMENSION = %d\n", temp_i);
+
+    fgets(s, 256, fp);
+
+    // パッチ数
+    fscanf(fp, "%d", &temp_i);
+    info_glo->Total_patch = temp_i;
+    printf("Total patch = %d\n", Total_patch);
+
+    fgets(s, 256, fp);
+
+    // ヤング率, ポアソン比
+    for (i = 0; i < DIMENSION; i++)
+    {
+        fscanf(fp, "%lf", &temp_d);
+        E_and_nu[i] = temp_d;
+        printf("E_and_nu[%d] = %le\n", i, E_and_nu[i]);
+    }
+
+    fgets(s, 256, fp);
+
+    // x, y方向への変位指定する個数
+    for (i = 0; i < DIMENSION; i++)
+    {
+        fscanf(fp, "%d", &temp_i);
+        disp_constraint_n[i] = temp_i;
+
+        for (j = 0; j < disp_constraint_n[i]; j++)
+        {
+            fscanf(fp, "%d", &temp_i);
+            disp_constraint_edge_n[i][j] = temp_i;
+
+            fscanf(fp, "%lf", &temp_d);
+            disp_constraint_amount[i][j] = temp_d;
+
+            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            {
+                fscanf(fp, "%d", &temp_i);
+                disp_constraint[i][j][k][0] = temp_i;
+
+                fscanf(fp, "%d", &temp_i);
+                disp_constraint[i][j][k][1] = temp_i;
+
+                fscanf(fp, "%d", &temp_i);
+                disp_constraint[i][j][k][2] = temp_i;
+            }
+
+            fgets(s, 256, fp);
+        }
+    }
+
+    // 分布荷重の荷重の個数
+    fscanf(fp, "%d", &temp_i);
+    distributed_load_n = temp_i;
+
+    for (i = 0; i < distributed_load_n; i++)
+    {
+        for (j = 0; j < 9; j++)
+        {
+            fscanf(fp, "%lf", &temp_d);
+            distributed_load_info[i][j] = temp_d;
+        }
+    }
+
+    fclose(fp);
+}
+
+
+void Get_inputdata_boundary_1(char *filename, info_global info_glo)
 {
     int i, j, k;
     char s[256];
@@ -282,6 +322,7 @@ void Get_inputdata_boundary(char *filename)
     fclose(fp);
 }
 
+
 void Get_inputdata_patch_0(char *filename, int *temp_Order, int *temp_KV_info, int *temp_CP_info)
 {
     int i;
@@ -335,6 +376,7 @@ void Get_inputdata_patch_0(char *filename, int *temp_Order, int *temp_KV_info, i
 
     fclose(fp);
 }
+
 
 void Get_inputdata_patch_1(char *filename, double *temp_KV, double *temp_CP, int *temp_A, double *temp_B, int *temp_KV_info, int *temp_CP_info, int num)
 {
@@ -529,6 +571,8 @@ void Get_inputdata_patch_1(char *filename, double *temp_KV, double *temp_CP, int
     }
 }
 
+
+// make connectivity
 void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num)
 {
     int i, j;
@@ -567,6 +611,7 @@ void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info,
         }
     }
 }
+
 
 void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result)
 {
@@ -766,142 +811,8 @@ void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *tem
     printf("\n");
 }
 
-void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after)
-{
-    int i, j, k, l;
-    int temp = 0;
 
-    for (i = 0; i < DIMENSION; i++)
-    {
-        for (j = 0; j < disp_constraint_n[i]; j++)
-        {
-            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
-            {
-                if (disp_constraint[i][j][k][1] == 0)
-                {
-                    temp_length_before[temp] += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
-                }
-                else if (disp_constraint[i][j][k][1] == 1)
-                {
-                    temp_length_before[temp] += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION];
-                }
-            }
-            temp++;
-        }
-    }
-
-    temp = 0;
-
-    for (i = 0; i < DIMENSION; i++)
-    {
-        for (j = 0; j < disp_constraint_n[i]; j++)
-        {
-            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
-            {
-                int A_to_here = 0;
-                for (l = 0; l < disp_constraint[i][j][k][0]; l++)
-                {
-                    A_to_here += 2 * (temp_CP_info[l * DIMENSION] + temp_CP_info[l * DIMENSION + 1]);
-                }
-
-                // if (disp_constraint[i][j][k][1] == 1 && disp_constraint[i][j][k][2] == 0) は何もしない
-                if (disp_constraint[i][j][k][1] == 0 && disp_constraint[i][j][k][2] == 1)
-                {
-                    A_to_here += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION];
-                }
-                else if (disp_constraint[i][j][k][1] == 1 && disp_constraint[i][j][k][2] == 1)
-                {
-                    A_to_here += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION] + temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
-                }
-                else if (disp_constraint[i][j][k][1] == 0 && disp_constraint[i][j][k][2] == 0)
-                {
-                    A_to_here += 2 * temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION] + temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
-                }
-
-                if (disp_constraint[i][j][k][1] == 0)
-                {
-                    for (l = 0; l < temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1]; l++)
-                    {
-                        temp_Boundary[temp] = temp_A[A_to_here + l];
-                        temp++;
-
-                        // printf("patch num %d\n", disp_constraint[i][j][k][0]);
-                        // printf("xi or eta %d\n", disp_constraint[i][j][k][1]);
-                        // printf("start or end %d\n", disp_constraint[i][j][k][2]);
-                        // printf("temp = %d\n", temp);
-                        // printf("A_to_here + l = %d\n", A_to_here + l);
-                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
-                    }
-                }
-                else if (disp_constraint[i][j][k][1] == 1)
-                {
-                    for (l = 0; l < temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION]; l++)
-                    {
-                        temp_Boundary[temp] = temp_A[A_to_here + l];
-                        temp++;
-
-                        // printf("patch num %d\n", disp_constraint[i][j][k][0]);
-                        // printf("xi or eta %d\n", disp_constraint[i][j][k][1]);
-                        // printf("start or end %d\n", disp_constraint[i][j][k][2]);
-                        // printf("temp = %d\n", temp);
-                        // printf("A_to_here + l = %d\n", A_to_here + l);
-                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
-                    }
-                }
-            }
-        }
-    }
-
-    temp = 0;
-    for (i = 0; i < n; i++)
-    {
-        printf("length_before[%d] = %d\n", i, temp_length_before[i]);
-        for (j = 0; j < temp_length_before[i]; j++)
-        {
-            printf("%d\t", temp_Boundary[temp]);
-            temp++;
-        }
-        printf("\n");
-    }
-
-    temp = 0;
-    for (i = 0; i < n; i++)
-    {
-        int *temp_array = (int *)malloc(sizeof(int) * temp_length_before[i]);
-        if (temp_array == NULL)
-        {
-            printf("Memory cannot be allocated\n");
-            exit(1);
-        }
-
-        for (j = 0; j < temp_length_before[i]; j++)
-        {
-            temp_array[j] = temp_Boundary[temp + j];
-            // printf("%d\t", temp_array[j]);
-        }
-        printf("\n");
-
-        heapSort(temp_array, temp_length_before[i]);
-        Dedupe(temp_array, temp_length_before, temp_Boundary_result, temp_length_after, i);
-
-        free(temp_array);
-        temp += temp_length_before[i];
-    }
-
-    temp = 0;
-    for (i = 0; i < n; i++)
-    {
-        printf("length_after[%d] = %d\n", i, temp_length_after[i]);
-        for (j = 0; j < temp_length_after[i]; j++)
-        {
-            printf("%d\t", temp_Boundary_result[i * temp + j]);
-        }
-        printf("\n");
-        temp += temp_length_before[i];
-    }
-    printf("\n");
-}
-
+// output
 void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
                       int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n)
 {
@@ -1090,6 +1001,7 @@ void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int
     fclose(fp);
 }
 
+
 void Output_by_Gnuplot(double *temp_CP_result)
 {
     FILE *gp;
@@ -1150,6 +1062,7 @@ void Output_by_Gnuplot(double *temp_CP_result)
     fflush(gp);
     pclose(gp);
 }
+
 
 void Output_SVG(double *temp_B, double *temp_CP_result)
 {
@@ -1292,6 +1205,145 @@ void Output_SVG(double *temp_B, double *temp_CP_result)
     fclose(fp);
 }
 
+
+// heap sort
+void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after)
+{
+    int i, j, k, l;
+    int temp = 0;
+
+    for (i = 0; i < DIMENSION; i++)
+    {
+        for (j = 0; j < disp_constraint_n[i]; j++)
+        {
+            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            {
+                if (disp_constraint[i][j][k][1] == 0)
+                {
+                    temp_length_before[temp] += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+                else if (disp_constraint[i][j][k][1] == 1)
+                {
+                    temp_length_before[temp] += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION];
+                }
+            }
+            temp++;
+        }
+    }
+
+    temp = 0;
+
+    for (i = 0; i < DIMENSION; i++)
+    {
+        for (j = 0; j < disp_constraint_n[i]; j++)
+        {
+            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            {
+                int A_to_here = 0;
+                for (l = 0; l < disp_constraint[i][j][k][0]; l++)
+                {
+                    A_to_here += 2 * (temp_CP_info[l * DIMENSION] + temp_CP_info[l * DIMENSION + 1]);
+                }
+
+                // if (disp_constraint[i][j][k][1] == 1 && disp_constraint[i][j][k][2] == 0) は何もしない
+                if (disp_constraint[i][j][k][1] == 0 && disp_constraint[i][j][k][2] == 1)
+                {
+                    A_to_here += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION];
+                }
+                else if (disp_constraint[i][j][k][1] == 1 && disp_constraint[i][j][k][2] == 1)
+                {
+                    A_to_here += temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION] + temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+                else if (disp_constraint[i][j][k][1] == 0 && disp_constraint[i][j][k][2] == 0)
+                {
+                    A_to_here += 2 * temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION] + temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                }
+
+                if (disp_constraint[i][j][k][1] == 0)
+                {
+                    for (l = 0; l < temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1]; l++)
+                    {
+                        temp_Boundary[temp] = temp_A[A_to_here + l];
+                        temp++;
+
+                        // printf("patch num %d\n", disp_constraint[i][j][k][0]);
+                        // printf("xi or eta %d\n", disp_constraint[i][j][k][1]);
+                        // printf("start or end %d\n", disp_constraint[i][j][k][2]);
+                        // printf("temp = %d\n", temp);
+                        // printf("A_to_here + l = %d\n", A_to_here + l);
+                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+                    }
+                }
+                else if (disp_constraint[i][j][k][1] == 1)
+                {
+                    for (l = 0; l < temp_CP_info[disp_constraint[i][j][k][0] * DIMENSION]; l++)
+                    {
+                        temp_Boundary[temp] = temp_A[A_to_here + l];
+                        temp++;
+
+                        // printf("patch num %d\n", disp_constraint[i][j][k][0]);
+                        // printf("xi or eta %d\n", disp_constraint[i][j][k][1]);
+                        // printf("start or end %d\n", disp_constraint[i][j][k][2]);
+                        // printf("temp = %d\n", temp);
+                        // printf("A_to_here + l = %d\n", A_to_here + l);
+                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+                    }
+                }
+            }
+        }
+    }
+
+    temp = 0;
+    for (i = 0; i < n; i++)
+    {
+        printf("length_before[%d] = %d\n", i, temp_length_before[i]);
+        for (j = 0; j < temp_length_before[i]; j++)
+        {
+            printf("%d\t", temp_Boundary[temp]);
+            temp++;
+        }
+        printf("\n");
+    }
+
+    temp = 0;
+    for (i = 0; i < n; i++)
+    {
+        int *temp_array = (int *)malloc(sizeof(int) * temp_length_before[i]);
+        if (temp_array == NULL)
+        {
+            printf("Memory cannot be allocated\n");
+            exit(1);
+        }
+
+        for (j = 0; j < temp_length_before[i]; j++)
+        {
+            temp_array[j] = temp_Boundary[temp + j];
+            // printf("%d\t", temp_array[j]);
+        }
+        printf("\n");
+
+        heapSort(temp_array, temp_length_before[i]);
+        Dedupe(temp_array, temp_length_before, temp_Boundary_result, temp_length_after, i);
+
+        free(temp_array);
+        temp += temp_length_before[i];
+    }
+
+    temp = 0;
+    for (i = 0; i < n; i++)
+    {
+        printf("length_after[%d] = %d\n", i, temp_length_after[i]);
+        for (j = 0; j < temp_length_after[i]; j++)
+        {
+            printf("%d\t", temp_Boundary_result[i * temp + j]);
+        }
+        printf("\n");
+        temp += temp_length_before[i];
+    }
+    printf("\n");
+}
+
+
 /* データを入れ替える関数 */
 void swap(int *a, int *b)
 {
@@ -1301,11 +1353,13 @@ void swap(int *a, int *b)
     *a = temp;
 }
 
+
 /* 左の子ノードの位置を取得 */
 int getLeft(int parent)
 {
     return parent * 2 + 1;
 }
+
 
 /* 右の子ノードの位置を取得 */
 int getRight(int parent)
@@ -1313,11 +1367,13 @@ int getRight(int parent)
     return parent * 2 + 2;
 }
 
+
 /* 親ノードの位置を取得 */
 int getParent(int child)
 {
     return (child - 1) / 2;
 }
+
 
 /* a[size]を二分ヒープに追加し、二分ヒープを再構成する */
 void addHeap(int *a, int size)
@@ -1359,6 +1415,7 @@ void addHeap(int *a, int size)
         }
     }
 }
+
 
 /* 根ノードを二分ヒープから取り出し、二分ヒープを再構成する */
 void removeHeap(int *a, int size)
@@ -1425,6 +1482,7 @@ void removeHeap(int *a, int size)
     }
 }
 
+
 /* 二分ヒープを作成する関数 */
 void makeHeap(int *a, int num)
 {
@@ -1444,6 +1502,7 @@ void makeHeap(int *a, int num)
     }
 }
 
+
 /* ヒープソートを行う関数 */
 void heapSort(int *a, int num)
 {
@@ -1459,6 +1518,7 @@ void heapSort(int *a, int num)
         removeHeap(a, size);
     }
 }
+
 
 void Dedupe(int *a, int *num, int *a_new, int *num_new, int n)
 {
