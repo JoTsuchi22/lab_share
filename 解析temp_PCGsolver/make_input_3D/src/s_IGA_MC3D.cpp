@@ -2,25 +2,27 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define DIMENSION 2                 // 2次元
-#define MERGE_DISTANCE 1.0e-13      // コントロールポイントが同じ点と判定する距離
+#include "header_MC3D.h"
+
+// #define DIMENSION 2                 // 2次元
+// #define MERGE_DISTANCE 1.0e-13      // コントロールポイントが同じ点と判定する距離
 #define MAX_DISP_CONSTRAINT 10      // 変位指定する変位量の最大個数
 #define MAX_DISP_CONSTRAINT_EDGE 10 // 変位指定する辺の最大個数
 #define MAX_DISTRIBUTED_LOAD 5      // 分布荷重の最大個数
 
-static int Total_patch;
-static double E_and_nu[2];
-static int disp_constraint_n[DIMENSION];
-static int disp_constraint_edge_n[DIMENSION][MAX_DISP_CONSTRAINT];
-static double disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT];
-static int disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_EDGE][3];
-static int distributed_load_n;
-static double distributed_load_info[MAX_DISTRIBUTED_LOAD][9];
-static int counter = 0;
-static int KV_to_here, CP_to_here, CP_result_to_here;
-static int A_to_own, A_to_opponent, B_to_here;
+// static int Total_patch;
+// static double E_and_nu[2];
+// static int disp_constraint_n[DIMENSION];
+// static int disp_constraint_edge_n[DIMENSION][MAX_DISP_CONSTRAINT];
+// static double disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT];
+// static int disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_EDGE][3];
+// static int distributed_load_n;
+// static double distributed_load_info[MAX_DISTRIBUTED_LOAD][9];
+// static int counter = 0;
+// static int KV_to_here, CP_to_here, CP_result_to_here;
+// static int A_to_own, A_to_opponent, B_to_here;
 
-FILE *fp;
+// FILE *fp;
 
 struct information {
     double *Order;
