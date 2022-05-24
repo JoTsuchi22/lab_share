@@ -14,15 +14,25 @@ int main(int argc, char **argv)
     // ファイル読み込み(1回目)
     Get_inputdata_boundary_0(argv[1], &info_glo); // boundaryのインプットデータ処理
 
+    // 動的メモリ確保
+    int *disp_constraint_n = (double *)malloc(sizeof(double) * info_glo.DIMENSION);                                         // disp_constraint_n[DIMENSION]
+    int *disp_constraint_edge_n = (double *)malloc(sizeof(double) * info_glo.DIMENSION * info_glo.MAX_DISP_CONSTRAINT);     // disp_constraint_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
+    double *disp_constraint_amount = (double *)malloc(sizeof(double) * info_glo.DIMENSION * info_glo.MAX_DISP_CONSTRAINT);  // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
+    double *disp_constraint = (double *)malloc(sizeof(double) * info_glo.DIMENSION * info_glo.MAX_DISP_CONSTRAINT * info_glo.MAX_DISP_CONSTRAINT_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_EDGE][3]
+    double *distributed_load_info = (double *)malloc(sizeof(double) * info_glo.distributed_load_n * 9);                     // distributed_load_info[MAX_DISTRIBUTED_LOAD][9]
+    info_glo_ptr->disp_constraint_n = disp_constraint_n;
+    info_glo_ptr->disp_constraint_edge_n = disp_constraint_edge_n;
+    info_glo_ptr->disp_constraint_amount = disp_constraint_amount;
+    info_glo_ptr->disp_constraint = disp_constraint;
+    info_glo_ptr->distributed_load_info = distributed_load_info;
 
     // ファイル読み込み(2回目)
-    Get_inputdata_boundary_1(argv[1]); // boundaryのインプットデータ処理
-
+    Get_inputdata_boundary_1(argv[1], &info_glo); // boundaryのインプットデータ処理
 
     // 動的メモリ確保
-    int *Order = (int *)malloc(sizeof(int) * Total_patch * DIMENSION);   // int Order[パッチ番号][DIMENSION]
-    int *KV_info = (int *)malloc(sizeof(int) * Total_patch * DIMENSION); // int KV_info[パッチ番号][DIMENSION]
-    int *CP_info = (int *)malloc(sizeof(int) * Total_patch * DIMENSION); // int CP_info[パッチ番号][DIMENSION]
+    int *Order = (int *)malloc(sizeof(int) * info_glo.Total_patch * info_glo.DIMENSION);   // int Order[パッチ番号][DIMENSION]
+    int *KV_info = (int *)malloc(sizeof(int) * info_glo.Total_patch * info_glo.DIMENSION); // int KV_info[パッチ番号][DIMENSION]
+    int *CP_info = (int *)malloc(sizeof(int) * info_glo.Total_patch * info_glo.DIMENSION); // int CP_info[パッチ番号][DIMENSION]
 
     if (Order == NULL || KV_info == NULL || CP_info == NULL)
     {
@@ -40,7 +50,7 @@ int main(int argc, char **argv)
     int temp2 = 0; // temp2 : 4辺のコントロールポイントの和を全パッチ分足した値 * 2
     int temp3 = 0; // temp3 : 全パッチ含めた総ノットベクトル数
 
-    for (i = 0; i < Total_patch; i++)
+    for (i = 0; i < info_glo.Total_patch; i++)
     {
         temp1 += CP_info[i * DIMENSION] * CP_info[i * DIMENSION + 1];
         temp2 += 2 * (CP_info[i * DIMENSION] + CP_info[i * DIMENSION + 1]);
@@ -52,9 +62,9 @@ int main(int argc, char **argv)
     double *CP = (double *)malloc(sizeof(double) * temp1 * (DIMENSION + 1));           // double CP[パッチ番号][パッチ内CP番号][xyw -> 3]
     double *CP_result = (double *)malloc(sizeof(double) * temp1 * (DIMENSION + 1));    // double CP_result[通しのコントロールポイント番号(連番)][xyw -> 3]
     int *A = (int *)malloc(sizeof(int) * temp2);                                       // int    A[パッチ番号][辺番号(0~3)][辺内のコネクティビティ]
-    double *B = (double *)malloc(sizeof(double) * Total_patch * 16 * (DIMENSION + 1)); // double B[パッチ番号][辺番号(0~7)(正負方向)][各辺の端の2頂点][座標xyw -> 3]
+    double *B = (double *)malloc(sizeof(double) * info_glo.Total_patch * 16 * (DIMENSION + 1)); // double B[パッチ番号][辺番号(0~7)(正負方向)][各辺の端の2頂点][座標xyw -> 3]
     int *Connectivity = (int *)malloc(sizeof(int) * temp1);                            // int    Connectivity[パッチ番号][パッチ内CP番号]
-    double *KV = (double *)malloc(sizeof(double) * Total_patch * temp3);               // double KV[パッチ番号][DIMENSION][ノットベクトル番号]
+    double *KV = (double *)malloc(sizeof(double) * info_glo.Total_patch * temp3);               // double KV[パッチ番号][DIMENSION][ノットベクトル番号]
 
     if (CP == NULL || CP_result == NULL || A == NULL || B == NULL || Connectivity == NULL || KV == NULL)
     {
@@ -74,8 +84,8 @@ int main(int argc, char **argv)
     printf("Done get input\n");
 
     // 動的メモリ確保
-    int *Edge_info = (int *)malloc(sizeof(int) * Total_patch * 32);         // int Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
-    int *Opponent_patch_num = (int *)malloc(sizeof(int) * Total_patch * 4); // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~3]
+    int *Edge_info = (int *)malloc(sizeof(int) * info_glo.Total_patch * 32);         // int Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
+    int *Opponent_patch_num = (int *)malloc(sizeof(int) * info_glo.Total_patch * 4); // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~3]
 
     if (Edge_info == NULL || Opponent_patch_num == NULL)
     {
@@ -83,7 +93,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    for (i = 0; i < Total_patch * 32; i++)
+    for (i = 0; i < info_glo.Total_patch * 32; i++)
     {
         Edge_info[i] = 0;
     }
@@ -92,7 +102,7 @@ int main(int argc, char **argv)
     printf("state: patch connectivity\n");
     counter = 0;
     CP_to_here = 0, CP_result_to_here = 0, B_to_here = 0;
-    for (i = 0; i < Total_patch; i++)
+    for (i = 0; i < info_glo.Total_patch; i++)
     {
         for (j = 0; j < i; j++)
         {
@@ -143,8 +153,10 @@ int main(int argc, char **argv)
     Output_inputdata(Order, KV_info, CP_info, Connectivity, KV, CP_result, Boundary_result, length_before, length_after, temp5);
 
     // 図の出力
-    // Output_by_Gnuplot(CP_result); // Gnuplot
-    Output_SVG(B, CP_result); // SVG出力
+    if (info_glo.DIMENSION == 2)
+    {
+        Output_SVG(B, CP_result);   // SVG出力
+    }
 
     // メモリ解放
     free(Order), free(KV_info), free(CP_info);
@@ -185,60 +197,54 @@ void Get_inputdata_boundary_0(char *filename, info_global *info_glo)
     for (i = 0; i < 2; i++)
     {
         fscanf(fp, "%lf", &temp_d);
-        E_and_nu[i] = temp_d;
+        info_glo->E_and_nu[i] = temp_d;
         printf("E_and_nu[%d] = %le\n", i, E_and_nu[i]);
     }
 
     fgets(s, 256, fp);
 
     // 各方向への変位指定する個数
+    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_EDGE = 0;
     for (i = 0; i < info_glo->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
-        disp_constraint_n[i] = temp_i;
+        if (temp_MAX_DISP_CONSTRAINT < temp_i)
+        {
+            temp_MAX_DISP_CONSTRAINT = temp_i;
+        }
 
         for (j = 0; j < disp_constraint_n[i]; j++)
         {
             fscanf(fp, "%d", &temp_i);
-            disp_constraint_edge_n[i][j] = temp_i;
+            if (temp_MAX_DISP_CONSTRAINT_EDGE < temp_i)
+            {
+                temp_MAX_DISP_CONSTRAINT_EDGE = temp_i;
+            }
 
             fscanf(fp, "%lf", &temp_d);
-            disp_constraint_amount[i][j] = temp_d;
 
             for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
             {
                 fscanf(fp, "%d", &temp_i);
-                disp_constraint[i][j][k][0] = temp_i;
-
                 fscanf(fp, "%d", &temp_i);
-                disp_constraint[i][j][k][1] = temp_i;
-
                 fscanf(fp, "%d", &temp_i);
-                disp_constraint[i][j][k][2] = temp_i;
             }
 
             fgets(s, 256, fp);
         }
     }
+    info_glo.MAX_DISP_CONSTRAINT = temp_MAX_DISP_CONSTRAINT;
+    info_glo.MAX_DISP_CONSTRAINT_EDGE = temp_MAX_DISP_CONSTRAINT_EDGE;
 
     // 分布荷重の荷重の個数
     fscanf(fp, "%d", &temp_i);
-    distributed_load_n = temp_i;
-
-    for (i = 0; i < distributed_load_n; i++)
-    {
-        for (j = 0; j < 9; j++)
-        {
-            fscanf(fp, "%lf", &temp_d);
-            distributed_load_info[i][j] = temp_d;
-        }
-    }
+    infoglo->distributed_load_n = temp_i;
 
     fclose(fp);
 }
 
 
-void Get_inputdata_boundary_1(char *filename, info_global info_glo)
+void Get_inputdata_boundary_1(char *filename, info_global *info_glo)
 {
     int i, j, k;
     char s[256];
@@ -250,55 +256,49 @@ void Get_inputdata_boundary_1(char *filename, info_global info_glo)
 
     // DIMENSION
     fscanf(fp, "%d", &temp_i);
-    if (temp_i != 2)
-    {
-        printf("Error, at boundary input file\nDIMENSION must be 2 in this program\n");
-        exit(1);
-    }
 
     fgets(s, 256, fp);
 
     // パッチ数
     fscanf(fp, "%d", &temp_i);
-    Total_patch = temp_i;
-    printf("Total patch = %d\n", Total_patch);
 
     fgets(s, 256, fp);
 
     // ヤング率, ポアソン比
-    for (i = 0; i < DIMENSION; i++)
+    for (i = 0; i < info_glo->DIMENSION; i++)
     {
         fscanf(fp, "%lf", &temp_d);
-        E_and_nu[i] = temp_d;
-        printf("E_and_nu[%d] = %le\n", i, E_and_nu[i]);
     }
 
     fgets(s, 256, fp);
 
     // x, y方向への変位指定する個数
-    for (i = 0; i < DIMENSION; i++)
+    int a = info_glo->MAX_DISP_CONSTRAINT * info_glo->MAX_DISP_CONSTRAINT_EDGE * 3;
+    int b = info_glo->MAX_DISP_CONSTRAINT_EDGE * 3;
+    int c = 3;
+    for (i = 0; i < info_glo->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
-        disp_constraint_n[i] = temp_i;
+        info_glo->disp_constraint_n[i] = temp_i;
 
-        for (j = 0; j < disp_constraint_n[i]; j++)
+        for (j = 0; j < info_glo->disp_constraint_n[i]; j++)
         {
             fscanf(fp, "%d", &temp_i);
-            disp_constraint_edge_n[i][j] = temp_i;
+            info_glo->disp_constraint_edge_n[i * info_glo.MAX_DISP_CONSTRAINT + j] = temp_i;
 
             fscanf(fp, "%lf", &temp_d);
-            disp_constraint_amount[i][j] = temp_d;
+            info_glo->disp_constraint_amount[i * info_glo.MAX_DISP_CONSTRAINT + j] = temp_d;
 
-            for (k = 0; k < disp_constraint_edge_n[i][j]; k++)
+            for (k = 0; k < disp_constraint_edge_n[i * info_glo.MAX_DISP_CONSTRAINT + j]; k++)
             {
                 fscanf(fp, "%d", &temp_i);
-                disp_constraint[i][j][k][0] = temp_i;
+                info_glo->disp_constraint[i * a + j * b + k * c + 0] = temp_i;
 
                 fscanf(fp, "%d", &temp_i);
-                disp_constraint[i][j][k][1] = temp_i;
+                info_glo->disp_constraint[i * a + j * b + k * c + 1] = temp_i;
 
                 fscanf(fp, "%d", &temp_i);
-                disp_constraint[i][j][k][2] = temp_i;
+                info_glo->disp_constraint[i * a + j * b + k * c + 2] = temp_i;
             }
 
             fgets(s, 256, fp);
@@ -307,14 +307,13 @@ void Get_inputdata_boundary_1(char *filename, info_global info_glo)
 
     // 分布荷重の荷重の個数
     fscanf(fp, "%d", &temp_i);
-    distributed_load_n = temp_i;
 
-    for (i = 0; i < distributed_load_n; i++)
+    for (i = 0; i < info_glo->distributed_load_n; i++)
     {
         for (j = 0; j < 9; j++)
         {
             fscanf(fp, "%lf", &temp_d);
-            distributed_load_info[i][j] = temp_d;
+            info_glo->distributed_load_info[i * 9 + j] = temp_d;
         }
     }
 
@@ -322,7 +321,7 @@ void Get_inputdata_boundary_1(char *filename, info_global info_glo)
 }
 
 
-void Get_inputdata_patch_0(char *filename, int *temp_Order, int *temp_KV_info, int *temp_CP_info)
+void Get_inputdata_patch_0(char *filename, info_global *info_glo, info_each_DIMENSION *info)
 {
     int i;
     char s[256];
@@ -998,68 +997,6 @@ void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int
     }
 
     fclose(fp);
-}
-
-
-void Output_by_Gnuplot(double *temp_CP_result)
-{
-    FILE *gp;
-
-    int i;
-
-    double x_min = 0, x_max = 1;
-    double y_min = 0, y_max = 1;
-
-    double position_x, position_y;
-
-    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
-    {
-        if (i == 0)
-        {
-            x_min = temp_CP_result[i * 3];
-            x_max = temp_CP_result[i * 3];
-            y_min = temp_CP_result[i * 3 + 1];
-            y_max = temp_CP_result[i * 3 + 1];
-        }
-        else
-        {
-            if (x_min > temp_CP_result[i * 3])
-            {
-                x_min = temp_CP_result[i * 3];
-            }
-            else if (x_max < temp_CP_result[i * 3])
-            {
-                x_max = temp_CP_result[i * 3];
-            }
-
-            if (y_min > temp_CP_result[i * 3 + 1])
-            {
-                y_min = temp_CP_result[i * 3 + 1];
-            }
-            else if (y_max < temp_CP_result[i * 3 + 1])
-            {
-                y_max = temp_CP_result[i * 3 + 1];
-            }
-        }
-    }
-
-    gp = popen("gnuplot -persist", "w");
-
-    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
-    {
-        position_x = (temp_CP_result[i * 3] - x_min) / (x_max - x_min) + 0.01;
-        position_y = (temp_CP_result[i * 3 + 1] - y_min) / (y_max - y_min) + 0.005;
-        fprintf(gp, "set label %d at graph %le, %le '%d' textcolor lt 3 font 'Times, 4'\n", i + 1, position_x, position_y, i);
-    }
-
-    fprintf(gp, "plot '-' u 1:2 t '' with linespoints linewidth 0.5 pointsize 0.5 pointtype 1\n");
-    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
-    {
-        fprintf(gp, "%le %le\n", temp_CP_result[i * 3], temp_CP_result[i * 3 + 1]);
-    }
-    fprintf(gp, "e\n");
-    fflush(gp);
-    pclose(gp);
 }
 
 
