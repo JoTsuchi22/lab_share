@@ -2,8 +2,6 @@
 #define HEADER_MC3D_H
 
 #define MERGE_DISTANCE 1.0e-13      // コントロールポイントが同じ点と判定する距離
-// #define DIMENSION 2                 // 2次元
-// #define MERGE_DISTANCE 1.0e-13      // コントロールポイントが同じ点と判定する距離
 #define MAX_DISP_CONSTRAINT 10      // 変位指定する変位量の最大個数
 #define MAX_DISP_CONSTRAINT_EDGE 10 // 変位指定する辺の最大個数
 #define MAX_DISTRIBUTED_LOAD 5      // 分布荷重の最大個数

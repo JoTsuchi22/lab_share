@@ -4,8 +4,7 @@
 
 #include "header_MC3D.h"
 
-
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
     int i, j, k;
     int Total_input = argc - 1;
@@ -178,12 +177,12 @@ void Get_inputdata_boundary_0(char *filename, info_global *info_glo)
     // パッチ数
     fscanf(fp, "%d", &temp_i);
     info_glo->Total_patch = temp_i;
-    printf("Total patch = %d\n", Total_patch);
+    printf("Total patch = %d\n", temp_i);
 
     fgets(s, 256, fp);
 
     // ヤング率, ポアソン比
-    for (i = 0; i < DIMENSION; i++)
+    for (i = 0; i < 2; i++)
     {
         fscanf(fp, "%lf", &temp_d);
         E_and_nu[i] = temp_d;
@@ -192,8 +191,8 @@ void Get_inputdata_boundary_0(char *filename, info_global *info_glo)
 
     fgets(s, 256, fp);
 
-    // x, y方向への変位指定する個数
-    for (i = 0; i < DIMENSION; i++)
+    // 各方向への変位指定する個数
+    for (i = 0; i < info_glo->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
         disp_constraint_n[i] = temp_i;
