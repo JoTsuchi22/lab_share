@@ -118,8 +118,20 @@ int main(int argc, char **argv)
     printf("Done get input\n");
 
     // 動的メモリ確保
-    int *Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_patch * 32);         // int Face_Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
-    int *Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 4); // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~3]
+    int *Face_Edge_info;
+    int *Opponent_patch_num;
+    if (info.DIMENSION == 2)
+    {
+        Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_patch * 32);         // int Face_Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
+        Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 4);      // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~3]
+    }
+    else if (info.DIMENSION == 3)
+    {
+        Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_patch * 32);         // int Face_Edge_info[パッチ番号][own 面番号(0~5)][opp 面番号(0~5)]
+        Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 6);      // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~5]
+    }
+    info_ptr->Face_Edge_info = Face_Edge_info;
+    info_ptr->Opponent_patch_num = Opponent_patch_num;
 
     if (Face_Edge_info == NULL || Opponent_patch_num == NULL)
     {
@@ -584,19 +596,10 @@ void Get_inputdata_patch_1(char *filename, information *info, int num)
         info->B[B_to_here + 1] = info->CP[temp_CP_to_here + 1];
         info->B[B_to_here + 2] = info->CP[temp_CP_to_here + 2];
         B_to_here += info->DIMENSION + 1;
-
-        printf("B on patch %d\n", num);
-        printf("point0[x y w] point1[x y w]\n");
-        int temp_counter = num * 16 * (info->DIMENSION + 1);
-
-        for (i = 0; i < 8; i++)
-        {
-            printf("[%le %le %le]\t[%le %le %le]\n", info->B[temp_counter], info->B[temp_counter + 1], info->B[temp_counter + 2], info->B[temp_counter + 3], info->B[temp_counter + 4], info->B[temp_counter + 5]);
-            temp_counter += 6;
-        }
     }
     else if (info->DIMENSION == 3)
     {
+        int temp = info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] * (info->CP_info[num * info->DIMENSION + 2] - 1);
         int temp_B_to_here;
         int temp_point_B[8];
 
@@ -626,62 +629,176 @@ void Get_inputdata_patch_1(char *filename, information *info, int num)
 
         // 面0 点3
         temp_point_B[3] = B_to_here;
+        info->B[B_to_here]     = info->CP[temp_CP_to_here + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1)];
+        info->B[B_to_here + 1] = info->CP[temp_CP_to_here + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1) + 1];
+        info->B[B_to_here + 2] = info->CP[temp_CP_to_here + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1) + 2];
+        info->B[B_to_here + 3] = info->CP[temp_CP_to_here + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1) + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面1 点0
         temp_point_B[4] = B_to_here;
+        info->B[B_to_here]     = info->CP[temp_CP_to_here + temp];
+        info->B[B_to_here + 1] = info->CP[temp_CP_to_here + temp + 1];
+        info->B[B_to_here + 2] = info->CP[temp_CP_to_here + temp + 2];
+        info->B[B_to_here + 3] = info->CP[temp_CP_to_here + temp + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面1 点1
         temp_point_B[5] = B_to_here;
+        info->B[B_to_here]     = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] - 1) * (info->DIMENSION + 1)];
+        info->B[B_to_here + 1] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] - 1) * (info->DIMENSION + 1) + 1];
+        info->B[B_to_here + 2] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] - 1) * (info->DIMENSION + 1) + 2];
+        info->B[B_to_here + 3] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] - 1) * (info->DIMENSION + 1) + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面1 点2
         temp_point_B[6] = B_to_here;
+        info->B[B_to_here]     = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] - 1) * (info->DIMENSION + 1)];
+        info->B[B_to_here + 1] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] - 1) * (info->DIMENSION + 1) + 1];
+        info->B[B_to_here + 2] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] - 1) * (info->DIMENSION + 1) + 2];
+        info->B[B_to_here + 3] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] - 1) * (info->DIMENSION + 1) + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面1 点3
         temp_point_B[7] = B_to_here;
+        info->B[B_to_here]     = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1)];
+        info->B[B_to_here + 1] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1) + 1];
+        info->B[B_to_here + 2] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1) + 2];
+        info->B[B_to_here + 3] = info->CP[temp_CP_to_here + temp + (info->CP_info[num * info->DIMENSION] * (info->CP_info[num * info->DIMENSION + 1] - 1)) * (info->DIMENSION + 1) + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面2 点0
-        temp_B_to_here = temp_point_B
+        temp_B_to_here = temp_point_B[0];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面2 点1
+        temp_B_to_here = temp_point_B[3];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面2 点2
+        temp_B_to_here = temp_point_B[7];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
         
         // 面2 点3
+        temp_B_to_here = temp_point_B[4];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面3 点0
+        temp_B_to_here = temp_point_B[0];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面3 点1
+        temp_B_to_here = temp_point_B[1];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面3 点2
+        temp_B_to_here = temp_point_B[5];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面3 点3
+        temp_B_to_here = temp_point_B[4];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面4 点0
+        temp_B_to_here = temp_point_B[1];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面4 点1
+        temp_B_to_here = temp_point_B[2];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面4 点2
+        temp_B_to_here = temp_point_B[6];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面4 点3
+        temp_B_to_here = temp_point_B[5];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面5 点0
+        temp_B_to_here = temp_point_B[3];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面5 点1
+        temp_B_to_here = temp_point_B[2];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面5 点2
+        temp_B_to_here = temp_point_B[6];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
 
         // 面5 点3
-
+        temp_B_to_here = temp_point_B[7];
+        info->B[B_to_here]     = info->B[temp_B_to_here];
+        info->B[B_to_here + 1] = info->B[temp_B_to_here + 1];
+        info->B[B_to_here + 2] = info->B[temp_B_to_here + 2];
+        info->B[B_to_here + 3] = info->B[temp_B_to_here + 3];
+        B_to_here += info->DIMENSION + 1;
     }
 }
 
 
 // make connectivity
-void Make_array()
-{
-}
-
-
 void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num)
 {
     int i, j;
