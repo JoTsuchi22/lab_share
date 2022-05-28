@@ -85,11 +85,11 @@ int main(int argc, char **argv)
     double *B;
     if (info.DIMENSION == 2)
     {
-        B = (double *)malloc(sizeof(double) * info.Total_patch * 4 * 2 * 2 * (info.DIMENSION + 1)); // double B[パッチ番号][辺番号(0~4)][正負方向 2][各辺の端の2頂点][座標xyw  -> 3]
+        B = (double *)malloc(sizeof(double) * info.Total_patch * 16 * (info.DIMENSION + 1)); // double B[パッチ番号][辺番号(0~4)][正負方向 2][各辺の端の2頂点][座標xyw  -> 3]
     }
     else if (info.DIMENSION == 3)
     {
-        B = (double *)malloc(sizeof(double) * info.Total_patch * 6 * 2 * 4 * (info.DIMENSION + 1)); // double B[パッチ番号][面番号(0~6)][正負方向 2][各面の端の4頂点][座標xyzw -> 4]
+        B = (double *)malloc(sizeof(double) * info.Total_patch * 24 * (info.DIMENSION + 1)); // double B[パッチ番号][面番号(0~6)][各面の端の4頂点][座標xyzw -> 4]
     }
     int *Connectivity = (int *)malloc(sizeof(int) * temp1);                                 // int    Connectivity[パッチ番号][パッチ内CP番号]
     double *KV = (double *)malloc(sizeof(double) * temp3);                                  // double KV[パッチ番号][DIMENSION][ノットベクトル番号]
@@ -122,13 +122,17 @@ int main(int argc, char **argv)
     int *Opponent_patch_num;
     if (info.DIMENSION == 2)
     {
-        Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_patch * 32);         // int Face_Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
-        Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 4);      // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~3]
+        Face_Edge_info = (int *)calloc(info.Total_patch * 32, sizeof(int));         // int Face_Edge_info[パッチ番号][own 辺番号(正固定0~3)][opp 辺番号(0~7)]
+        Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 4);     // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~3]
     }
     else if (info.DIMENSION == 3)
     {
-        Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_patch * 32);         // int Face_Edge_info[パッチ番号][own 面番号(0~5)][opp 面番号(0~5)]
-        Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 6);      // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~5]
+        Face_Edge_info = (int *)malloc(info.Total_patch * 36, sizeof(int));         // int Face_Edge_info[パッチ番号][own 面番号(0~5)][opp 面番号(0~5)]
+        Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_patch * 6);     // int Opponent_patch_num[パッチ番号][own 辺番号(正固定0~5]
+        for (i = 0; i < info.Total_patch * 36; i++)
+        {
+            Face_Edge_info[i] = -1;
+        }
     }
     info_ptr->Face_Edge_info = Face_Edge_info;
     info_ptr->Opponent_patch_num = Opponent_patch_num;
@@ -139,11 +143,6 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    for (i = 0; i < info.Total_patch * 32; i++)
-    {
-        Face_Edge_info[i] = 0;
-    }
-
     // パッチコネクティビティの作成
     printf("state: patch connectivity\n");
     counter = 0;
@@ -152,9 +151,23 @@ int main(int argc, char **argv)
     {
         for (j = 0; j < i; j++)
         {
-            Check_B(i, j, B, Face_Edge_info, Opponent_patch_num);
+            if (info.DIMENSION == 2)
+            {
+                Check_B_2D(i, j, &info);
+            }
+            else if (info.DIMENSION == 3)
+            {
+                Check_B_3D(i, j, &info);
+            }
         }
-        Make_connectivity(i, CP_info, Face_Edge_info, Opponent_patch_num, Connectivity, A, CP, CP_result);
+        if (info.DIMENSION == 2)
+        {
+            Make_connectivity_2D(i, &info);
+        }
+        else if (info.DIMENSION == 3)
+        {
+            Make_connectivity_3D(i, &info);
+        }
     }
 
     // 動的メモリ確保
@@ -167,19 +180,16 @@ int main(int argc, char **argv)
             {
                 if (disp_constraint[i][j][k][1] == 0)
                 {
-                    temp4 += CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1];
+                    temp4 += CP_info[disp_constraint[i][j][k][0] * info.DIMENSION + 1];
                 }
                 else if (disp_constraint[i][j][k][1] == 1)
                 {
-                    temp4 += CP_info[disp_constraint[i][j][k][0] * DIMENSION];
+                    temp4 += CP_info[disp_constraint[i][j][k][0] * info.DIMENSION];
                 }
             }
         }
         temp5 += disp_constraint_n[i];
     }
-
-    // printf("temp5 = %d\n", temp5);
-    // printf("temp4 = %d\n", temp4);
 
     int *length_before = (int *)malloc(sizeof(int) * temp5);   // 各変位量でのマージ前の長さ
     int *length_after = (int *)malloc(sizeof(int) * temp5);    // 各変位量でのマージ後の長さ
@@ -799,17 +809,15 @@ void Get_inputdata_patch_1(char *filename, information *info, int num)
 
 
 // make connectivity
-void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num)
+void Check_B_2D(int num_own, int num_opponent, information *info)
 {
     int i, j;
     int ii;
-    int x_diff[2], y_diff[2], w_diff[2];
 
-    int Check_B_own_to_here = num_own * 16 * (DIMENSION + 1);
-    int Check_B_opponent_to_here = num_opponent * 16 * (DIMENSION + 1);
+    double x_diff[2], y_diff[2], w_diff[2];
 
-    // printf("自分パッチの先頭x y %le %le\n", temp_B[Check_B_own_to_here], temp_B[Check_B_own_to_here + 1]);
-    // printf("相手パッチの先頭x y %le %le\n", temp_B[Check_B_opponent_to_here], temp_B[Check_B_opponent_to_here + 1]);
+    int Check_B_own_to_here = num_own * 16 * (info->DIMENSION + 1);
+    int Check_B_opponent_to_here = num_opponent * 16 * (info->DIMENSION + 1);
 
     for (i = 0; i < 4; i++)
     {
@@ -817,20 +825,20 @@ void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info,
         {
             ii = 2 * i;
             // 点0
-            x_diff[0] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1)] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1)];
-            y_diff[0] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + 1] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + 1];
-            w_diff[0] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + 2] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + 2];
+            x_diff[0] = info->B[Check_B_own_to_here + ii * 2 * (info->DIMENSION + 1)] - info->B[Check_B_opponent_to_here + j * 2 * (info->DIMENSION + 1)];
+            y_diff[0] = info->B[Check_B_own_to_here + ii * 2 * (info->DIMENSION + 1) + 1] - info->B[Check_B_opponent_to_here + j * 2 * (info->DIMENSION + 1) + 1];
+            w_diff[0] = info->B[Check_B_own_to_here + ii * 2 * (info->DIMENSION + 1) + 2] - info->B[Check_B_opponent_to_here + j * 2 * (info->DIMENSION + 1) + 2];
 
             // 点1
-            x_diff[1] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1)] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1)];
-            y_diff[1] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 1] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 1];
-            w_diff[1] = temp_B[Check_B_own_to_here + ii * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 2] - temp_B[Check_B_opponent_to_here + j * 2 * (DIMENSION + 1) + (DIMENSION + 1) + 2];
+            x_diff[1] = info->B[Check_B_own_to_here + ii * 2 * (info->DIMENSION + 1) + (info->DIMENSION + 1)] - info->B[Check_B_opponent_to_here + j * 2 * (info->DIMENSION + 1) + (info->DIMENSION + 1)];
+            y_diff[1] = info->B[Check_B_own_to_here + ii * 2 * (info->DIMENSION + 1) + (info->DIMENSION + 1) + 1] - info->B[Check_B_opponent_to_here + j * 2 * (info->DIMENSION + 1) + (info->DIMENSION + 1) + 1];
+            w_diff[1] = info->B[Check_B_own_to_here + ii * 2 * (info->DIMENSION + 1) + (info->DIMENSION + 1) + 2] - info->B[Check_B_opponent_to_here + j * 2 * (info->DIMENSION + 1) + (info->DIMENSION + 1) + 2];
 
             // 辺が一致している場合 Face_Edge_info を True
             if (sqrt(pow(x_diff[0], 2) + pow(y_diff[0], 2) + pow(w_diff[0], 2)) <= MERGE_DISTANCE && sqrt(pow(x_diff[1], 2) + pow(y_diff[1], 2) + pow(w_diff[1], 2)) <= MERGE_DISTANCE)
             {
-                temp_Edge_info[num_own * 32 + i * 8 + j] = 1;
-                temp_Opponent_patch_num[num_own * 4 + i] = num_opponent;
+                info->Face_Edge_info[num_own * 32 + i * 8 + j] = 1;
+                info->Opponent_patch_num[num_own * 4 + i] = num_opponent;
                 printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d\n", num_own, num_opponent, i, j);
                 return;
             }
@@ -839,7 +847,89 @@ void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info,
 }
 
 
-void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result)
+void Check_B_3D(int num_own, int num_opponent, information *info)
+{
+    int i, j, k, ii, jj;
+
+    double face_center_x[2], face_center_y[2], face_center_z[2], face_center_w[2];
+    double x_diff, y_diff, z_diff, w_diff;
+
+    int Check_B_own_to_here = num_own * 24 * (info->DIMENSION + 1);
+    int Check_B_opponent_to_here = num_opponent * 24 * (info->DIMENSION + 1);
+
+    for (i = 0; i < 6; i++)
+    {
+        for (j = 0; j < 6; j++)
+        {
+            ii = i * 4 * (info->DIMENSION + 1);
+            jj = j * 4 * (info->DIMENSION + 1);
+
+            // 面own の centerpoint
+            face_center_x[0] = (info->B[Check_B_own_to_here + ii] + info->B[Check_B_own_to_here + ii + (info->DIMENSION + 1)] + info->B[Check_B_own_to_here + ii + 2 * (info->DIMENSION + 1)] + info->B[Check_B_own_to_here + ii + 3 * (info->DIMENSION + 1))] / 4.0;
+            face_center_y[0] = (info->B[Check_B_own_to_here + ii + 1] + info->B[Check_B_own_to_here + ii + (info->DIMENSION + 1) + 1] + info->B[Check_B_own_to_here + ii + 2 * (info->DIMENSION + 1) + 1] + info->B[Check_B_own_to_here + ii + 3 * (info->DIMENSION + 1) + 1)] / 4.0;
+            face_center_z[0] = (info->B[Check_B_own_to_here + ii + 2] + info->B[Check_B_own_to_here + ii + (info->DIMENSION + 1) + 2] + info->B[Check_B_own_to_here + ii + 2 * (info->DIMENSION + 1) + 2] + info->B[Check_B_own_to_here + ii + 3 * (info->DIMENSION + 1) + 2)] / 4.0;
+            face_center_w[0] = (info->B[Check_B_own_to_here + ii + 3] + info->B[Check_B_own_to_here + ii + (info->DIMENSION + 1) + 3] + info->B[Check_B_own_to_here + ii + 2 * (info->DIMENSION + 1) + 3] + info->B[Check_B_own_to_here + ii + 3 * (info->DIMENSION + 1) + 3)] / 4.0;
+
+            // 面opp の centerpoint
+            face_center_x[1] = (info->B[Check_B_opponent_to_here + jj] + info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1)] + info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1)] + info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1))] / 4.0;
+            face_center_y[1] = (info->B[Check_B_opponent_to_here + jj + 1] + info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1) + 1] + info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1) + 1] + info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1) + 1)] / 4.0;
+            face_center_z[1] = (info->B[Check_B_opponent_to_here + jj + 2] + info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1) + 2] + info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1) + 2] + info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1) + 2)] / 4.0;
+            face_center_w[1] = (info->B[Check_B_opponent_to_here + jj + 3] + info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1) + 3] + info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1) + 3] + info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1) + 3)] / 4.0;
+            
+            // centerpoint の diff
+            x_diff = face_center_x[1] - face_center_x[0];
+            y_diff = face_center_y[1] - face_center_y[0];
+            z_diff = face_center_z[1] - face_center_z[0];
+            w_diff = face_center_w[1] - face_center_w[0];
+
+            // 面の中心点が一致している場合 Face_Edge_info を Mode 番号 (k) に
+            if (sqrt(pow(x_diff, 2) + pow(y_diff, 2) + pow(z_diff, 2) + pow(w_diff, 2)) <= MERGE_DISTANCE)
+            {
+                info->Opponent_patch_num[num_own * 6 + i] = num_opponent;
+                for (k = 0; k < 4; k++)
+                {
+                    if (k == 0)
+                    {
+                        x_diff = info->B[Check_B_own_to_here + ii] - info->B[Check_B_opponent_to_here + jj];
+                        y_diff = info->B[Check_B_own_to_here + ii + 1] - info->B[Check_B_opponent_to_here + jj + 1];
+                        z_diff = info->B[Check_B_own_to_here + ii + 2] - info->B[Check_B_opponent_to_here + jj + 2];
+                        w_diff = info->B[Check_B_own_to_here + ii + 3] - info->B[Check_B_opponent_to_here + jj + 3];
+                    }
+                    else if (k == 1)
+                    {
+                        x_diff = info->B[Check_B_own_to_here + ii] - info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1)];
+                        y_diff = info->B[Check_B_own_to_here + ii + 1] - info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1) + 1];
+                        z_diff = info->B[Check_B_own_to_here + ii + 2] - info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1) + 2];
+                        w_diff = info->B[Check_B_own_to_here + ii + 3] - info->B[Check_B_opponent_to_here + jj + (info->DIMENSION + 1) + 3];
+                    }
+                    else if (k == 2)
+                    {
+                        x_diff = info->B[Check_B_own_to_here + ii] - info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1)];
+                        y_diff = info->B[Check_B_own_to_here + ii + 1] - info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1) + 1];
+                        z_diff = info->B[Check_B_own_to_here + ii + 2] - info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1) + 2];
+                        w_diff = info->B[Check_B_own_to_here + ii + 3] - info->B[Check_B_opponent_to_here + jj + 2 * (info->DIMENSION + 1) + 3];
+                    }
+                    else if (k == 3)
+                    {
+                        x_diff = info->B[Check_B_own_to_here + ii] - info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1)];
+                        y_diff = info->B[Check_B_own_to_here + ii + 1] - info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1) + 1];
+                        z_diff = info->B[Check_B_own_to_here + ii + 2] - info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1) + 2];
+                        w_diff = info->B[Check_B_own_to_here + ii + 3] - info->B[Check_B_opponent_to_here + jj + 3 * (info->DIMENSION + 1) + 3];
+                    }
+                    if (sqrt(pow(x_diff, 2) + pow(y_diff, 2) + pow(z_diff, 2) + pow(w_diff, 2)) <= MERGE_DISTANCE)
+                    {
+                        info->Face_Edge_info[num_own * 36 + i * 6 + j] = k;
+                        printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d\n mode:%d", num_own, num_opponent, i, j, k);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void Make_connectivity_2D(int num, information *info)
 {
     int i, j, k;
     int p, q;
@@ -849,10 +939,10 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
 
     printf("make connectivity on patch %d\n", num);
 
-    A_to_own = 0;
+    int A_to_own = 0;
     for (i = 0; i < num; i++)
     {
-        A_to_own += 2 * (info->CP_info[i * DIMENSION] + info->CP_info[i * DIMENSION + 1]);
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] + info->CP_info[i * info->DIMENSION + 1]);
     }
 
     for (i = 0; i < 4; i++)
@@ -866,30 +956,30 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
         // i == 0 ではなにもしない
         if (i == 1)
         {
-            A_to_own += info->CP_info[num * DIMENSION];
+            A_to_own += info->CP_info[num * info->DIMENSION];
         }
         else if (i == 2)
         {
-            A_to_own += info->CP_info[num * DIMENSION + 1];
+            A_to_own += info->CP_info[num * info->DIMENSION + 1];
         }
         else if (i == 3)
         {
-            A_to_own += info->CP_info[num * DIMENSION];
+            A_to_own += info->CP_info[num * info->DIMENSION];
         }
 
         for (j = 0; j < 8; j++)
         {
-            if (temp_Edge_info[Edge_to_here + i * 8 + j] == 1)
+            if (info->Face_Edge_info[Edge_to_here + i * 8 + j] == 1)
             {
-                A_to_opponent = 0;
-                for (k = 0; k < temp_Opponent_patch_num[num * 4 + i]; k++)
+                int A_to_opponent = 0;
+                for (k = 0; k < info->Opponent_patch_num[num * 4 + i]; k++)
                 {
-                    A_to_opponent += 2 * (info->CP_info[k * DIMENSION] + info->CP_info[k * DIMENSION + 1]);
+                    A_to_opponent += 2 * (info->CP_info[k * info->DIMENSION] + info->CP_info[k * info->DIMENSION + 1]);
                 }
 
                 printf("Patch num = %d\n", num);
                 printf("Edge num = %d\n", j);
-                printf("Opponent patch num = %d\n", temp_Opponent_patch_num[num * 4 + i]);
+                printf("Opponent patch num = %d\n", info->Opponent_patch_num[num * 4 + i]);
 
                 Edge[i] = 1;
 
@@ -900,35 +990,29 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
 
                 if (p == 0)
                 {
-                    temp_CP_n = info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION];
+                    temp_CP_n = info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION];
                 }
                 else if (p == 1)
                 {
-                    temp_CP_n = info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
-                    A_to_opponent += info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION];
+                    temp_CP_n = info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION + 1];
+                    A_to_opponent += info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION];
                 }
                 else if (p == 2)
                 {
-                    temp_CP_n = info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION];
-                    A_to_opponent += info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION] + info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
+                    temp_CP_n = info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION];
+                    A_to_opponent += info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION] + info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION + 1];
                 }
                 else if (p == 3)
                 {
-                    temp_CP_n = info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
-                    A_to_opponent += 2 * info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION] + info->CP_info[temp_Opponent_patch_num[num * 4 + i] * DIMENSION + 1];
+                    temp_CP_n = info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION + 1];
+                    A_to_opponent += 2 * info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION] + info->CP_info[info->Opponent_patch_num[num * 4 + i] * info->DIMENSION + 1];
                 }
-
-                // printf("A to own = %d\n", A_to_own);
-                // printf("temp_CP_n = %d\n", temp_CP_n);
-                // printf("A to opponent = %d\n", A_to_opponent);
-                // printf("temp_A[A_to_opponent] = %d\n", temp_A[A_to_opponent]);
 
                 if (q == 0)
                 {
                     for (k = 0; k < temp_CP_n; k++)
                     {
-                        temp_A[A_to_own + k] = temp_A[A_to_opponent + k];
-                        // printf("temp_A[A_to_own + k] = %d\n", temp_A[A_to_own + k]);
+                        info->A[A_to_own + k] = info->A[A_to_opponent + k];
                     }
                     break;
                 }
@@ -936,7 +1020,7 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
                 {
                     for (k = 0; k < temp_CP_n; k++)
                     {
-                        temp_A[A_to_own + k] = temp_A[A_to_opponent + (temp_CP_n - 1) - k];
+                        info->A[A_to_own + k] = info->A[A_to_opponent + (temp_CP_n - 1) - k];
                     }
                     break;
                 }
@@ -948,11 +1032,11 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
     A_to_own = 0;
     for (i = 0; i < num; i++)
     {
-        A_to_own += 2 * (info->CP_info[i * DIMENSION] + info->CP_info[i * DIMENSION + 1]);
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] + info->CP_info[i * info->DIMENSION + 1]);
     }
-    for (i = 0; i < 2 * (info->CP_info[num * DIMENSION] + info->CP_info[num * DIMENSION + 1]); i++)
+    for (i = 0; i < 2 * (info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1]); i++)
     {
-        printf("%d\t", temp_A[A_to_own + i]);
+        printf("%d\t", info->A[A_to_own + i]);
     }
     printf("\n");
 
@@ -962,75 +1046,75 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
     A_to_own = 0;
     for (i = 0; i < num; i++)
     {
-        A_to_own += 2 * (info->CP_info[i * DIMENSION] + info->CP_info[i * DIMENSION + 1]);
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] + info->CP_info[i * info->DIMENSION + 1]);
     }
 
-    for (eta = 0; eta < info->CP_info[num * DIMENSION + 1]; eta++)
+    for (eta = 0; eta < info->CP_info[num * info->DIMENSION + 1]; eta++)
     {
-        for (xi = 0; xi < info->CP_info[num * DIMENSION]; xi++)
+        for (xi = 0; xi < info->CP_info[num * info->DIMENSION]; xi++)
         {
             if (eta == 0 && Edge[0] == 1)
             {
-                temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + xi];
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + xi];
             }
-            else if (eta == info->CP_info[num * DIMENSION + 1] - 1 && Edge[2] == 1)
+            else if (eta == info->CP_info[num * info->DIMENSION + 1] - 1 && Edge[2] == 1)
             {
-                temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + info->CP_info[num * DIMENSION] + info->CP_info[num * DIMENSION + 1] + xi];
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + xi];
             }
             else if (xi == 0 && Edge[3] == 1)
             {
-                temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + 2 * info->CP_info[num * DIMENSION] + info->CP_info[num * DIMENSION + 1] + eta];
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + 2 * info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + eta];
             }
-            else if (xi == info->CP_info[num * DIMENSION] - 1 && Edge[1] == 1)
+            else if (xi == info->CP_info[num * info->DIMENSION] - 1 && Edge[1] == 1)
             {
-                temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi] = temp_A[A_to_own + info->CP_info[num * DIMENSION] + eta];
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + info->CP_info[num * info->DIMENSION] + eta];
             }
             else
             {
-                temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi] = counter;
-                temp_CP_result[CP_result_to_here] = temp_CP[(CP_to_here + eta * info->CP_info[num * DIMENSION] + xi) * (DIMENSION + 1)];
-                temp_CP_result[CP_result_to_here + 1] = temp_CP[(CP_to_here + eta * info->CP_info[num * DIMENSION] + xi) * (DIMENSION + 1) + 1];
-                temp_CP_result[CP_result_to_here + 2] = temp_CP[(CP_to_here + eta * info->CP_info[num * DIMENSION] + xi) * (DIMENSION + 1) + 2];
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = counter;
+                info->CP_result[CP_result_to_here] = info->CP[(CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi) * (info->DIMENSION + 1)];
+                info->CP_result[CP_result_to_here + 1] = info->CP[(CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi) * (info->DIMENSION + 1) + 1];
+                info->CP_result[CP_result_to_here + 2] = info->CP[(CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi) * (info->DIMENSION + 1) + 2];
                 counter++;
-                CP_result_to_here += (DIMENSION + 1);
+                CP_result_to_here += (info->DIMENSION + 1);
             }
         }
     }
 
     // A 配列の作ってない分を作成
-    for (eta = 0; eta < info->CP_info[num * DIMENSION + 1]; eta++)
+    for (eta = 0; eta < info->CP_info[num * info->DIMENSION + 1]; eta++)
     {
-        for (xi = 0; xi < info->CP_info[num * DIMENSION]; xi++)
+        for (xi = 0; xi < info->CP_info[num * info->DIMENSION]; xi++)
         {
             if (eta == 0 && Edge[0] == 0)
             {
-                temp_A[A_to_own + xi] = temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi];
+                info->A[A_to_own + xi] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
             }
-            if (eta == info->CP_info[num * DIMENSION + 1] - 1 && Edge[2] == 0)
+            if (eta == info->CP_info[num * info->DIMENSION + 1] - 1 && Edge[2] == 0)
             {
-                temp_A[A_to_own + info->CP_info[num * DIMENSION] + info->CP_info[num * DIMENSION + 1] + xi] = temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi];
+                info->A[A_to_own + info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + xi] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
             }
             if (xi == 0 && Edge[3] == 0)
             {
-                temp_A[A_to_own + 2 * info->CP_info[num * DIMENSION] + info->CP_info[num * DIMENSION + 1] + eta] = temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi];
+                info->A[A_to_own + 2 * info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + eta] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
             }
-            if (xi == info->CP_info[num * DIMENSION] - 1 && Edge[1] == 0)
+            if (xi == info->CP_info[num * info->DIMENSION] - 1 && Edge[1] == 0)
             {
-                temp_A[A_to_own + info->CP_info[num * DIMENSION] + eta] = temp_Connectivity[CP_to_here + eta * info->CP_info[num * DIMENSION] + xi];
+                info->A[A_to_own + info->CP_info[num * info->DIMENSION] + eta] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
             }
         }
     }
-    CP_to_here += info->CP_info[num * DIMENSION] * info->CP_info[num * DIMENSION + 1];
+    CP_to_here += info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
 
     printf("patch %d array A after make connectivity\n", num);
     A_to_own = 0;
     for (i = 0; i < num; i++)
     {
-        A_to_own += 2 * (info->CP_info[i * DIMENSION] + info->CP_info[i * DIMENSION + 1]);
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] + info->CP_info[i * info->DIMENSION + 1]);
     }
-    for (i = 0; i < 2 * (info->CP_info[num * DIMENSION] + info->CP_info[num * DIMENSION + 1]); i++)
+    for (i = 0; i < 2 * (info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1]); i++)
     {
-        printf("%d\t", temp_A[A_to_own + i]);
+        printf("%d\t", info->A[A_to_own + i]);
     }
     printf("\n");
 
@@ -1038,8 +1122,298 @@ void Make_connectivity(int num, int *info->CP_info, int *temp_Edge_info, int *te
 }
 
 
+void Make_connectivity_3D(int num, information *info)
+{
+    int i, j, k, l;
+    int p, q;
+    int Face[6];
+    int Face_to_here = num * 36;
+    int own_CP_a = 0, own_CP_b = 0, opp_CP_a = 0, opp_CP_b = 0;
+
+    printf("make connectivity on patch %d\n", num);
+
+    int A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 1] + info->CP_info[i * info->DIMENSION + 1] * info->CP_info[i * info->DIMENSION + 2] + info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 2]);
+    }
+
+    for (i = 0; i < 6; i++)
+    {
+        Face[i] = 0;
+    }
+
+    // 重なっている面の A 配列を作成
+    for (i = 0; i < 6; i++)
+    {
+        if (i == 0)
+        {
+            own_CP_a = info->CP_info[num * info->DIMENSION];
+            own_CP_b = info->CP_info[num * info->DIMENSION + 1];
+        }
+        else if (i == 1)
+        {
+            A_to_own += info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
+            own_CP_a = info->CP_info[num * info->DIMENSION];
+            own_CP_b = info->CP_info[num * info->DIMENSION + 1];
+        }
+        else if (i == 2)
+        {
+            A_to_own += info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
+            own_CP_a = info->CP_info[num * info->DIMENSION + 1];
+            own_CP_b = info->CP_info[num * info->DIMENSION + 2];
+        }
+        else if (i == 3)
+        {
+            A_to_own += info->CP_info[num * info->DIMENSION + 1] * info->CP_info[num * info->DIMENSION + 2];
+            own_CP_a = info->CP_info[num * info->DIMENSION];
+            own_CP_b = info->CP_info[num * info->DIMENSION + 2];
+        }
+        else if (i == 4)
+        {
+            A_to_own += info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 2];
+            own_CP_a = info->CP_info[num * info->DIMENSION + 1];
+            own_CP_b = info->CP_info[num * info->DIMENSION + 2];
+
+        }
+        else if (i == 5)
+        {
+            A_to_own += info->CP_info[num * info->DIMENSION + 1] * info->CP_info[num * info->DIMENSION + 2];
+            own_CP_a = info->CP_info[num * info->DIMENSION];
+            own_CP_b = info->CP_info[num * info->DIMENSION + 2];
+        }
+
+        for (j = 0; j < 6; j++)
+        {
+            if (info->Face_Edge_info[Face_to_here + i * 6 + j] >= 0)
+            {
+                int opp_num = info->Opponent_patch_num[num * 6 + i];
+                int A_to_opponent = 0;
+                for (k = 0; k < opp_num; k++)
+                {
+                    A_to_opponent += 2 * (info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 1] + info->CP_info[i * info->DIMENSION + 1] * info->CP_info[i * info->DIMENSION + 2] + info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 2]);
+                }
+
+                printf("Patch num = %d\n", num);
+                printf("Face num = %d\n", j);
+                printf("Opponent patch num = %d\n", opp_num);
+
+                Face[i] = 1;
+
+                if (j == 0)
+                {
+                    opp_CP_a = info->CP_info[opp_num * info->DIMENSION];
+                    opp_CP_b = info->CP_info[opp_num * info->DIMENSION + 1];
+                }
+                else if (j == 1)
+                {
+                    opp_CP_a = info->CP_info[opp_num * info->DIMENSION];
+                    opp_CP_b = info->CP_info[opp_num * info->DIMENSION + 1];
+                }
+                else if (j == 2)
+                {
+                    opp_CP_a = info->CP_info[opp_num * info->DIMENSION + 1];
+                    opp_CP_b = info->CP_info[opp_num * info->DIMENSION + 2];
+                }
+                else if (j == 3)
+                {
+                    opp_CP_a = info->CP_info[opp_num * info->DIMENSION];
+                    opp_CP_b = info->CP_info[opp_num * info->DIMENSION + 2];
+                }
+                else if (j == 4)
+                {
+                    opp_CP_a = info->CP_info[opp_num * info->DIMENSION + 1];
+                    opp_CP_b = info->CP_info[opp_num * info->DIMENSION + 2];
+                }
+                else if (j == 5)
+                {
+                    opp_CP_a = info->CP_info[opp_num * info->DIMENSION];
+                    opp_CP_b = info->CP_info[opp_num * info->DIMENSION + 2];
+                }
+
+                for (k = 1; k <= j; k++)
+                {
+                    if (k == 1)
+                    {
+                        A_to_opponent += info->CP_info[opp_num * info->DIMENSION] * info->CP_info[opp_num * info->DIMENSION + 1];
+                    }
+                    else if (k == 2)
+                    {
+                        A_to_opponent += info->CP_info[opp_num * info->DIMENSION] * info->CP_info[opp_num * info->DIMENSION + 1];
+                    }
+                    else if (k == 3)
+                    {
+                        A_to_opponent += info->CP_info[opp_num * info->DIMENSION + 1] * info->CP_info[opp_num * info->DIMENSION + 2];
+                    }
+                    else if (k == 4)
+                    {
+                        A_to_opponent += info->CP_info[opp_num * info->DIMENSION] * info->CP_info[opp_num * info->DIMENSION + 2];
+                    }
+                    else if (k == 5)
+                    {
+                        A_to_opponent += info->CP_info[opp_num * info->DIMENSION + 1] * info->CP_info[opp_num * info->DIMENSION + 2];
+                    }
+                }
+                
+                if (info->Face_Edge_info[Face_to_here + i * 6 + j] == 0)
+                {
+                    for (k = 0; k < temp_CP_b; k++)
+                    {
+                        for (l = 0; l < temp_CP_a; l++)
+                        {
+                            info->A[A_to_own + k * temp_CP_a + l] = info->A[A_to_opponent + k];
+                        }
+                    }
+                    break;
+                }
+                else if (info->Face_Edge_info[Face_to_here + i * 6 + j]  == 1)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        info->A[A_to_own + k] = info->A[A_to_opponent + k];
+                    }
+                    break;
+                }
+                else if (info->Face_Edge_info[Face_to_here + i * 6 + j]  == 2)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        info->A[A_to_own + k] = info->A[A_to_opponent + k];
+                    }
+                    break;
+                }
+                else if (info->Face_Edge_info[Face_to_here + i * 6 + j]  == 3)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        info->A[A_to_own + k] = info->A[A_to_opponent + k];
+                    }
+                    break;
+                }
+            }
+
+
+
+
+            if (info->Face_Edge_info[Edge_to_here + i * 8 + j] == 1)
+            {
+                if (q == 0)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        info->A[A_to_own + k] = info->A[A_to_opponent + k];
+                    }
+                    break;
+                }
+                else if (q == 1)
+                {
+                    for (k = 0; k < temp_CP_n; k++)
+                    {
+                        info->A[A_to_own + k] = info->A[A_to_opponent + (temp_CP_n - 1) - k];
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    printf("patch %d array A before make connectivity\n", num);
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] + info->CP_info[i * info->DIMENSION + 1]);
+    }
+    for (i = 0; i < 2 * (info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1]); i++)
+    {
+        printf("%d\t", info->A[A_to_own + i]);
+    }
+    printf("\n");
+
+    // コネクティビティを作成
+    int xi, eta;
+
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 1] + info->CP_info[i * info->DIMENSION + 1] * info->CP_info[i * info->DIMENSION + 2] + info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 2]);
+    }
+
+    for (eta = 0; eta < info->CP_info[num * info->DIMENSION + 1]; eta++)
+    {
+        for (xi = 0; xi < info->CP_info[num * info->DIMENSION]; xi++)
+        {
+            if (eta == 0 && Edge[0] == 1)
+            {
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + xi];
+            }
+            else if (eta == info->CP_info[num * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+            {
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + xi];
+            }
+            else if (xi == 0 && Edge[3] == 1)
+            {
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + 2 * info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + eta];
+            }
+            else if (xi == info->CP_info[num * info->DIMENSION] - 1 && Edge[1] == 1)
+            {
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = info->A[A_to_own + info->CP_info[num * info->DIMENSION] + eta];
+            }
+            else
+            {
+                info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi] = counter;
+                info->CP_result[CP_result_to_here] = info->CP[(CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi) * (info->DIMENSION + 1)];
+                info->CP_result[CP_result_to_here + 1] = info->CP[(CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi) * (info->DIMENSION + 1) + 1];
+                info->CP_result[CP_result_to_here + 2] = info->CP[(CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi) * (info->DIMENSION + 1) + 2];
+                counter++;
+                CP_result_to_here += (info->DIMENSION + 1);
+            }
+        }
+    }
+
+    // A 配列の作ってない分を作成
+    for (eta = 0; eta < info->CP_info[num * info->DIMENSION + 1]; eta++)
+    {
+        for (xi = 0; xi < info->CP_info[num * info->DIMENSION]; xi++)
+        {
+            if (eta == 0 && Edge[0] == 0)
+            {
+                info->A[A_to_own + xi] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
+            }
+            if (eta == info->CP_info[num * info->DIMENSION + 1] - 1 && Edge[2] == 0)
+            {
+                info->A[A_to_own + info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + xi] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
+            }
+            if (xi == 0 && Edge[3] == 0)
+            {
+                info->A[A_to_own + 2 * info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + eta] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
+            }
+            if (xi == info->CP_info[num * info->DIMENSION] - 1 && Edge[1] == 0)
+            {
+                info->A[A_to_own + info->CP_info[num * info->DIMENSION] + eta] = info->Connectivity[CP_to_here + eta * info->CP_info[num * info->DIMENSION] + xi];
+            }
+        }
+    }
+    CP_to_here += info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
+
+    printf("patch %d array A after make connectivity\n", num);
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] + info->CP_info[i * info->DIMENSION + 1]);
+    }
+    for (i = 0; i < 2 * (info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1]); i++)
+    {
+        printf("%d\t", info->A[A_to_own + i]);
+    }
+    printf("\n");
+
+    printf("\n");
+}
+
+
+
 // output
-void Output_inputdata(int *temp_Order, int *temp_KV_info, int *info->CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
+void Output_inputdata(int *temp_Order, int *temp_KV_info, int *info->CP_info, int *info->Connectivity, double *temp_KV, double *info->CP_result,
                       int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n)
 {
     int i, j, k;
@@ -1128,11 +1502,11 @@ void Output_inputdata(int *temp_Order, int *temp_KV_info, int *info->CP_info, in
         {
             if (j == info->CP_info[i * DIMENSION] * info->CP_info[i * DIMENSION + 1] - 1)
             {
-                fprintf(fp, "%d", temp_Connectivity[CP_to_here + j]);
+                fprintf(fp, "%d", info->Connectivity[CP_to_here + j]);
             }
             else
             {
-                fprintf(fp, "%*d", temp_num, temp_Connectivity[CP_to_here + j]);
+                fprintf(fp, "%*d", temp_num, info->Connectivity[CP_to_here + j]);
             }
         }
         CP_to_here += info->CP_info[i * DIMENSION] * info->CP_info[i * DIMENSION + 1];
@@ -1181,9 +1555,9 @@ void Output_inputdata(int *temp_Order, int *temp_KV_info, int *info->CP_info, in
     for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
     {
         fprintf(fp, "%*d", temp_num, i);
-        fprintf(fp, "%.16e  ", temp_CP_result[i * 3]);
-        fprintf(fp, "%.16e  ", temp_CP_result[i * 3 + 1]);
-        fprintf(fp, "%.16e\n", temp_CP_result[i * 3 + 2]);
+        fprintf(fp, "%.16e  ", info->CP_result[i * 3]);
+        fprintf(fp, "%.16e  ", info->CP_result[i * 3 + 1]);
+        fprintf(fp, "%.16e\n", info->CP_result[i * 3 + 2]);
     }
     fprintf(fp, "\n");
 
@@ -1228,7 +1602,7 @@ void Output_inputdata(int *temp_Order, int *temp_KV_info, int *info->CP_info, in
 }
 
 
-void Output_SVG(double *temp_B, double *temp_CP_result)
+void Output_SVG(double *temp_B, double *info->CP_result)
 {
     int i;
 
@@ -1268,29 +1642,29 @@ void Output_SVG(double *temp_B, double *temp_CP_result)
     {
         if (i == 0)
         {
-            x_min = temp_CP_result[i * 3];
-            x_max = temp_CP_result[i * 3];
-            y_min = temp_CP_result[i * 3 + 1];
-            y_max = temp_CP_result[i * 3 + 1];
+            x_min = info->CP_result[i * 3];
+            x_max = info->CP_result[i * 3];
+            y_min = info->CP_result[i * 3 + 1];
+            y_max = info->CP_result[i * 3 + 1];
         }
         else
         {
-            if (x_min > temp_CP_result[i * 3])
+            if (x_min > info->CP_result[i * 3])
             {
-                x_min = temp_CP_result[i * 3];
+                x_min = info->CP_result[i * 3];
             }
-            else if (x_max < temp_CP_result[i * 3])
+            else if (x_max < info->CP_result[i * 3])
             {
-                x_max = temp_CP_result[i * 3];
+                x_max = info->CP_result[i * 3];
             }
 
-            if (y_min > temp_CP_result[i * 3 + 1])
+            if (y_min > info->CP_result[i * 3 + 1])
             {
-                y_min = temp_CP_result[i * 3 + 1];
+                y_min = info->CP_result[i * 3 + 1];
             }
-            else if (y_max < temp_CP_result[i * 3 + 1])
+            else if (y_max < info->CP_result[i * 3 + 1])
             {
-                y_max = temp_CP_result[i * 3 + 1];
+                y_max = info->CP_result[i * 3 + 1];
             }
         }
     }
@@ -1357,8 +1731,8 @@ void Output_SVG(double *temp_B, double *temp_CP_result)
     // 点と番号を描画
     for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
     {
-        position_x = (temp_CP_result[i * 3] + space) * scale;
-        position_y = height - ((temp_CP_result[i * 3 + 1] + space) * scale);
+        position_x = (info->CP_result[i * 3] + space) * scale;
+        position_y = height - ((info->CP_result[i * 3 + 1] + space) * scale);
         fprintf(fp, "<circle cx='%le' cy='%le' r='2' fill='%s'/>\n", position_x, position_y, color_vec[7]);
         fprintf(fp, "<text x='%le' y='%le' font-family='Verdana' font-size='6' fill='%s' font-weight='700'>\n", position_x + 2, position_y, color_vec[7]);
         fprintf(fp, "%d\n", i);
@@ -1371,7 +1745,7 @@ void Output_SVG(double *temp_B, double *temp_CP_result)
 
 
 // heap sort
-void Sort(int n, int *info->CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after)
+void Sort(int n, int *info->CP_info, int *info->A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after)
 {
     int i, j, k, l;
     int temp = 0;
@@ -1427,7 +1801,7 @@ void Sort(int n, int *info->CP_info, int *temp_A, int *temp_Boundary, int *temp_
                 {
                     for (l = 0; l < info->CP_info[disp_constraint[i][j][k][0] * DIMENSION + 1]; l++)
                     {
-                        temp_Boundary[temp] = temp_A[A_to_here + l];
+                        temp_Boundary[temp] = info->A[A_to_here + l];
                         temp++;
 
                         // printf("patch num %d\n", disp_constraint[i][j][k][0]);
@@ -1435,14 +1809,14 @@ void Sort(int n, int *info->CP_info, int *temp_A, int *temp_Boundary, int *temp_
                         // printf("start or end %d\n", disp_constraint[i][j][k][2]);
                         // printf("temp = %d\n", temp);
                         // printf("A_to_here + l = %d\n", A_to_here + l);
-                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+                        // printf("info->A[A_to_here + l] = %d\n", info->A[A_to_here + l]);
                     }
                 }
                 else if (disp_constraint[i][j][k][1] == 1)
                 {
                     for (l = 0; l < info->CP_info[disp_constraint[i][j][k][0] * DIMENSION]; l++)
                     {
-                        temp_Boundary[temp] = temp_A[A_to_here + l];
+                        temp_Boundary[temp] = info->A[A_to_here + l];
                         temp++;
 
                         // printf("patch num %d\n", disp_constraint[i][j][k][0]);
@@ -1450,7 +1824,7 @@ void Sort(int n, int *info->CP_info, int *temp_A, int *temp_Boundary, int *temp_
                         // printf("start or end %d\n", disp_constraint[i][j][k][2]);
                         // printf("temp = %d\n", temp);
                         // printf("A_to_here + l = %d\n", A_to_here + l);
-                        // printf("temp_A[A_to_here + l] = %d\n", temp_A[A_to_here + l]);
+                        // printf("info->A[A_to_here + l] = %d\n", info->A[A_to_here + l]);
                     }
                 }
             }
@@ -1472,8 +1846,8 @@ void Sort(int n, int *info->CP_info, int *temp_A, int *temp_Boundary, int *temp_
     temp = 0;
     for (i = 0; i < n; i++)
     {
-        int *temp_array = (int *)malloc(sizeof(int) * temp_length_before[i]);
-        if (temp_array == NULL)
+        int *info->Array = (int *)malloc(sizeof(int) * temp_length_before[i]);
+        if (info->Array == NULL)
         {
             printf("Memory cannot be allocated\n");
             exit(1);
@@ -1481,15 +1855,15 @@ void Sort(int n, int *info->CP_info, int *temp_A, int *temp_Boundary, int *temp_
 
         for (j = 0; j < temp_length_before[i]; j++)
         {
-            temp_array[j] = temp_Boundary[temp + j];
-            // printf("%d\t", temp_array[j]);
+            info->Array[j] = temp_Boundary[temp + j];
+            // printf("%d\t", info->Array[j]);
         }
         printf("\n");
 
-        heapSort(temp_array, temp_length_before[i]);
-        Dedupe(temp_array, temp_length_before, temp_Boundary_result, temp_length_after, i);
+        heapSort(info->Array, temp_length_before[i]);
+        Dedupe(info->Array, temp_length_before, temp_Boundary_result, temp_length_after, i);
 
-        free(temp_array);
+        free(info->Array);
         temp += temp_length_before[i];
     }
 

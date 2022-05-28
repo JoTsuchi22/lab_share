@@ -37,11 +37,13 @@ struct information {
 // get input data
 void Get_inputdata_boundary_0(char *filename, information *info);
 void Get_inputdata_boundary_1(char *filename, information *info);
-void Get_inputdata_patch_0(char *filename, int *temp_Order, int *temp_KV_info, int *temp_CP_info);
-void Get_inputdata_patch_1(char *filename, double *temp_KV, double *temp_CP, int *temp_A, double *temp_B, int *temp_KV_info, int *temp_CP_info, int num);
+void Get_inputdata_patch_0(char *filename, information *info);
+void Get_inputdata_patch_1(char *filename, information *info, int num);
 // make connectivity
-void Check_B(int num_own, int num_opponent, double *temp_B, int *temp_Edge_info, int *temp_Opponent_patch_num);
-void Make_connectivity(int num, int *temp_CP_info, int *temp_Edge_info, int *temp_Opponent_patch_num, int *temp_Connectivity, int *temp_A, double *temp_CP, double *temp_CP_result);
+void Check_B_2D(int num_own, int num_opponent, information *info);
+void Check_B_3D(int num_own, int num_opponent, information *info);
+void Make_connectivity_2D(int num, information *info);
+void Make_connectivity_3D(int num, information *info);
 // output
 void Output_inputdata(int *temp_Order, int *temp_KV_info, int *temp_CP_info, int *temp_Connectivity, double *temp_KV, double *temp_CP_result,
                       int *temp_Boundary_result, int *temp_length_before, int *temp_length_after, int total_disp_constraint_n);
