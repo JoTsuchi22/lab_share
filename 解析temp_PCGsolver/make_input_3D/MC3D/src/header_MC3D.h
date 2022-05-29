@@ -31,7 +31,6 @@ struct information {
     double *KV;
     int *Face_Edge_info;
     int *Opponent_patch_num;
-
 };
 
 // get input data
@@ -45,8 +44,8 @@ void Check_B_3D(int num_own, int num_opponent, information *info);
 void Make_connectivity_2D(int num, information *info);
 void Make_connectivity_3D(int num, information *info);
 // output
-void Output_inputdata(information info);
-void Output_SVG(double *temp_B, double *temp_CP_result);
+void Output_inputdata(const information *info);
+void Output_SVG(const information *info);
 // heap sort
 void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after);
 void swap(int *a, int *b);

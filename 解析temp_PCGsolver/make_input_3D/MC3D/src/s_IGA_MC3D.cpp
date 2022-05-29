@@ -206,12 +206,12 @@ int main(int argc, char **argv)
     Sort(temp5, CP_info, A, Boundary, Boundary_result, length_before, length_after);
 
     printf("state: output\n");
-    Output_inputdata(Order, KV_info, CP_info, Connectivity, KV, CP_result, Boundary_result, length_before, length_after, temp5);
+    Output_inputdata(&info);
 
     // 図の出力
     if (info.DIMENSION == 2)
     {
-        Output_SVG(B, CP_result);   // SVG出力
+        Output_SVG(&info);   // SVG出力
     }
 
     // メモリ解放
@@ -1356,7 +1356,7 @@ void Make_connectivity_3D(int num, information *info)
 
 
 // output
-void Output_inputdata(information info)
+void Output_inputdata(const information *info)
 {
     int i, j, k;
     char str[256] = "input.txt";
@@ -1544,7 +1544,7 @@ void Output_inputdata(information info)
 }
 
 
-void Output_SVG(double *temp_B, double *info->CP_result)
+void Output_SVG(const information *info)
 {
     int i;
 
