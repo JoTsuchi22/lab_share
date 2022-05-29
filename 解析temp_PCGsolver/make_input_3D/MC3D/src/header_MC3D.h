@@ -12,7 +12,7 @@ struct information {
     int Total_patch;
     double E_and_nu[2];
     int *disp_constraint_n;
-    int *disp_constraint_edge_n;
+    int *disp_constraint_face_edge_n;
     double *disp_constraint_amount;
     int *disp_constraint;
     int distributed_load_n;
@@ -20,7 +20,7 @@ struct information {
     int MAX_DISP_CONSTRAINT;
     int MAX_DISP_CONSTRAINT_EDGE;
 
-    int *Oeder;
+    int *Order;
     int *KV_info;
     int *CP_info;
     double *CP;
@@ -31,6 +31,11 @@ struct information {
     double *KV;
     int *Face_Edge_info;
     int *Opponent_patch_num;
+
+    int *length_before;
+    int *length_after;
+    int *Boundary;
+    int *Boundary_result;
 };
 
 // get input data
@@ -44,10 +49,10 @@ void Check_B_3D(int num_own, int num_opponent, information *info);
 void Make_connectivity_2D(int num, information *info);
 void Make_connectivity_3D(int num, information *info);
 // output
-void Output_inputdata(const information *info);
+void Output_inputdata(int total_disp_constraint_n, const information *info);
 void Output_SVG(const information *info);
 // heap sort
-void Sort(int n, int *temp_CP_info, int *temp_A, int *temp_Boundary, int *temp_Boundary_result, int *temp_length_before, int *temp_length_after);
+void Sort(int n, information *info);
 void swap(int *a, int *b);
 int getLeft(int parent);
 int getRight(int parent);
