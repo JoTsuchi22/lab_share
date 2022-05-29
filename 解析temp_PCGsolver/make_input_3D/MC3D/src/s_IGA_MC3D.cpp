@@ -904,16 +904,16 @@ void Check_B_3D(int num_own, int num_opponent, information *info)
             jj = j * 4 * (info->DIMENSION + 1);
 
             // 面own の centerpoint
-            face_center_x[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 0] + info->B[Check_B_own_to_here + ii + 1 * 4 + 0] + info->B[Check_B_own_to_here + ii + 2 * 4 + 0] + info->B[Check_B_own_to_here + ii + 3 * 4 + 0]) / 4.0;
-            face_center_y[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 1] + info->B[Check_B_own_to_here + ii + 1 * 4 + 1] + info->B[Check_B_own_to_here + ii + 2 * 4 + 1] + info->B[Check_B_own_to_here + ii + 3 * 4 + 1]) / 4.0;
-            face_center_z[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 2] + info->B[Check_B_own_to_here + ii + 1 * 4 + 2] + info->B[Check_B_own_to_here + ii + 2 * 4 + 2] + info->B[Check_B_own_to_here + ii + 3 * 4 + 2]) / 4.0;
-            face_center_w[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 3] + info->B[Check_B_own_to_here + ii + 1 * 4 + 3] + info->B[Check_B_own_to_here + ii + 2 * 4 + 3] + info->B[Check_B_own_to_here + ii + 3 * 4 + 3]) / 4.0;
+            face_center_x[0] = (info->B[Check_B_own_to_here + ii + 0] + info->B[Check_B_own_to_here + ii + 4 + 0] + info->B[Check_B_own_to_here + ii + 2 * 4 + 0] + info->B[Check_B_own_to_here + ii + 3 * 4 + 0]) / 4.0;
+            face_center_y[0] = (info->B[Check_B_own_to_here + ii + 1] + info->B[Check_B_own_to_here + ii + 4 + 1] + info->B[Check_B_own_to_here + ii + 2 * 4 + 1] + info->B[Check_B_own_to_here + ii + 3 * 4 + 1]) / 4.0;
+            face_center_z[0] = (info->B[Check_B_own_to_here + ii + 2] + info->B[Check_B_own_to_here + ii + 4 + 2] + info->B[Check_B_own_to_here + ii + 2 * 4 + 2] + info->B[Check_B_own_to_here + ii + 3 * 4 + 2]) / 4.0;
+            face_center_w[0] = (info->B[Check_B_own_to_here + ii + 3] + info->B[Check_B_own_to_here + ii + 4 + 3] + info->B[Check_B_own_to_here + ii + 2 * 4 + 3] + info->B[Check_B_own_to_here + ii + 3 * 4 + 3]) / 4.0;
 
             // 面opp の centerpoint
-            face_center_x[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 0]) / 4.0;
-            face_center_y[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 1]) / 4.0;
-            face_center_z[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 2]) / 4.0;
-            face_center_w[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 3]) / 4.0;
+            face_center_x[1] = (info->B[Check_B_opponent_to_here + jj + 0] + info->B[Check_B_opponent_to_here + jj + 4 + 0] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 0]) / 4.0;
+            face_center_y[1] = (info->B[Check_B_opponent_to_here + jj + 1] + info->B[Check_B_opponent_to_here + jj + 4 + 1] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 1]) / 4.0;
+            face_center_z[1] = (info->B[Check_B_opponent_to_here + jj + 2] + info->B[Check_B_opponent_to_here + jj + 4 + 2] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 2]) / 4.0;
+            face_center_w[1] = (info->B[Check_B_opponent_to_here + jj + 3] + info->B[Check_B_opponent_to_here + jj + 4 + 3] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 3]) / 4.0;
             
             // centerpoint の diff
             x_diff = face_center_x[1] - face_center_x[0];
@@ -958,7 +958,7 @@ void Check_B_3D(int num_own, int num_opponent, information *info)
                     if (sqrt(pow(x_diff, 2) + pow(y_diff, 2) + pow(z_diff, 2) + pow(w_diff, 2)) <= MERGE_DISTANCE)
                     {
                         info->Face_Edge_info[num_own * 36 + i * 6 + j] = k;
-                        printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d mode:%d\n", num_own, num_opponent, i, j, k);
+                        printf("own_patch:%d opp_patch:%d own_face:%d opp_face:%d mode:%d\n", num_own, num_opponent, i, j, k);
                         return;
                     }
                 }
@@ -1195,7 +1195,6 @@ void Make_connectivity_3D(int num, information *info)
             A_to_own += info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 2];
             own_CP_a = info->CP_info[num * info->DIMENSION + 1];
             own_CP_b = info->CP_info[num * info->DIMENSION + 2];
-
         }
         else if (i == 5)
         {
@@ -1262,7 +1261,7 @@ void Make_connectivity_3D(int num, information *info)
                     {
                         for (l = 0; l < own_CP_a; l++)
                         {
-                            info->A[A_to_own + k * own_CP_a + l] = info->A[A_to_opponent + l * own_CP_b + ((own_CP_b - 1) - k)];
+                            info->A[A_to_own + k * own_CP_a + l] = info->A[A_to_opponent + k * own_CP_a + ((own_CP_a - 1) - l)];
                         }
                     }
                     break;
@@ -1276,6 +1275,7 @@ void Make_connectivity_3D(int num, information *info)
                             info->A[A_to_own + k * own_CP_a + l] = info->A[A_to_opponent + ((own_CP_b - 1) - k) * own_CP_a + ((own_CP_a - 1) - l)];
                         }
                     }
+                    break;
                 }
                 else if (info->Face_Edge_info[Face_to_here + i * 6 + j]  == 3)
                 {
@@ -1283,9 +1283,10 @@ void Make_connectivity_3D(int num, information *info)
                     {
                         for (l = 0; l < own_CP_a; l++)
                         {
-                            info->A[A_to_own + k * own_CP_a + l] = info->A[A_to_opponent + ((own_CP_a - 1) - l) * own_CP_b + k];
+                            info->A[A_to_own + k * own_CP_a + l] = info->A[A_to_opponent + ((own_CP_b - 1) - k) * own_CP_a + l];
                         }
                     }
+                    break;
                 }
             }
         }
@@ -1303,9 +1304,9 @@ void Make_connectivity_3D(int num, information *info)
     int temp1, temp2, temp3, temp4, temp5;
     temp1 =         info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
     temp2 = temp1 + info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
-    temp3 = temp2 + info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 2];
-    temp4 = temp3 + info->CP_info[num * info->DIMENSION + 1] * info->CP_info[num * info->DIMENSION + 2];
-    temp5 = temp4 + info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 2];
+    temp3 = temp2 + info->CP_info[num * info->DIMENSION + 1] * info->CP_info[num * info->DIMENSION + 2];
+    temp4 = temp3 + info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 2];
+    temp5 = temp4 + info->CP_info[num * info->DIMENSION + 1] * info->CP_info[num * info->DIMENSION + 2];
     int a, b;
     a = info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1];
     b = info->CP_info[num * info->DIMENSION];
@@ -1352,6 +1353,12 @@ void Make_connectivity_3D(int num, information *info)
                 }
             }
         }
+    }
+
+    A_to_own = 0;
+    for (i = 0; i < num; i++)
+    {
+        A_to_own += 2 * (info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 1] + info->CP_info[i * info->DIMENSION + 1] * info->CP_info[i * info->DIMENSION + 2] + info->CP_info[i * info->DIMENSION] * info->CP_info[i * info->DIMENSION + 2]);
     }
 
     // A 配列の作ってない分を作成
