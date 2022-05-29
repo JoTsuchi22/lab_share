@@ -9,4 +9,4 @@ run_a:	MC3D
 	cd ./textfile && ../src/s_IGA_MC3D.x ./test_boundary.txt ./test_MC3D_00_edited.txt ./test_MC3D_01_edited.txt
 
 run_b:	MC3D
-	cd ./textfile && ../src/s_IGA_MC3D.x ./test_boundary.txt ./test_MC3D_00_edited.txt ./test_MC3D_01_edited.txt
+	cd ./textfile && ../src/s_IGA_MC3D.x ./test_boundary.txt ./test_MC3D_00_edited.txt ./test_MC3D_02_edited.txt

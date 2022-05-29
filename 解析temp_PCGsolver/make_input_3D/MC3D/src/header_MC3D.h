@@ -18,7 +18,7 @@ struct information {
     int distributed_load_n;
     double *distributed_load_info;
     int MAX_DISP_CONSTRAINT;
-    int MAX_DISP_CONSTRAINT_EDGE;
+    int MAX_DISP_CONSTRAINT_FACE_EDGE;
 
     int *Order;
     int *KV_info;

@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     int *disp_constraint_n = (int *)malloc(sizeof(int) * info.DIMENSION);                                         // disp_constraint_n[DIMENSION]
     int *disp_constraint_face_edge_n = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);     // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
     double *disp_constraint_amount = (double *)malloc(sizeof(double) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);  // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
-    int *disp_constraint = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_EDGE][3]
+    int *disp_constraint = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
     double *distributed_load_info = (double *)malloc(sizeof(double) * info.distributed_load_n * 9);                     // distributed_load_info[MAX_DISTRIBUTED_LOAD][9]
     info_ptr->disp_constraint_n = disp_constraint_n;
     info_ptr->disp_constraint_face_edge_n = disp_constraint_face_edge_n;
@@ -172,8 +172,8 @@ int main(int argc, char **argv)
 
     // 動的メモリ確保
     int temp4 = 0, temp5 = 0;
-    int a = info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_EDGE * 3;
-    int b = info.MAX_DISP_CONSTRAINT_EDGE * 3;
+    int a = info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
+    int b = info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int c = 3;
     if (info.DIMENSION == 2)
     {
@@ -297,7 +297,7 @@ void Get_inputdata_boundary_0(char *filename, information *info)
     fgets(s, 256, fp);
 
     // 各方向への変位指定する個数
-    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_EDGE = 0, temp_n_0, temp_n_1;
+    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE = 0, temp_n_0, temp_n_1;
     for (i = 0; i < info->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
@@ -311,9 +311,9 @@ void Get_inputdata_boundary_0(char *filename, information *info)
         {
             fscanf(fp, "%d", &temp_i);
             temp_n_1 = temp_i;
-            if (temp_MAX_DISP_CONSTRAINT_EDGE < temp_i)
+            if (temp_MAX_DISP_CONSTRAINT_FACE_EDGE < temp_i)
             {
-                temp_MAX_DISP_CONSTRAINT_EDGE = temp_i;
+                temp_MAX_DISP_CONSTRAINT_FACE_EDGE = temp_i;
             }
 
             fscanf(fp, "%lf", &temp_d);
@@ -329,7 +329,7 @@ void Get_inputdata_boundary_0(char *filename, information *info)
         }
     }
     info->MAX_DISP_CONSTRAINT = temp_MAX_DISP_CONSTRAINT;
-    info->MAX_DISP_CONSTRAINT_EDGE = temp_MAX_DISP_CONSTRAINT_EDGE;
+    info->MAX_DISP_CONSTRAINT_FACE_EDGE = temp_MAX_DISP_CONSTRAINT_FACE_EDGE;
 
     // 分布荷重の荷重の個数
     fscanf(fp, "%d", &temp_i);
@@ -360,16 +360,16 @@ void Get_inputdata_boundary_1(char *filename, information *info)
     fgets(s, 256, fp);
 
     // ヤング率, ポアソン比
-    for (i = 0; i < info->DIMENSION; i++)
+    for (i = 0; i < 2; i++)
     {
         fscanf(fp, "%lf", &temp_d);
     }
 
     fgets(s, 256, fp);
 
-    // x, y方向への変位指定する個数
-    int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_EDGE * 3;
-    int b = info->MAX_DISP_CONSTRAINT_EDGE * 3;
+    // 各方向への変位指定する個数
+    int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
+    int b = info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int c = 3;
     for (i = 0; i < info->DIMENSION; i++)
     {
@@ -648,7 +648,7 @@ void Get_inputdata_patch_1(char *filename, information *info, int num)
     }
     else if (info->DIMENSION == 3)
     {
-        int temp = info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] * (info->CP_info[num * info->DIMENSION + 2] - 1);
+        int temp = info->CP_info[num * info->DIMENSION] * info->CP_info[num * info->DIMENSION + 1] * (info->CP_info[num * info->DIMENSION + 2] - 1) * (info->DIMENSION + 1);
         int temp_B_to_here;
         int temp_point_B[8];
 
@@ -904,16 +904,16 @@ void Check_B_3D(int num_own, int num_opponent, information *info)
             jj = j * 4 * (info->DIMENSION + 1);
 
             // 面own の centerpoint
-            face_center_x[0] = (info->B[Check_B_own_to_here + ii + 0] + info->B[Check_B_own_to_here + ii + 4 + 0] + info->B[Check_B_own_to_here + ii + 2 * 4 + 0] + info->B[Check_B_own_to_here + ii + 3 * 4 + 0]) / 4.0;
-            face_center_y[0] = (info->B[Check_B_own_to_here + ii + 1] + info->B[Check_B_own_to_here + ii + 4 + 1] + info->B[Check_B_own_to_here + ii + 2 * 4 + 1] + info->B[Check_B_own_to_here + ii + 3 * 4 + 1]) / 4.0;
-            face_center_z[0] = (info->B[Check_B_own_to_here + ii + 2] + info->B[Check_B_own_to_here + ii + 4 + 2] + info->B[Check_B_own_to_here + ii + 2 * 4 + 2] + info->B[Check_B_own_to_here + ii + 3 * 4 + 2]) / 4.0;
-            face_center_w[0] = (info->B[Check_B_own_to_here + ii + 3] + info->B[Check_B_own_to_here + ii + 4 + 3] + info->B[Check_B_own_to_here + ii + 2 * 4 + 3] + info->B[Check_B_own_to_here + ii + 3 * 4 + 3]) / 4.0;
+            face_center_x[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 0] + info->B[Check_B_own_to_here + ii + 1 * 4 + 0] + info->B[Check_B_own_to_here + ii + 2 * 4 + 0] + info->B[Check_B_own_to_here + ii + 3 * 4 + 0]) / 4.0;
+            face_center_y[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 1] + info->B[Check_B_own_to_here + ii + 1 * 4 + 1] + info->B[Check_B_own_to_here + ii + 2 * 4 + 1] + info->B[Check_B_own_to_here + ii + 3 * 4 + 1]) / 4.0;
+            face_center_z[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 2] + info->B[Check_B_own_to_here + ii + 1 * 4 + 2] + info->B[Check_B_own_to_here + ii + 2 * 4 + 2] + info->B[Check_B_own_to_here + ii + 3 * 4 + 2]) / 4.0;
+            face_center_w[0] = (info->B[Check_B_own_to_here + ii + 0 * 4 + 3] + info->B[Check_B_own_to_here + ii + 1 * 4 + 3] + info->B[Check_B_own_to_here + ii + 2 * 4 + 3] + info->B[Check_B_own_to_here + ii + 3 * 4 + 3]) / 4.0;
 
             // 面opp の centerpoint
-            face_center_x[1] = (info->B[Check_B_opponent_to_here + jj + 0] + info->B[Check_B_opponent_to_here + jj + 4 + 0] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 0]) / 4.0;
-            face_center_y[1] = (info->B[Check_B_opponent_to_here + jj + 1] + info->B[Check_B_opponent_to_here + jj + 4 + 1] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 1]) / 4.0;
-            face_center_z[1] = (info->B[Check_B_opponent_to_here + jj + 2] + info->B[Check_B_opponent_to_here + jj + 4 + 2] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 2]) / 4.0;
-            face_center_w[1] = (info->B[Check_B_opponent_to_here + jj + 3] + info->B[Check_B_opponent_to_here + jj + 4 + 3] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 3]) / 4.0;
+            face_center_x[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 0] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 0]) / 4.0;
+            face_center_y[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 1] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 1]) / 4.0;
+            face_center_z[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 2] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 2]) / 4.0;
+            face_center_w[1] = (info->B[Check_B_opponent_to_here + jj + 0 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 1 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 2 * 4 + 3] + info->B[Check_B_opponent_to_here + jj + 3 * 4 + 3]) / 4.0;
             
             // centerpoint の diff
             x_diff = face_center_x[1] - face_center_x[0];
@@ -921,15 +921,9 @@ void Check_B_3D(int num_own, int num_opponent, information *info)
             z_diff = face_center_z[1] - face_center_z[0];
             w_diff = face_center_w[1] - face_center_w[0];
 
-            // printf("x_diff = %le\n", x_diff);
-            // printf("y_diff = %le\n", y_diff);
-            // printf("z_diff = %le\n", z_diff);
-            printf("w_diff = %le\n", w_diff);
-
             // 面の中心点が一致している場合 Face_Edge_info を Mode 番号 (k) に
             if (sqrt(pow(x_diff, 2) + pow(y_diff, 2) + pow(z_diff, 2) + pow(w_diff, 2)) <= MERGE_DISTANCE)
             {
-                printf("OOOOOOOOOMMMMMMMMMMMMMGGGGGGGGGGGGG\n");
                 info->Opponent_patch_num[num_own * 6 + i] = num_opponent;
                 for (k = 0; k < 4; k++)
                 {
@@ -964,7 +958,7 @@ void Check_B_3D(int num_own, int num_opponent, information *info)
                     if (sqrt(pow(x_diff, 2) + pow(y_diff, 2) + pow(z_diff, 2) + pow(w_diff, 2)) <= MERGE_DISTANCE)
                     {
                         info->Face_Edge_info[num_own * 36 + i * 6 + j] = k;
-                        printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d\n mode:%d", num_own, num_opponent, i, j, k);
+                        printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d mode:%d\n", num_own, num_opponent, i, j, k);
                         return;
                     }
                 }
@@ -1349,7 +1343,6 @@ void Make_connectivity_3D(int num, information *info)
                 else
                 {
                     info->Connectivity[CP_to_here + zeta * a + eta * b + xi] = counter;
-                    
                     info->CP_result[CP_result_to_here] = info->CP[(CP_to_here + zeta * a + eta * b + xi) * (info->DIMENSION + 1)];
                     info->CP_result[CP_result_to_here + 1] = info->CP[(CP_to_here + zeta * a + eta * b + xi) * (info->DIMENSION + 1) + 1];
                     info->CP_result[CP_result_to_here + 2] = info->CP[(CP_to_here + zeta * a + eta * b + xi) * (info->DIMENSION + 1) + 2];
@@ -1417,8 +1410,8 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
     fprintf(fp, "%d\n\n", info->Total_patch);
 
     // コントロールポイント数
-    fprintf(fp, "%d\n\n", (CP_result_to_here + 1) / 3);
-    int temp_num = (CP_result_to_here + 1) / 3, temp_counter = 0;
+    fprintf(fp, "%d\n\n", (CP_result_to_here + 1) / (info->DIMENSION + 1));
+    int temp_num = (CP_result_to_here + 1) / (info->DIMENSION + 1), temp_counter = 0;
     while (temp_num != 0)
     {
         temp_num = temp_num / 10;
@@ -1545,23 +1538,23 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
     // コントロールポイント
     if (info->DIMENSION == 2)
     {
-        for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+        for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
         {
             fprintf(fp, "%*d", temp_num, i);
-            fprintf(fp, "%.16e  ", info->CP_result[i * 3]);
-            fprintf(fp, "%.16e  ", info->CP_result[i * 3 + 1]);
-            fprintf(fp, "%.16e\n", info->CP_result[i * 3 + 2]);
+            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1)]);
+            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1) + 1]);
+            fprintf(fp, "%.16e\n", info->CP_result[i * (info->DIMENSION + 1) + 2]);
         }
     }
     else if (info->DIMENSION == 3)
     {
-        for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+        for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
         {
             fprintf(fp, "%*d", temp_num, i);
-            fprintf(fp, "%.16e  ", info->CP_result[i * 3]);
-            fprintf(fp, "%.16e  ", info->CP_result[i * 3 + 1]);
-            fprintf(fp, "%.16e  ", info->CP_result[i * 3 + 2]);
-            fprintf(fp, "%.16e\n", info->CP_result[i * 3 + 3]);
+            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1)]);
+            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1) + 1]);
+            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1) + 2]);
+            fprintf(fp, "%.16e\n", info->CP_result[i * (info->DIMENSION + 1) + 3]);
         }
     }
     fprintf(fp, "\n");
@@ -1629,7 +1622,7 @@ void Output_SVG(const information *info)
 
     double position_x, position_y;
 
-    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+    for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
     {
         if (i == 0)
         {
@@ -1720,7 +1713,7 @@ void Output_SVG(const information *info)
     }
 
     // 点と番号を描画
-    for (i = 0; i < (CP_result_to_here + 1) / 3; i++)
+    for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
     {
         position_x = (info->CP_result[i * 3] + space) * scale;
         position_y = height - ((info->CP_result[i * 3 + 1] + space) * scale);
@@ -1739,8 +1732,8 @@ void Output_SVG(const information *info)
 void Sort(int n, information *info)
 {
     int i, j, k, l;
-    int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_EDGE * 3;
-    int b = info->MAX_DISP_CONSTRAINT_EDGE * 3;
+    int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
+    int b = info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int c = 3;
     int temp = 0;
 
