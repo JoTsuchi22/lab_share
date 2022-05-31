@@ -36,6 +36,16 @@ cuda test
 *
 ***************************************
 
+global ip address
+http://133.31.89.8/
+http://133.31.219.69/
+http://192.168.1.3/
+
+okada lab
+10.66.52.17 (from outside) and 192.168.1.2 (from inside)
+
+共用ユーザ名	labmem
+
 VPN on
 ssh tsuchiyama@Prius
 kinoko0000
