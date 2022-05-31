@@ -1,0 +1,26 @@
+2               // DIMENSION
+
+206000  0.3     // Young's modulus, Poisson's ratio
+
+2               // Select singular patch mode. 1 element -> 1, 2 element -> 2
+
+10.0    0.0     // tip crack coordinate [mm] (x > 0, y = 0), (crack origin = (0.0, 0.0))
+
+2.5             // singular width [mm]
+
+5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, inner side must match tip crack coordinate x)
+
+40.0   40.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, inner side must match tip crack coordinate x)
+
+4   4   4   4   // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side, global side)
+
+45.0            // affine transformation (angle[degree] <- double);
+
+/*****************************************************************************
+ * 1/4モデルからx軸とy軸対象に特異パッチを作成し，
+ * その後にアフィン変換を行い，周りの隙間を埋めるようにパッチを作成します．
+ * 
+ * ローカルパッチは2次の基底関数で固定です．
+ * 変更したい場合はプログラムを修正してください．
+ * 
+ *****************************************************************************/
