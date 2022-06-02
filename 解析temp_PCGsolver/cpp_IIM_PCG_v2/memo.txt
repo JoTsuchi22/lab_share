@@ -1,0 +1,88 @@
+
+共役勾配法用のテストプログラム
+
+実行(cpp_IIM_PCG_v1)
+../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
+../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
+
+../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+export OMP_NUM_THREADS=16
+../../../../cuda_test_3rd/temp/cuda_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+gdb ../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x
+run ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+run ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+
+実行(IIM_PCG_v2)
+../../../../cuda1/IIM_PCG_v2.x ../input_glo_element.txt ../input_loc.txt
+
+NURBSviewer
+../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_local.txt overlay_view.dat Displacement_loc.dat
+../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_for_NURBS.txt view.dat Displacement.dat
+
+
+
+cuda test
+../../../../cuda1/IIM_PCG_v2_cu.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
+../../../../cuda1/IIM_PCG_v2_cu.x ../input_glo_element.txt ../local3_Interaction.txt
+
+
+
+***************************************
+*
+* ssh 手順
+*
+***************************************
+
+global ip address
+http://133.31.89.8/
+http://133.31.219.69/
+http://192.168.1.3/
+
+okada lab
+10.66.52.17 (from outside) and 192.168.1.2 (from inside)
+
+共用ユーザ名	labmem
+
+VPN on
+ssh tsuchiyama@Prius
+kinoko0000
+
+screen ls
+
+cd ドキュメント/lab_share
+git pull
+
+screen
+cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/cuda1'
+gcc -o CentOS_IIM_PCG_v2.x IIM_PCG_v2.c -O1 -lm -Wall -Wextra -std=c99
+cd '/home/tsuchiyama/ドキュメント/lab_share/解析temp_PCGsolver/解析/order3/crac_01/作業'
+../../../../cuda1/CentOS_IIM_PCG_v2.x ../input_glo_element.txt ../local3_Interaction.txt
+
+git config --global user.email "78190918+JoTsuchi22@users.noreply.github.com"
+git config --global user.name "ssh"
+
+git add .
+git commit -m 'commit'
+git push
+
+(github ログイン)
+JoTsuchi22
+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
+
+デタッチ
+Ctrl + a -> Ctrl + d
+アタッチ
+screen -r
+終了
+screen -wipe
+screen -r -X quit
+exit (?)
+
+git status
+git diff --staged
+
+mkdir checkAns colored_point Gauss_stress mesh_net new_zarusoba NURBS shapefunc
+../../../../cuda1/CentOS_IIM_PCG_v2.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt

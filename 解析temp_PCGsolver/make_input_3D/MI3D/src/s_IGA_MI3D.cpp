@@ -21,6 +21,11 @@ int main(int argc, char **argv)
         // declare struct
         info_each_DIMENSION *info = (info_each_DIMENSION *)malloc(sizeof(info_each_DIMENSION) * info_glo.DIMENSION);
         info_each_DIMENSION **info_ptr = (info_each_DIMENSION **)malloc(sizeof(info_each_DIMENSION *) * info_glo.DIMENSION);
+        if (info == NULL || info_ptr == NULL)
+        {
+            printf("Cannot allocate memory\n"); exit(1);
+        }
+
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
             info_ptr[j] = &info[j];
@@ -60,6 +65,11 @@ int main(int argc, char **argv)
         double *temp_Coordinate = (double *)malloc(sizeof(double) * info_glo.DIMENSION * MAX_Coordinate);
         double *temp_Weight = (double *)malloc(sizeof(double) * MAX_Coordinate);
         double *Insert_Knot_Vector = (double *)malloc(sizeof(double) * temp);
+        if (Knot_Vector == NULL || Coordinate == NULL || Weight == NULL || temp_Knot_Vector == NULL || temp_Coordinate == NULL || temp_Weight == NULL || Insert_Knot_Vector == NULL)
+        {
+            printf("Cannot allocate memory\n"); exit(1);
+        }
+    
         int temp1 = 0, temp2 = 0, temp3 = 0;
         for (j = 0; j < info_glo.DIMENSION; j++)
         {
