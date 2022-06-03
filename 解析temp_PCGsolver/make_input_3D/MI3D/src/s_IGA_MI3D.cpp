@@ -397,7 +397,7 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
         for (i = 0; i < info[other_axis].CP_n; i++)
         {
             // memory allocation
-            line_weight w, *w_ptr;
+            line_coordinate w, *w_ptr;
             line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
             line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
             w_ptr = &w;
@@ -487,7 +487,7 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
             for (j = 0; j < info[other_axis_2].CP_n; j++)
             {
                 // memory allocation
-                line_weight w, *w_ptr;
+                line_coordinate w, *w_ptr;
                 line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
                 line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
                 w_ptr = &w;
@@ -636,7 +636,7 @@ void KI_calc_knot_1D(int insert_axis, int insert_knot_n, double *insert_knot_in_
 }
 
 
-void KI_calc_T_1D(int insert_axis, int insert_knot_n, info_global *info_glo, info_each_DIMENSION *info, line_weight *w, line_coordinate *DIM)
+void KI_calc_T_1D(int insert_axis, int insert_knot_n, info_global *info_glo, info_each_DIMENSION *info, line_coordinate *w, line_coordinate *DIM)
 {
     int i, j, k;
 
@@ -778,7 +778,7 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
         for (i = 0; i < info[other_axis].CP_n; i++)
         {
             // memory allocation
-            line_weight w, *w_ptr;
+            line_coordinate w, *w_ptr;
             line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
             line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
             w_ptr = &w;
@@ -869,7 +869,7 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
             for (j = 0; j < info[other_axis_2].CP_n; j++)
             {
                 // memory allocation
-                line_weight w, *w_ptr;
+                line_coordinate w, *w_ptr;
                 line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
                 line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
                 w_ptr = &w;
@@ -1120,7 +1120,7 @@ void Calc_insert_knot_in_OE(int elevation_axis, int *insert_knot_n, double *inse
 }
 
 
-void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, info_global *info_glo, info_each_DIMENSION *info, line_weight *w, line_coordinate *DIM)
+void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, info_global *info_glo, info_each_DIMENSION *info, line_coordinate *w, line_coordinate *DIM)
 {
     int i, j, k;
     int n = info[elevation_axis].Order;
@@ -1128,9 +1128,9 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
     if (info_glo->DIMENSION == 2)
     {
         // memory allocation
-        Bezier_weight B_w, *B_w_ptr;
-        Bezier_coordinate *B_DIM = (Bezier_coordinate *)malloc(sizeof(Bezier_coordinate) * info_glo->DIMENSION);
-        Bezier_coordinate **B_DIM_ptr = (Bezier_coordinate **)malloc(sizeof(Bezier_coordinate *) * info_glo->DIMENSION);
+        line_coordinate B_w, *B_w_ptr;
+        line_coordinate *B_DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
+        line_coordinate **B_DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
         B_w_ptr = &B_w;
         for (k = 0; k < info_glo->DIMENSION; k++)
         {
@@ -1139,15 +1139,15 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
         double *line_x = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
         double *line_y = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
         double *line_w = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_x = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_y = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_w = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_x = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_y = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_w = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
         B_DIM_ptr[0]->line = line_x;
         B_DIM_ptr[1]->line = line_y;
         B_w_ptr->line = line_w;
-        B_DIM_ptr[0]->temp_line = temp_line_x;
-        B_DIM_ptr[1]->temp_line = temp_line_y;
-        B_w_ptr->temp_line = temp_line_w;
+        B_DIM_ptr[0]->new_line = new_line_x;
+        B_DIM_ptr[1]->new_line = new_line_y;
+        B_w_ptr->new_line = new_line_w;
 
         for (i = 0; i < n + 1; i++)
         {
@@ -1170,21 +1170,21 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
 
                     a_w = (1.0 - alpha) * B_w.line[j + 1];
                     b_w = alpha * B_w.line[j];
-                    B_w.temp_line[j] = a_w + b_w;
+                    B_w.new_line[j] = a_w + b_w;
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
                         a = (1.0 - alpha) * (B_DIM[k].line[j + 1] * B_w.line[j + 1]);
                         b = alpha * (B_DIM[k].line[j] * B_w.line[j]);
-                        B_DIM[k].temp_line[j] = (a + b) / B_w.temp_line[j];
+                        B_DIM[k].new_line[j] = (a + b) / B_w.new_line[j];
                     }
                 }
                 else if (j == n)
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        B_DIM[k].temp_line[j] = B_DIM[k].line[j];
+                        B_DIM[k].new_line[j] = B_DIM[k].line[j];
                     }
-                    B_w.temp_line[j] = B_w.line[j];
+                    B_w.new_line[j] = B_w.line[j];
                 }
             }
             if (i != info[elevation_axis].OE_n - 1 && info[elevation_axis].OE_n != 1)
@@ -1193,9 +1193,9 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        B_DIM[k].line[j + 1] = B_DIM[k].temp_line[j];
+                        B_DIM[k].line[j + 1] = B_DIM[k].new_line[j];
                     }
-                    B_w.line[j + 1] = B_w.temp_line[j];
+                    B_w.line[j + 1] = B_w.new_line[j];
                 }
                 n++;
             }
@@ -1205,22 +1205,22 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
         {
             for (k = 0; k < info_glo->DIMENSION; k++)
             {
-                DIM[k].new_line[*counter] = B_DIM[k].temp_line[i];
+                DIM[k].new_line[*counter] = B_DIM[k].new_line[i];
             }
-            w->new_line[*counter] = B_w.temp_line[i];
+            w->new_line[*counter] = B_w.new_line[i];
             *counter += 1;
         }
 
         free(line_x), free(line_y), free(line_w);
-        free(temp_line_x), free(temp_line_y), free(temp_line_w);
+        free(new_line_x), free(new_line_y), free(new_line_w);
         free(B_DIM), free(B_DIM_ptr);
     }
     else if (info_glo->DIMENSION == 3)
     {
         // memory allocation
-        Bezier_weight B_w, *B_w_ptr;
-        Bezier_coordinate *B_DIM = (Bezier_coordinate *)malloc(sizeof(Bezier_coordinate) * info_glo->DIMENSION);
-        Bezier_coordinate **B_DIM_ptr = (Bezier_coordinate **)malloc(sizeof(Bezier_coordinate *) * info_glo->DIMENSION);
+        line_coordinate B_w, *B_w_ptr;
+        line_coordinate *B_DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
+        line_coordinate **B_DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
         B_w_ptr = &B_w;
         for (k = 0; k < info_glo->DIMENSION; k++)
         {
@@ -1230,18 +1230,18 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
         double *line_y = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
         double *line_z = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
         double *line_w = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_x = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_y = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_z = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
-        double *temp_line_w = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_x = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_y = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_z = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
+        double *new_line_w = (double *)malloc(sizeof(double) * info[elevation_axis].CP_n * (info[elevation_axis].OE_n + 2));
         B_DIM_ptr[0]->line = line_x;
         B_DIM_ptr[1]->line = line_y;
         B_DIM_ptr[2]->line = line_z;
         B_w_ptr->line = line_w;
-        B_DIM_ptr[0]->temp_line = temp_line_x;
-        B_DIM_ptr[1]->temp_line = temp_line_y;
-        B_DIM_ptr[2]->temp_line = temp_line_z;
-        B_w_ptr->temp_line = temp_line_w;
+        B_DIM_ptr[0]->new_line = new_line_x;
+        B_DIM_ptr[1]->new_line = new_line_y;
+        B_DIM_ptr[2]->new_line = new_line_z;
+        B_w_ptr->new_line = new_line_w;
 
         for (i = 0; i < n + 1; i++)
         {
@@ -1264,21 +1264,21 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
 
                     a_w = (1.0 - alpha) * B_w.line[j + 1];
                     b_w = alpha * B_w.line[j];
-                    B_w.temp_line[j] = a_w + b_w;
+                    B_w.new_line[j] = a_w + b_w;
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
                         a = (1.0 - alpha) * (B_DIM[k].line[j + 1] * B_w.line[j + 1]);
                         b = alpha * (B_DIM[k].line[j] * B_w.line[j]);
-                        B_DIM[k].temp_line[j] = (a + b) / B_w.temp_line[j];
+                        B_DIM[k].new_line[j] = (a + b) / B_w.new_line[j];
                     }
                 }
                 else if (j == n)
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        B_DIM[k].temp_line[j] = B_DIM[k].line[j];
+                        B_DIM[k].new_line[j] = B_DIM[k].line[j];
                     }
-                    B_w.temp_line[j] = B_w.line[j];
+                    B_w.new_line[j] = B_w.line[j];
                 }
             }
             if (i != info[elevation_axis].OE_n - 1 && info[elevation_axis].OE_n != 1)
@@ -1287,9 +1287,9 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
                 {
                     for (k = 0; k < info_glo->DIMENSION; k++)
                     {
-                        B_DIM[k].line[j + 1] = B_DIM[k].temp_line[j];
+                        B_DIM[k].line[j + 1] = B_DIM[k].new_line[j];
                     }
-                    B_w.line[j + 1] = B_w.temp_line[j];
+                    B_w.line[j + 1] = B_w.new_line[j];
                 }
                 n++;
             }
@@ -1299,20 +1299,20 @@ void Bezier_Order_Elevation(int elevation_axis, int Bezier_line, int *counter, i
         {
             for (k = 0; k < info_glo->DIMENSION; k++)
             {
-                DIM[k].new_line[*counter] = B_DIM[k].temp_line[i];
+                DIM[k].new_line[*counter] = B_DIM[k].new_line[i];
             }
-            w->new_line[*counter] = B_w.temp_line[i];
+            w->new_line[*counter] = B_w.new_line[i];
             *counter += 1;
         }
 
         free(line_x), free(line_y), free(line_z), free(line_w);
-        free(temp_line_x), free(temp_line_y), free(temp_line_z), free(temp_line_w);
+        free(new_line_x), free(new_line_y), free(new_line_z), free(new_line_w);
         free(B_DIM), free(B_DIM_ptr);
     }
 }
 
 
-void Calc_Bezier(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info, line_weight *w, line_coordinate *DIM)
+void Calc_Bezier(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info, line_coordinate *w, line_coordinate *DIM)
 {
     int i, j;
     int counter = 1;
@@ -1365,7 +1365,7 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
         for (i = 0; i < info[other_axis].CP_n; i++)
         {
             // memory allocation
-            line_weight w, *w_ptr;
+            line_coordinate w, *w_ptr;
             line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
             line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
             w_ptr = &w;
@@ -1455,7 +1455,7 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
             for (j = 0; j < info[other_axis_2].CP_n; j++)
             {
                 // memory allocation
-                line_weight w, *w_ptr;
+                line_coordinate w, *w_ptr;
                 line_coordinate *DIM = (line_coordinate *)malloc(sizeof(line_coordinate) * info_glo->DIMENSION);
                 line_coordinate **DIM_ptr = (line_coordinate **)malloc(sizeof(line_coordinate *) * info_glo->DIMENSION);
                 w_ptr = &w;
@@ -1597,7 +1597,7 @@ void KR_calc_knot_1D(int removal_axis, int removal_knot_n, double *removal_knot,
 }
 
 
-void KR_calc_Tinv_1D(int removal_axis, int removal_knot_n, info_global *info_glo, info_each_DIMENSION *info, line_weight *w, line_coordinate *DIM)
+void KR_calc_Tinv_1D(int removal_axis, int removal_knot_n, info_global *info_glo, info_each_DIMENSION *info, line_coordinate *w, line_coordinate *DIM)
 {
     int i, j, k;
 

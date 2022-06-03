@@ -2,24 +2,24 @@
 #define S_IGA_HEADER_H
 
 #define SKIP_S_IGA 2 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
-#define Output_SVG 1 // SVG 出力を行わない 0, 行う 1
+#define OUTPUT_SVG 1 // SVG 出力を行わない 0, 行う 1
 #define DM 1         // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 #define ERROR -999
 #define MAX_NO_CCpoint_ON_ELEMENT 16						// 分割節点数
 #define DIMENSION 2											// 次元数
 #define MAX_ORDER 4											// 基底関数の次数の最大値 + 1
 #define MAX_KIEL_SIZE MAX_NO_CCpoint_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
-#define Ng 4												// Gauss-Legendreの足す回数
-#define POW_Ng Ng * Ng										// NgのDIMENSION乗の計算
-#define Ng_extended 10										// Gauss-Legendreの足す回数
-#define POW_Ng_extended Ng_extended * Ng_extended			// NgのDIMENSION乗の計算
+#define NG 4												// Gauss-Legendreの積分点数
+#define POW_NG NG * NG										// NGのDIMENSION乗の計算
+#define NG_EXTEND 10										// Gauss-Legendreの積分点数
+#define POW_NG_EXTEND NG_EXTEND * NG_EXTEND			        // NGのDIMENSION乗の計算
 #define K_DIVISION_LENGE 10 	                            // 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
 #define EPS 1.0e-10				                            // 連立1次方程式の残差
 #define N_STRAIN 4
 #define N_STRESS 4
 #define MAX_N_ELEMENT_OVER 100  				            // グローバルメッシュ内の1要素に重なる最大要素数
 #define MAX_N_ELEMENT_OVER_POINT 5				            // ローカル要素内の1点に重なるグローバル要素
-#define MAX_N_ELEMENT_OVER_ELEMENT	MAX_N_ELEMENT_OVER_POINT * POW_Ng_extended		// ローカルメッシュ内の1要素に重なる最大要素数
+#define MAX_N_ELEMENT_OVER_ELEMENT MAX_N_ELEMENT_OVER_POINT * POW_NG_EXTEND // ローカルメッシュ内の1要素に重なる最大要素数
 #define DIVISION_ELE 10                                     // 一要素あたりの分割数
 #define DBL_MAX 1.7976931348623158e+308                     // max value
 

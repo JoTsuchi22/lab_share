@@ -146,14 +146,14 @@ int main(int argc, char **argv)
 	}
 	info_ptr->NNLOVER = (int *)malloc(sizeof(int) * info.real_Total_Element_to_mesh[Total_mesh]);
 	info_ptr->NELOVER = (int *)malloc(sizeof(int) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
-	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION, sizeof(double));
-	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION, sizeof(double));
-	info_ptr->Jac = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng);
-	info_ptr->Jac_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended);
-	info_ptr->B_Matrix = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	info_ptr->B_Matrix_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng * DIMENSION * sizeof(double));
-	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_Ng_extended * DIMENSION * sizeof(double));
+	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * DIMENSION, sizeof(double));
+	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * DIMENSION, sizeof(double));
+	info_ptr->Jac = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG);
+	info_ptr->Jac_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND);
+	info_ptr->B_Matrix = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	info_ptr->B_Matrix_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * DIMENSION * sizeof(double));
+	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * DIMENSION * sizeof(double));
 	if (info.NNLOVER == NULL || info.NELOVER == NULL || info.Gauss_Coordinate == NULL || info.Gauss_Coordinate_ex == NULL || info.Jac == NULL || info.Jac_ex == NULL || info.B_Matrix == NULL || info.B_Matrix_ex == NULL || info.Loc_parameter_on_Glo == NULL || info.Loc_parameter_on_Glo_ex == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
@@ -240,7 +240,7 @@ int main(int argc, char **argv)
 	printf("\nFinish Make_Parameter_z\n\n");
 
 	// Kマトリックスのsvg出力
-	if (Output_SVG == 1)
+	if (OUTPUT_SVG == 1)
 	{
 		K_output_svg(&info);
 		printf("\nFinish K_output_svg\n\n");

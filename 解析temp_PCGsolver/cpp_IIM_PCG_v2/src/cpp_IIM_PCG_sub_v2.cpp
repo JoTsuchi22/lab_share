@@ -772,7 +772,7 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 	int re, e;
 	int i, j, k, m;
 	int l, ll;
-	int n_elements_over_point[POW_Ng_extended];
+	int n_elements_over_point[POW_NG_EXTEND];
 	int MAX_NNLOVER = 0;
 
 	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
@@ -784,7 +784,7 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 		Check_coupled_No[i] = 0;
 	}
 
-	for (m = 0; m < 2; m++) // 最初 Ng 個のガウス点で重なりを求め, info->NNLOVER[e] >= 2 の e に対して, 再度 Ng_extended 個のガウス点で重なりを求める
+	for (m = 0; m < 2; m++) // 最初 NG 個のガウス点で重なりを求め, info->NNLOVER[e] >= 2 の e に対して, 再度 NG_EXTEND 個のガウス点で重なりを求める
 	{
 		Make_gauss_array(m);
 
@@ -1111,9 +1111,9 @@ int duplicate_delete(int total, int element_n, int *element_n_point, information
 // Preprocessing
 void Preprocessing(int m, int e, information *info)
 {
-	double *a_matrix = (double *)malloc(sizeof(double) * POW_Ng_extended * DIMENSION * DIMENSION);					// a_matrix[POW_Ng_extended * DIMENSION * DIMENSION]
-	double *dSF = (double *)malloc(sizeof(double) * POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION);				// dSF[POW_Ng * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
-	double *dSF_ex = (double *)malloc(sizeof(double) * POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION);	// dSF_ex[POW_Ng_extended * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
+	double *a_matrix = (double *)malloc(sizeof(double) * POW_NG_EXTEND * DIMENSION * DIMENSION);					// a_matrix[POW_NG_EXTEND * DIMENSION * DIMENSION]
+	double *dSF = (double *)malloc(sizeof(double) * POW_NG * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION);				// dSF[POW_NG * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
+	double *dSF_ex = (double *)malloc(sizeof(double) * POW_NG_EXTEND * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION);	// dSF_ex[POW_NG_EXTEND * MAX_NO_CCpoint_ON_ELEMENT * DIMENSION]
 
 	// ガウス点の物理座標を計算
 	Make_Gauss_Coordinate(m, e, info);
@@ -1311,11 +1311,11 @@ void Make_gauss_array(int select_GP)
 
 	if (select_GP == 0)
 	{
-		GP_1dir = Ng;
+		GP_1dir = NG;
 	}
 	else if (select_GP == 1)
 	{
-		GP_1dir = Ng_extended;
+		GP_1dir = NG_EXTEND;
 	}
 
 	GP_2D = GP_1dir * GP_1dir;
@@ -1752,7 +1752,7 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 	for (i = 0; i < GP_2D; i++)
 	{
 		// J, B の作成
-		if (GP_2D == POW_Ng)
+		if (GP_2D == POW_NG)
 		{
 			J = info->Jac[El_No * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -1763,7 +1763,7 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 				}
 			}
 		}
-		else if (GP_2D == POW_Ng_extended)
+		else if (GP_2D == POW_NG_EXTEND)
 		{
 			J = info->Jac_ex[El_No * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -1816,7 +1816,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 		double para[DIMENSION] = {0.0};
 		double G_Gxi[DIMENSION] = {0.0};
 
-		if (GP_2D == POW_Ng)
+		if (GP_2D == POW_NG)
 		{
 			J = info->Jac[El_No_loc * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -1829,7 +1829,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			para[0] = info->Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 0];
 			para[1] = info->Loc_parameter_on_Glo[El_No_loc * GP_2D * DIMENSION + i * DIMENSION + 1];
 		}
-		else if (GP_2D == POW_Ng_extended)
+		else if (GP_2D == POW_NG_EXTEND)
 		{
 			J = info->Jac_ex[El_No_loc * GP_2D + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
