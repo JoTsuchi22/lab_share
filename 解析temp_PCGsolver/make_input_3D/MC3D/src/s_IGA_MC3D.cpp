@@ -1521,9 +1521,9 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
         for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
         {
             fprintf(fp, "%*d", temp_num, i);
-            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1)]);
-            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1) + 1]);
-            fprintf(fp, "%.16e\n", info->CP_result[i * (info->DIMENSION + 1) + 2]);
+            fprintf(fp, "% .16e ", info->CP_result[i * (info->DIMENSION + 1)]);
+            fprintf(fp, "% .16e ", info->CP_result[i * (info->DIMENSION + 1) + 1]);
+            fprintf(fp, "% .16e\n", info->CP_result[i * (info->DIMENSION + 1) + 2]);
         }
     }
     else if (info->DIMENSION == 3)
@@ -1531,10 +1531,10 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
         for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
         {
             fprintf(fp, "%*d", temp_num, i);
-            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1)]);
-            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1) + 1]);
-            fprintf(fp, "%.16e  ", info->CP_result[i * (info->DIMENSION + 1) + 2]);
-            fprintf(fp, "%.16e\n", info->CP_result[i * (info->DIMENSION + 1) + 3]);
+            fprintf(fp, "% .16e ", info->CP_result[i * (info->DIMENSION + 1)]);
+            fprintf(fp, "% .16e ", info->CP_result[i * (info->DIMENSION + 1) + 1]);
+            fprintf(fp, "% .16e ", info->CP_result[i * (info->DIMENSION + 1) + 2]);
+            fprintf(fp, "% .16e\n", info->CP_result[i * (info->DIMENSION + 1) + 3]);
         }
     }
     fprintf(fp, "\n");
