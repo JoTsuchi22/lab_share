@@ -1584,6 +1584,11 @@ void Output_SVG(const information *info)
 {
     int i;
 
+    // 文字サイズ, 5 ~ 20 程度が適切, デフォルト: 6pt
+    int font_size = 6;
+    // 画像サイズ, 500 ~ 3000 程度が適切 scale 大 ⇒ 文字 小
+    double size = 1000.0;
+
     char color_vec[10][10] = {"#a9a9a9", "#00bfff", "#00fa9a", "#ffff00", "#ff8c00", "#cd5c5c", "#ff7f50", "#dc143c", "#ee82ee", "#8a2be2"};
     //  0   darkgray
     //  1   deepskyblue
@@ -1633,49 +1638,47 @@ void Output_SVG(const information *info)
         }
     }
 
-    double space = 3.0;
+    double origin_width = (x_max - x_min) * (22.0 / 20.0);
+    double origin_hight = (y_max - y_min) * (22.0 / 20.0);
 
-    double scale = 2000.0 / (x_max - x_min + 2.0 * space);
-    // widthが2000になるよう拡大，縮小する
-    // 数字や文字が小さくてつぶれる場合はこの値を大きくするとイイ！！
-    // それか line 1287 の font-size を小さくするとか
+    // 横幅固定，アスペクト比維持
+    double width = size, hight = size * (origin_hight / origin_width);
 
-    double width = (x_max - x_min + 2.0 * space) * scale;
-    double height = (y_max - x_min + 2.0 * space) * scale;
+    double x_scale = width / origin_width;
+    double y_scale = x_scale * (origin_hight / origin_width);
 
-    printf("width = %le\n", width);
-    printf("height = %le\n", height);
+    double origin_space_x = origin_width * (1.0 / 20.0);
+    double origin_space_y = origin_hight * (1.0 / 20.0);
 
     char str[256] = "input.svg";
 
     fp = fopen(str, "w");
 
     fprintf(fp, "<?xml version='1.0'?>\n");
-    // fprintf(fp, "<svg width='%lept' height='%lept' viewBox='0 0 %le %le' style = 'background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height, width, height);
-    fprintf(fp, "<svg width='%le' height='%le' version='1.1' style='background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, height);
+    fprintf(fp, "<svg width='%le' hight='%le' version='1.1' style='background: #eee' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>\n", width, hight);
 
     // パッチ境界を描画
     int temp_color_num = 0;
     B_to_here = 0;
     for (i = 0; i < info->Total_patch; i++)
     {
-        position_x = (info->B[B_to_here] + space) * scale;
-        position_y = height - ((info->B[B_to_here + 1] + space) * scale);
+        position_x = (info->B[B_to_here] + origin_space_x) * x_scale;
+        position_y = hight - ((info->B[B_to_here + 1] + origin_space_y) * y_scale);
         fprintf(fp, "<path d='M %le %le ", position_x, position_y);
         B_to_here += 4 * (info->DIMENSION + 1);
 
-        position_x = (info->B[B_to_here] + space) * scale;
-        position_y = height - ((info->B[B_to_here + 1] + space) * scale);
+        position_x = (info->B[B_to_here] + origin_space_x) * x_scale;
+        position_y = hight - ((info->B[B_to_here + 1] + origin_space_y) * y_scale);
         fprintf(fp, "L %le %le ", position_x, position_y);
         B_to_here += 2 * (info->DIMENSION + 1);
 
-        position_x = (info->B[B_to_here] + space) * scale;
-        position_y = height - ((info->B[B_to_here + 1] + space) * scale);
+        position_x = (info->B[B_to_here] + origin_space_x) * x_scale;
+        position_y = hight - ((info->B[B_to_here + 1] + origin_space_y) * y_scale);
         fprintf(fp, "L %le %le ", position_x, position_y);
         B_to_here += 2 * (info->DIMENSION + 1);
 
-        position_x = (info->B[B_to_here] + space) * scale;
-        position_y = height - ((info->B[B_to_here + 1] + space) * scale);
+        position_x = (info->B[B_to_here] + origin_space_x) * x_scale;
+        position_y = hight - ((info->B[B_to_here + 1] + origin_space_y) * y_scale);
         fprintf(fp, "L %le %le ", position_x, position_y);
         B_to_here += 4 * (info->DIMENSION + 1);
 
@@ -1695,10 +1698,10 @@ void Output_SVG(const information *info)
     // 点と番号を描画
     for (i = 0; i < (CP_result_to_here + 1) / (info->DIMENSION + 1); i++)
     {
-        position_x = (info->CP_result[i * 3] + space) * scale;
-        position_y = height - ((info->CP_result[i * 3 + 1] + space) * scale);
+        position_x = (info->CP_result[i * 3] + origin_space_x) * x_scale;
+        position_y = hight - ((info->CP_result[i * 3 + 1] + origin_space_y) * y_scale);
         fprintf(fp, "<circle cx='%le' cy='%le' r='2' fill='%s'/>\n", position_x, position_y, color_vec[7]);
-        fprintf(fp, "<text x='%le' y='%le' font-family='Verdana' font-size='6' fill='%s' font-weight='700'>\n", position_x + 2, position_y, color_vec[7]);
+        fprintf(fp, "<text x='%le' y='%le' font-family='Verdana' font-size='%d' fill='%s' font-weight='700'>\n", position_x + 2, position_y, font_size, color_vec[7]);
         fprintf(fp, "%d\n", i);
         fprintf(fp, "</text>\n");
     }
