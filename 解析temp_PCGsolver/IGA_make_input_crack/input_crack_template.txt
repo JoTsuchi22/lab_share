@@ -10,7 +10,7 @@
 
 5.0 5.0 5.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, inner side must match tip crack coordinate x)
 
-40.0   40.0     // length from tip crack [mm] (outer side, inner side, upper side), (if auto making mode == 1, inner side must match tip crack coordinate x)
+40.0   40.0     // length from tip crack [mm] (global width, global height)
 
 4   4   4   4   // local patch control point after Order Elevation and Knot Insertion (outer side, inner side, upper side, global side)
 
