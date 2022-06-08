@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     info_ptr->disp_constraint_face_edge_n = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);     // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
     info_ptr->disp_constraint_amount = (double *)malloc(sizeof(double) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);    // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
     info_ptr->disp_constraint = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
-    info_ptr->distributed_load_info = (double *)malloc(sizeof(double) * info.distributed_load_n * 9);                   // distributed_load_info[MAX_DISTRIBUTED_LOAD][9]
+    info_ptr->distributed_load_info = (double *)malloc(sizeof(double) * info.distributed_load_n * 15);                   // distributed_load_info[MAX_DISTRIBUTED_LOAD][15]
     if (info.disp_constraint_n == NULL || info.disp_constraint_face_edge_n == NULL || info.disp_constraint_amount == NULL || info.disp_constraint == NULL || info.distributed_load_info == NULL)
     {
         printf("Cannot allocate memory\n"); exit(1);
@@ -206,6 +206,7 @@ int main(int argc, char **argv)
     info_ptr->length_after = (int *)malloc(sizeof(int) * temp5);    // 各変位量でのマージ後の長さ
     info_ptr->Boundary = (int *)malloc(sizeof(int) * temp4);        // 境界条件のコネクティビティ
     info_ptr->Boundary_result = (int *)malloc(sizeof(int) * temp4); // ソート・マージ後境界条件のコネクティビティ
+
     if (info.length_before == NULL || info.length_after == NULL || info.Boundary == NULL || info.Boundary_result == NULL)
     {
         printf("Cannot allocate memory\n"); exit(1);
@@ -376,12 +377,28 @@ void Get_inputdata_boundary_1(char *filename, information *info)
     // 分布荷重の荷重の個数
     fscanf(fp, "%d", &temp_i);
 
-    for (i = 0; i < info->distributed_load_n; i++)
+    fgets(s, 256, fp);
+
+    if (info->DIMENSION == 2)
     {
-        for (j = 0; j < 9; j++)
+        for (i = 0; i < info->distributed_load_n; i++)
         {
-            fscanf(fp, "%lf", &temp_d);
-            info->distributed_load_info[i * 9 + j] = temp_d;
+            for (j = 0; j < 9; j++)
+            {
+                fscanf(fp, "%lf", &temp_d);
+                info->distributed_load_info[i * 9 + j] = temp_d;
+            }
+        }
+    }
+    else if (info->DIMENSION == 3)
+    {
+        for (i = 0; i < info->distributed_load_n; i++)
+        {
+            for (j = 0; j < 15; j++)
+            {
+                fscanf(fp, "%lf", &temp_d);
+                info->distributed_load_info[i * 15 + j] = temp_d;
+            }
         }
     }
 
@@ -1559,21 +1576,49 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
     fprintf(fp, "\n");
 
     // 分布荷重
-    for (i = 0; i < info->distributed_load_n; i++)
+    if (info->DIMENSION == 2)
     {
-        if (i != 0)
+        for (i = 0; i < info->distributed_load_n; i++)
         {
-            fprintf(fp, "\n");
+            if (i != 0)
+            {
+                fprintf(fp, "\n");
+            }
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 0]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 1]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 2]);
+            fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 3]);
+            fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 4]);
+            fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 5]);
+            fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 6]);
+            fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 7]);
+            fprintf(fp, "%le", info->distributed_load_info[i * 9 + 8]);
         }
-        fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 0]);
-        fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 1]);
-        fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 2]);
-        fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 3]);
-        fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 4]);
-        fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 5]);
-        fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 6]);
-        fprintf(fp, "%le  ", info->distributed_load_info[i * 9 + 7]);
-        fprintf(fp, "%le", info->distributed_load_info[i * 9 + 8]);
+    }
+    else if(info->DIMENSION == 3)
+    {
+        for (i = 0; i < info->distributed_load_n; i++)
+        {
+            if (i != 0)
+            {
+                fprintf(fp, "\n");
+            }
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 0]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 1]);
+            fprintf(fp, "%d ", (int)info->distributed_load_info[i * 9 + 2]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 3]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 4]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 5]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 6]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 7]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 8]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 9]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 10]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 11]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 12]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 13]);
+            fprintf(fp, "%le", info->distributed_load_info[i * 9 + 14]);
+        }
     }
 
     fclose(fp);
@@ -1939,7 +1984,7 @@ void Sort(int n, information *info)
         printf("length_after[%d] = %d\n", i, info->length_after[i]);
         for (j = 0; j < info->length_after[i]; j++)
         {
-            printf("%d\t", info->Boundary_result[i * temp + j]);
+            printf("%d\t", info->Boundary_result[temp + j]);
         }
         printf("\n");
         temp += info->length_before[i];
@@ -2132,7 +2177,7 @@ void Dedupe(int *a, int *num, int *a_new, int *num_new, int n)
 
     for (i = 0; i < n; i++)
     {
-        temp_to_here += num[n];
+        temp_to_here += num[i];
     }
 
     for (i = 0; i < num[n] - 1; i++)
