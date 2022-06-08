@@ -32,4 +32,4 @@ testrun0:	compile run0 view0
 testrun1:	compile run1 view0
 
 testrun_3D: compile
-	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_30x30.txt
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D/input.txt

@@ -2,10 +2,10 @@
 #define S_IGA_MAIN_H
 
 // gauss array
-int GP_1dir;                            // 1方向のガウス点数
-int GP_2D;                              // 2次元のガウス点数
-double Gxi[POW_NG_EXTEND][DIMENSION]; // ガウス点
-double w[POW_NG_EXTEND];              // ガウス点での重み
+int GP_1dir;                              // 1方向のガウス点数
+int GP_2D;                                // 2次元のガウス点数
+double Gxi[POW_NG_EXTEND][MAX_DIMENSION]; // ガウス点
+double w[POW_NG_EXTEND];                  // ガウス点での重み
 
 // double Strain[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
 // double Strain_glo[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
@@ -51,6 +51,7 @@ double E;                      // ヤング率(GPa)
 double nu;                     // ポアソン比(-)
 int Total_mesh;
 
+int MAX_ORDER;          // 基底関数の次数の最大値 + 1
 int D_MATRIX_SIZE;
 int MAX_K_WHOLE_SIZE;
 int K_Whole_Size;

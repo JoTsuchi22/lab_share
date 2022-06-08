@@ -1397,6 +1397,9 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
 
     fp = fopen(str, "w");
 
+    // DIMENSION
+    fprintf(fp, "%d\n\n", info->DIMENSION);
+
     // ヤング率
     fprintf(fp, "%d  ", (int)info->E_and_nu[0]);
 

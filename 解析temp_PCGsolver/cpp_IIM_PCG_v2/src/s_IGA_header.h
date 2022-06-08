@@ -1,14 +1,14 @@
 #ifndef S_IGA_HEADER_H
 #define S_IGA_HEADER_H
 
-#define SKIP_S_IGA 2 // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
-#define OUTPUT_SVG 1 // SVG 出力を行わない 0, 行う 1
-#define DM 1         // 平面応力状態:DM=0	平面ひずみ状態:DM=1
+#define MAX_DIMENSION 3
+#define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define OUTPUT_SVG 1    // SVG 出力を行わない 0, 行う 1
+#define DM 1            // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 #define ERROR -999
 #define MAX_NO_CCpoint_ON_ELEMENT 16						// 分割節点数
-#define DIMENSION 2											// 次元数
-#define MAX_ORDER 4											// 基底関数の次数の最大値 + 1
-#define MAX_KIEL_SIZE MAX_NO_CCpoint_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
+// #define MAX_KIEL_SIZE MAX_NO_CCpoint_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
+#define MAX_KIEL_SIZE MAX_NO_CCpoint_ON_ELEMENT * MAX_DIMENSION	// 要素分割マトリックスの大きさ
 #define NG 4												// Gauss-Legendreの積分点数
 #define POW_NG NG * NG										// NGのDIMENSION乗の計算
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
@@ -25,6 +25,8 @@
 
 // stract array ptr def
 struct information {
+    int DIMENSION;  // DIMENSION
+
     int *Total_Knot_to_mesh;
     int *Total_Patch_on_mesh;
     int *Total_Patch_to_mesh;
@@ -151,8 +153,8 @@ double inner_product(int ndof, double *vec1, double *vec2);
 int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
 int RowCol_to_icount(int row, int col, information *info);
 // tool
-double InverseMatrix_2x2(double M[DIMENSION][DIMENSION]);
-double InverseMatrix_3x3(double M[DIMENSION][DIMENSION]);
+double InverseMatrix_2x2(double M[MAX_DIMENSION][MAX_DIMENSION]);
+double InverseMatrix_3x3(double M[MAX_DIMENSION][MAX_DIMENSION]);
 // Shape Function
 double Shape_func(int I_No, double *Local_coord, int El_No, information *info);
 void ShapeFunc_from_paren(double *Position_Data_param, double *Local_coord, int j, int e, information *info);

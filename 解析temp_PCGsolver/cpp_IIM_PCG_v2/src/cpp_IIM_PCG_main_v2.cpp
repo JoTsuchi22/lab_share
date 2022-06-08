@@ -74,18 +74,18 @@ int main(int argc, char **argv)
 	}
 	
 	// memory allocation
-	info_ptr->Order = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * DIMENSION));					// Order[MAX_N_PATCH][DIMENSION]
-	info_ptr->No_knot = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * DIMENSION));				// No_knot[MAX_N_PATCH][DIMENSION]
+	info_ptr->Order = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));					// Order[MAX_N_PATCH][info.DIMENSION]
+	info_ptr->No_knot = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));				// No_knot[MAX_N_PATCH][info.DIMENSION]
 	info_ptr->Total_Control_Point_to_patch = (int *)calloc((info.Total_Patch_to_mesh[Total_mesh] + 1), sizeof(int));	// Total_Control_Point_to_patch[MAX_N_PATCH]
-	info_ptr->Total_Knot_to_patch_dim = (int *)calloc((info.Total_Patch_to_mesh[Total_mesh] * DIMENSION + 1), sizeof(int));	// Total_Knot_to_patch_dim[MAX_N_PATCH][DIMENSION]
-	info_ptr->Position_Knots = (double *)malloc(sizeof(double) * info.Total_Knot_to_mesh[Total_mesh]);					// Position_Knots[MAX_N_PATCH][DIMENSION][MAX_N_KNOT];
-	info_ptr->No_Control_point = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * DIMENSION));		// Order[MAX_N_PATCH][DIMENSION]
+	info_ptr->Total_Knot_to_patch_dim = (int *)calloc((info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION + 1), sizeof(int));	// Total_Knot_to_patch_dim[MAX_N_PATCH][info.DIMENSION]
+	info_ptr->Position_Knots = (double *)malloc(sizeof(double) * info.Total_Knot_to_mesh[Total_mesh]);					// Position_Knots[MAX_N_PATCH][info.DIMENSION][MAX_N_KNOT];
+	info_ptr->No_Control_point = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));		// Order[MAX_N_PATCH][info.DIMENSION]
 	info_ptr->No_Control_point_in_patch = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));			// No_Control_point_in_patch[MAX_N_PATCH]
 	info_ptr->Patch_Control_point = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Patch_Control_point[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
 	info_ptr->No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
-	info_ptr->Node_Coordinate = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh] * (DIMENSION + 1)));	// Node_Coordinate[MAX_N_NODE][DIMENSION + 1];
-	info_ptr->Control_Coord_x = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Coord[DIMENSION][MAX_N_NODE];
-	info_ptr->Control_Coord_y = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Coord[DIMENSION][MAX_N_NODE];
+	info_ptr->Node_Coordinate = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh] * (info.DIMENSION + 1)));	// Node_Coordinate[MAX_N_NODE][info.DIMENSION + 1];
+	info_ptr->Control_Coord_x = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Coord[info.DIMENSION][MAX_N_NODE];
+	info_ptr->Control_Coord_y = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Coord[info.DIMENSION][MAX_N_NODE];
 	info_ptr->Control_Weight = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Weight[MAX_N_NODE];
 	info_ptr->Constraint_Node_Dir = (int *)malloc(sizeof(int) * (info.Total_Constraint_to_mesh[Total_mesh] * 2));		// Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
 	info_ptr->Value_of_Constraint = (double *)calloc(info.Total_Constraint_to_mesh[Total_mesh], sizeof(double));		// Value_of_Constraint[MAX_N_CONSTRAINT];
@@ -111,19 +111,19 @@ int main(int argc, char **argv)
 	printf("\nFinish Get Input data\n\n");
 
 	// memory allocation
-	info_ptr->INC = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh] * DIMENSION));			// INC[MAX_N_NODE][DIMENSION]
+	info_ptr->INC = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION));			// INC[MAX_N_NODE][info.DIMENSION]
 	info_ptr->Controlpoint_of_Element = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * MAX_NO_CCpoint_ON_ELEMENT)); // Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT]
 	info_ptr->Element_patch = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// Element_patch[MAX_N_ELEMENT]
 	info_ptr->Element_mesh = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// Element_mesh[MAX_N_ELEMENT] 要素がどのメッシュ内にあるかを示す配列
-	info_ptr->line_No_real_element = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * DIMENSION));	// line_No_real_element[MAX_N_PATCH][DIMENSION] ゼロエレメントではない要素列の数
-	info_ptr->line_No_Total_element = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * DIMENSION));	// line_No_Total_element[MAX_N_PATCH][DIMENSION] ゼロエレメントを含むすべての要素列の数
-	info_ptr->difference = (double *)calloc(info.Total_Knot_to_mesh[Total_mesh], sizeof(double));						// difference[MAX_N_PATCH][DIMENSION][MAX_N_KNOT] 隣り合うノットベクトルの差
+	info_ptr->line_No_real_element = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));	// line_No_real_element[MAX_N_PATCH][info.DIMENSION] ゼロエレメントではない要素列の数
+	info_ptr->line_No_Total_element = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));	// line_No_Total_element[MAX_N_PATCH][info.DIMENSION] ゼロエレメントを含むすべての要素列の数
+	info_ptr->difference = (double *)calloc(info.Total_Knot_to_mesh[Total_mesh], sizeof(double));						// difference[MAX_N_PATCH][info.DIMENSION][MAX_N_KNOT] 隣り合うノットベクトルの差
 	info_ptr->Total_element_all_ID = (int *)calloc(info.Total_Element_to_mesh[Total_mesh], sizeof(int));				// Total_element_all_ID[MAX_N_ELEMENT] ゼロエレメントではない要素 = 1, ゼロエレメント = 0
-	info_ptr->ENC = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * DIMENSION));					// ENC[MAX_N_ELEMENT][DIMENSION] ENC[パッチ][全ての要素][0, 1] = x, y方向の何番目の要素か
-	info_ptr->real_element_line = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh] * DIMENSION)); // real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][DIMENSION] ゼロエレメントではない要素列
+	info_ptr->ENC = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * info.DIMENSION));					// ENC[MAX_N_ELEMENT][info.DIMENSION] ENC[パッチ][全ての要素][0, 1] = x, y方向の何番目の要素か
+	info_ptr->real_element_line = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh] * info.DIMENSION)); // real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][info.DIMENSION] ゼロエレメントではない要素列
 	info_ptr->real_element = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);							// real_element[MAX_N_ELEMENT] ゼロエレメントではない要素の番号
 	info_ptr->real_El_No_on_mesh = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh]));	// real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]
-	info_ptr->Equivalent_Nodal_Force = (double *)calloc(info.Total_Control_Point_to_mesh[Total_mesh] * DIMENSION, sizeof(double));	// Equivalent_Nodal_Force[MAX_N_NODE][DIMENSION] Equivalent nodal forces arising from the distributed load
+	info_ptr->Equivalent_Nodal_Force = (double *)calloc(info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION, sizeof(double));	// Equivalent_Nodal_Force[MAX_N_NODE][info.DIMENSION] Equivalent nodal forces arising from the distributed load
 	if (info.INC == NULL || info.Controlpoint_of_Element == NULL || info.Element_patch == NULL || info.Element_mesh == NULL || info.line_No_real_element == NULL || info.line_No_Total_element == NULL || info.difference == NULL || info.Total_element_all_ID == NULL || info.ENC == NULL || info.real_element_line == NULL || info.real_element == NULL || info.real_El_No_on_mesh == NULL || info.Equivalent_Nodal_Force == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
@@ -136,24 +136,24 @@ int main(int argc, char **argv)
 	free(info.real_element_line), free(info.Total_element_all_ID), free(info.difference);
 
 	// memory allocation
-	if (DIMENSION == 2)
+	if (info.DIMENSION == 2)
 	{
 		D_MATRIX_SIZE = 3;
 	}
-	else if (DIMENSION == 3)
+	else if (info.DIMENSION == 3)
 	{
 		D_MATRIX_SIZE = 6;
 	}
 	info_ptr->NNLOVER = (int *)malloc(sizeof(int) * info.real_Total_Element_to_mesh[Total_mesh]);
 	info_ptr->NELOVER = (int *)malloc(sizeof(int) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
-	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * DIMENSION, sizeof(double));
-	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * DIMENSION, sizeof(double));
+	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * info.DIMENSION, sizeof(double));
+	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * info.DIMENSION, sizeof(double));
 	info_ptr->Jac = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG);
 	info_ptr->Jac_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND);
 	info_ptr->B_Matrix = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE);
 	info_ptr->B_Matrix_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * DIMENSION * sizeof(double));
-	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * DIMENSION * sizeof(double));
+	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * info.DIMENSION * sizeof(double));
+	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * info.DIMENSION * sizeof(double));
 	if (info.NNLOVER == NULL || info.NELOVER == NULL || info.Gauss_Coordinate == NULL || info.Gauss_Coordinate_ex == NULL || info.Jac == NULL || info.Jac_ex == NULL || info.B_Matrix == NULL || info.B_Matrix_ex == NULL || info.Loc_parameter_on_Glo == NULL || info.Loc_parameter_on_Glo_ex == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 	printf("\nFinish check_over_parameter\n\n");
 
 	// memory allocation
-	MAX_K_WHOLE_SIZE = info.Total_Control_Point_to_mesh[Total_mesh] * DIMENSION;
+	MAX_K_WHOLE_SIZE = info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION;
 	MAX_NON_ZERO = MAX_K_WHOLE_SIZE * (MAX_K_WHOLE_SIZE / 2) + MAX_K_WHOLE_SIZE;
 	info_ptr->D = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * D_MATRIX_SIZE);
 	info_ptr->Node_To_Node = (int *)malloc(sizeof(int) * K_DIVISION_LENGE * info.Total_Control_Point_to_mesh[Total_mesh]);	// Node_To_Node[K_DIVISION_LENGE][10000]
