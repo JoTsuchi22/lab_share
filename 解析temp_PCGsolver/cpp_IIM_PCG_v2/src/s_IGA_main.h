@@ -51,7 +51,10 @@ double E;                      // ヤング率(GPa)
 double nu;                     // ポアソン比(-)
 int Total_mesh;
 
-int MAX_ORDER;          // 基底関数の次数の最大値 + 1
+int MAX_ORDER = 0;          // 基底関数の次数の最大値 + 1
+int MAX_NO_CCpoint_ON_ELEMENT;  // new
+int MAX_KIEL_SIZE;              // new
+
 int D_MATRIX_SIZE;
 int MAX_K_WHOLE_SIZE;
 int K_Whole_Size;

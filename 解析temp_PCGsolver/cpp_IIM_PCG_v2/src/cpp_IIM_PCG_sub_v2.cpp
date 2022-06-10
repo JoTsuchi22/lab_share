@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+// #include <string.h>
 #include <math.h>
-#include <assert.h>
+// #include <assert.h>
 #include <time.h>
 
 // header
@@ -142,6 +142,10 @@ void Get_Input_2(int tm, char **argv, information *info)
 		{
 			fscanf(fp, "%d", &temp_i);
 			info->Order[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j] = temp_i;
+			if (MAX_ORDER < temp_i)
+			{
+				MAX_ORDER = temp_i;
+			}
 			printf("info->Order[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->Order[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
 		}
 	}
@@ -285,18 +289,39 @@ void Get_Input_2(int tm, char **argv, information *info)
 	{
 		for (j = 0; j < info->DIMENSION + 1; j++)
 		{
-			// コントロールポイント座標・重みの新たな配列(for s-IGA/NewtonLaphson) info->DIMENSION == 2 の場合のみ記述
-			if (j == 0)
+			if (info->DIMENSION = 2)
 			{
-				info->Control_Coord_x[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				if (j == 0)
+				{
+					info->Control_Coord_x[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
+				else if (j == 1)
+				{
+					info->Control_Coord_y[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
+				else if (j == info->DIMENSION)
+				{
+					info->Control_Weight[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 			}
-			else if (j == 1)
+			else if (info->DIMENSION == 3)
 			{
-				info->Control_Coord_y[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
-			}
-			else if (j == info->DIMENSION)
-			{
-				info->Control_Weight[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				if (j == 0)
+				{
+					info->Control_Coord_x[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
+				else if (j == 1)
+				{
+					info->Control_Coord_y[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
+				else if (j == 2)
+				{
+					info->Control_Coord_z[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
+				else if (j == info->DIMENSION)
+				{
+					info->Control_Weight[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 			}
 		}
 	}
@@ -362,6 +387,11 @@ void Get_Input_2(int tm, char **argv, information *info)
 // INC 等の作成
 void Make_INC(int tm, information *info)
 {
+	// 各最大値
+	MAX_NO_CCpoint_ON_ELEMENT = pow(MAX_ORDER, info->DIMENSION);
+	MAX_KIEL_SIZE = MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION;
+	MAX_ORDER += 1; // 最大値 + 1
+
 	// info->INC の計算(節点番号をξ, ηの番号で表す為の配列)
 	for (tm = 0; tm < Total_mesh; tm++)
 	{
@@ -786,7 +816,7 @@ void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, in
 	int MAX_NNLOVER = 0;
 
 	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
-	int *element_n_point = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_ELEMENT);
+	int *element_n_point = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT * POW_NG_EXTEND);
 	int *Check_coupled_No = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER);
 
 	for (i = 0; i < MAX_N_ELEMENT_OVER; i++)
