@@ -289,7 +289,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 	{
 		for (j = 0; j < info->DIMENSION + 1; j++)
 		{
-			if (info->DIMENSION = 2)
+			if (info->DIMENSION == 2)
 			{
 				if (j == 0)
 				{
@@ -359,26 +359,61 @@ void Get_Input_2(int tm, char **argv, information *info)
 	}
 	fgets(s, 256, fp);
 
-	int type_load, iPatch, iCoord;
-	double val_Coord, Range_Coord[2], Coeff_Dist_Load[3];
-
-	for (i = 0; i < Total_DistributeForce; i++)
+	if (info->DIMENSION == 2)
 	{
-		fscanf(fp, "%d %d %d %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &val_Coord, &Range_Coord[0], &Range_Coord[1], &Coeff_Dist_Load[0], &Coeff_Dist_Load[1], &Coeff_Dist_Load[2]);
-		printf("Distibuted load nober: %d\n", i);
-		printf("type_load: %d  iPatch: %d iCoord: %d  val_Coord: %.15e  Range_Coord: %.15e  %.15e\n Coef_Dist_Load: %.15e %.15e %.15e\n",
-			   type_load, iPatch, iCoord, val_Coord, Range_Coord[0], Range_Coord[1], Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2]);
+		int type_load, iPatch, iCoord;
+		double val_Coord, Range_Coord[2], Coeff_Dist_Load[3];
 
-		// for s-IGA
-		info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]] = type_load;
-		info->iPatch_array[i + info->Total_DistributeForce_to_mesh[tm]] = iPatch;
-		info->iCoord_array[i + info->Total_DistributeForce_to_mesh[tm]] = iCoord;
-		info->val_Coord_array[i + info->Total_DistributeForce_to_mesh[tm]] = val_Coord;
-		info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 0] = Range_Coord[0];
-		info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 1] = Range_Coord[1];
-		info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 0] = Coeff_Dist_Load[0];
-		info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 1] = Coeff_Dist_Load[1];
-		info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 2] = Coeff_Dist_Load[2];
+		for (i = 0; i < Total_DistributeForce; i++)
+		{
+			fscanf(fp, "%d %d %d %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &val_Coord, &Range_Coord[0], &Range_Coord[1], &Coeff_Dist_Load[0], &Coeff_Dist_Load[1], &Coeff_Dist_Load[2]);
+			printf("Distibuted load nober: %d\n", i);
+			printf("type_load: %d  iPatch: %d iCoord: %d  val_Coord: %.15e  Range_Coord: %.15e  %.15e\n Coef_Dist_Load: %.15e %.15e %.15e\n",
+				type_load, iPatch, iCoord, val_Coord, Range_Coord[0], Range_Coord[1], Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2]);
+
+			// for s-IGA
+			info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]] = type_load;
+			info->iPatch_array[i + info->Total_DistributeForce_to_mesh[tm]] = iPatch;
+			info->iCoord_array[i + info->Total_DistributeForce_to_mesh[tm]] = iCoord;
+			info->val_Coord_array[i + info->Total_DistributeForce_to_mesh[tm]] = val_Coord;
+			info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 0] = Range_Coord[0];
+			info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 1] = Range_Coord[1];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 0] = Coeff_Dist_Load[0];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 1] = Coeff_Dist_Load[1];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 2] = Coeff_Dist_Load[2];
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		int type_load, iPatch, iCoord, jCoord;
+		double val_Coord, iRange_Coord[2], jRange_Coord[2], iCoeff_Dist_Load[3], jCoeff_Dist_Load[3];
+
+		for (i = 0; i < Total_DistributeForce; i++)
+		{
+			fscanf(fp, "%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &jCoord &val_Coord, &iRange_Coord[0], &iRange_Coord[1], &jRange_Coord[0], &jRange_Coord[1], &iCoeff_Dist_Load[0], &iCoeff_Dist_Load[1], &iCoeff_Dist_Load[2], &jCoeff_Dist_Load[0], &jCoeff_Dist_Load[1], &jCoeff_Dist_Load[2]);
+			printf("Distibuted load nober: %d\n", i);
+			printf("type_load: %d iPatch: %d iCoord: %d jCoord: %d val_Coord: %.15e\n Range_Coord: %.15e %.15e %.15e %.15e\n Coef_Dist_Load: %.15e %.15e %.15e %.15e %.15e %.15e\n",
+				type_load, iPatch, iCoord, jCoord, val_Coord,
+				iRange_Coord[0], iRange_Coord[1], jRange_Coord[0], jRange_Coord[1],
+				iCoeff_Dist_Load[0], iCoeff_Dist_Load[1], iCoeff_Dist_Load[2], jCoeff_Dist_Load[0], jCoeff_Dist_Load[1], jCoeff_Dist_Load[2]);
+
+			// for s-IGA
+			info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]] = type_load;
+			info->iPatch_array[i + info->Total_DistributeForce_to_mesh[tm]] = iPatch;
+			info->iCoord_array[i + info->Total_DistributeForce_to_mesh[tm]] = iCoord;
+			info->jCoord_array[i + info->Total_DistributeForce_to_mesh[tm]] = jCoord;
+			info->val_Coord_array[i + info->Total_DistributeForce_to_mesh[tm]] = val_Coord;
+			info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 0] = iRange_Coord[0];
+			info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 1] = iRange_Coord[1];
+			info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 2] = jRange_Coord[0];
+			info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 3] = jRange_Coord[1];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 0] = iCoeff_Dist_Load[0];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 1] = iCoeff_Dist_Load[1];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 2] = iCoeff_Dist_Load[2];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 3] = jCoeff_Dist_Load[0];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 4] = jCoeff_Dist_Load[1];
+			info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 5] = jCoeff_Dist_Load[2];
+		}
 	}
 	fclose(fp);
 }
@@ -388,21 +423,22 @@ void Get_Input_2(int tm, char **argv, information *info)
 void Make_INC(int tm, information *info)
 {
 	// 各最大値
+	MAX_ORDER += 1; // 次数の最大値 + 1
 	MAX_NO_CCpoint_ON_ELEMENT = pow(MAX_ORDER, info->DIMENSION);
 	MAX_KIEL_SIZE = MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION;
-	MAX_ORDER += 1; // 最大値 + 1
 
 	// info->INC の計算(節点番号をξ, ηの番号で表す為の配列)
 	for (tm = 0; tm < Total_mesh; tm++)
 	{
-		int b, B, e, h, i, j, k, l, n, p, q, x, y, ii, jj, kkk, iiloc, jjloc, r = 0;
-		int type_load, iPatch, iCoord;
-		double val_Coord, Range_Coord[2], Coeff_Dist_Load[3];
+		int b, B, e, h, i, j, k, l, n, o, p, q, x, y, z, ii, jj, kk, kkk, iiloc, jjloc, kkloc, r = 0;
+		int type_load, iPatch, iCoord, jCoord;
+		double val_Coord, iRange_Coord[2], jRange_Coord[2], iCoeff_Dist_Load[3], jCoeff_Dist_Load[3];
 		int No_Patch = info->Total_Patch_on_mesh[tm];
 		int Total_Patch_to_Now = info->Total_Patch_to_mesh[tm];
 		int Total_Element = info->Total_Element_on_mesh[tm];
 		int Total_Element_to_Now = info->Total_Element_to_mesh[tm];
 		int Total_DistributeForce = info->Total_DistributeForce_to_mesh[tm + 1] - info->Total_DistributeForce_to_mesh[tm];
+
 		if (info->DIMENSION == 2) // for s-IGA
 		{
 			e = 0;
@@ -437,46 +473,46 @@ void Make_INC(int tm, information *info)
 				}
 			}
 		}
+		else if (info->DIMENSION == 3)
+		{
+			e = 0;
+			for (l = 0; l < No_Patch; l++)
+			{
+				i = 0;
+				for (kk = 0; kk < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 2]; kk++)
+				{
+					for (jj = 0; jj < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; jj++)
+					{
+						for (ii = 0; ii < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; ii++)
+						{
+							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 0] = ii;
+							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 1] = jj;
+							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 2] = kk;
 
-		// 2次元のデバッグのための一時的なコメントアウト，3次元のプログラム作成時にはコメントアウトをはずす	
-		// if (info->DIMENSION == 3)
-		// {
-		// 	e = 0;
-		// 	for (l = 0; l < No_Patch; l++)
-		// 	{
-		// 		i = 0;
-		// 		for (kk = 0; kk < info->No_Control_point[l][2]; kk++)
-		// 		{
-		// 			for (jj = 0; jj < info->No_Control_point[l][1]; jj++)
-		// 			{
-		// 				for (ii = 0; ii < info->No_Control_point[l][0]; ii++)
-		// 				{
-		// 					info->INC[l][info->Patch_Control_point[l][i]][0] = ii;
-		// 					info->INC[l][info->Patch_Control_point[l][i]][1] = jj;
-		// 					info->INC[l][info->Patch_Control_point[l][i]][2] = kk;
-		// 					if (ii >= info->Order[l][0] && jj >= info->Order[l][1] && kk >= info->Order[l][2])
-		// 					{
-		// 						for (kkloc = 0; kkloc < info->Order[l][2]; kkloc++)
-		// 						{
-		// 							for (jjloc = 0; jjloc <= info->Order[l][1]; jjloc++)
-		// 							{
-		// 								for (iiloc = 0; iiloc <= info->Order[l][0]; iiloc++)
-		// 								{
-		// 									B = info->Patch_Control_point[l][i - jjloc * info->No_Control_point[l][0] - iiloc];
-		// 									b = jjloc * (info->Order[l][0] + 1) + iiloc;
-		// 									info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + b] = B;
-		// 								}
-		// 							}
-		// 						}
-		// 						info->Element_patch[e] = l + Total_Patch_to_Now;
-		// 						e++;
-		// 					}
-		// 					i++;
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// }
+							if (ii >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] && jj >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1] && kk >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 2])
+							{
+								for (kkloc = 0; kkloc < info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 2]; kkloc++)
+								{
+									for (jjloc = 0; jjloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; jjloc++)
+									{
+										for (iiloc = 0; iiloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; iiloc++)
+										{
+											B = info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i - kkloc * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0] * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 1] - jjloc * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0] - iiloc];
+											b = jjloc * (info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] + 1) + iiloc;
+											info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + b] = B;
+										}
+									}
+								}
+								info->Element_patch[e + Total_Element_to_Now] = l + Total_Patch_to_Now;
+								info->Element_mesh[e + Total_Element_to_Now] = tm;
+								e++;
+							}
+							i++;
+						}
+					}
+				}
+			}
+		}
 
 		// for s-IGA line_No_real_elementの初期化
 		for (l = 0; l < No_Patch; l++)
@@ -506,13 +542,13 @@ void Make_INC(int tm, information *info)
 		}
 
 		// 要素に行番号, 列番号をつける
+		for (h = 0; h < Total_Element; h++)
+		{
+			info->Total_element_all_ID[h] = 0;
+		}
+
 		if (info->DIMENSION == 2)
 		{
-			for (h = 0; h < Total_Element; h++)
-			{
-				info->Total_element_all_ID[h] = 0;
-			}
-
 			i = 0;
 			for (l = 0; l < No_Patch; l++)
 			{
@@ -527,6 +563,26 @@ void Make_INC(int tm, information *info)
 				}
 			}
 		}
+		else if (info->DIMENSION == 3)
+		{
+			i = 0;
+			for (l = 0; l < No_Patch; l++)
+			{
+				for (z = 0; z < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 2]; z++)
+				{
+					for (y = 0; y < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; y++)
+					{
+						for (x = 0; x < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; x++)
+						{
+							info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 0] = x;
+							info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 1] = y;
+							info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 2] = z;
+							i++;
+						}
+					}
+				}
+			}
+		}
 
 		// 必要な要素の行と列の番号を求める
 		for (j = 0; j < info->DIMENSION; j++)
@@ -534,7 +590,6 @@ void Make_INC(int tm, information *info)
 			for (l = 0; l < No_Patch; l++)
 			{
 				e = 0;
-
 				for (k = 0; k < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + j]; k++)
 				{
 					if (info->difference[info->Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * info->DIMENSION + j] + k] != 0)
@@ -584,23 +639,87 @@ void Make_INC(int tm, information *info)
 			info->real_Total_Element_on_mesh[tm] = real_Total_Element;
 			info->real_Total_Element_to_mesh[tm + 1] = info->real_Total_Element_to_mesh[tm] + real_Total_Element;
 		}
+		else if (info->DIMENSION == 3)
+		{
+			for (n = 0; n < Total_Element; n++)
+			{
+				for (o = 0; o < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 0]; o++)
+				{
+					if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 0] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + o * info->DIMENSION + 0])
+					{
+						for (p = 0; p < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 1]; p++)
+						{
+							if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 1] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + p * info->DIMENSION + 1])
+							{
+								for (q = 0; q < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 2]; q++)
+								{
+									if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 2] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + q * info->DIMENSION + 2])
+									{
+										info->Total_element_all_ID[n]++;
+									}
+								}
+							}
+						}
+					}
+				}
 
+				// IDが1の要素に番号を振る
+				if (info->Total_element_all_ID[n] == 1)
+				{
+					info->real_element[r + info->real_Total_Element_to_mesh[tm]] = n + Total_Element_to_Now;
+					info->real_El_No_on_mesh[tm * info->Total_Element_to_mesh[Total_mesh] + r] = n + Total_Element_to_Now;
+					r++;
+				}
+			}
+
+			// for s-IGA real_Total_Elementの初期化
+			int real_Total_Element = 0;
+
+			for (l = 0; l < No_Patch; l++)
+			{
+				real_Total_Element += info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + 0] * info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + 1];
+			}
+			info->real_Total_Element_on_mesh[tm] = real_Total_Element;
+			info->real_Total_Element_to_mesh[tm + 1] = info->real_Total_Element_to_mesh[tm] + real_Total_Element;
+		}
+
+		// 分布荷重
 		for (i = 0; i < Total_DistributeForce; i++)
 		{
-			type_load = info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]];
-			iPatch = info->iPatch_array[i + info->Total_DistributeForce_to_mesh[tm]];
-			iCoord = info->iCoord_array[i + info->Total_DistributeForce_to_mesh[tm]];
-			val_Coord = info->val_Coord_array[i + info->Total_DistributeForce_to_mesh[tm]];
-			Range_Coord[0] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 0];
-			Range_Coord[1] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 1];
-			Coeff_Dist_Load[0] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 0];
-			Coeff_Dist_Load[1] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 1];
-			Coeff_Dist_Load[2] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 2];
+			if (info->DIMENSION == 2)
+			{
+				type_load = info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				iPatch = info->iPatch_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				iCoord = info->iCoord_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				val_Coord = info->val_Coord_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				iRange_Coord[0] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 0];
+				iRange_Coord[1] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 2 + 1];
+				iCoeff_Dist_Load[0] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 0];
+				iCoeff_Dist_Load[1] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 1];
+				iCoeff_Dist_Load[2] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 3 + 2];
 
-			printf("type_load:%d\tiPatch:%d\tiCoord:%d\tval_coord:%lf\t", type_load, iPatch, iCoord, val_Coord);
-			printf("Range0:%lf\tRange1:%lf\t", Range_Coord[0], Range_Coord[1]);
-			printf("Coeff0:%lf\n", Coeff_Dist_Load[0]);
-			Setting_Dist_Load_2D(tm, iPatch, iCoord, val_Coord, Range_Coord, type_load, Coeff_Dist_Load, info);
+				Setting_Dist_Load_2D(tm, iPatch, iCoord, val_Coord, iRange_Coord, type_load, iCoeff_Dist_Load, info);
+			}
+			else if (info->DIMENSION == 3)
+			{
+				type_load = info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				iPatch = info->iPatch_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				iCoord = info->iCoord_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				jCoord = info->jCoord_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				val_Coord = info->val_Coord_array[i + info->Total_DistributeForce_to_mesh[tm]];
+				iRange_Coord[0] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 0];
+				iRange_Coord[1] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 1];
+				jRange_Coord[0] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 2];
+				jRange_Coord[1] = info->Range_Coord_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 4 + 3];
+				iCoeff_Dist_Load[0] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 0];
+				iCoeff_Dist_Load[1] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 1];
+				iCoeff_Dist_Load[2] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 2];
+				jCoeff_Dist_Load[0] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 3];
+				jCoeff_Dist_Load[1] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 4];
+				jCoeff_Dist_Load[2] = info->Coeff_Dist_Load_array[(i + info->Total_DistributeForce_to_mesh[tm]) * 6 + 5];
+
+				Setting_Dist_Load_3D(tm, iPatch, iCoord, jCoord, val_Coord, iRange_Coord, jRange_Coord, type_load, iCoeff_Dist_Load, jCoeff_Dist_Load, info);
+			}
 		}
 	}
 }
@@ -615,6 +734,187 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000};
 	int No_Element_For_Dist_Load;
 	int iX, iY;
+	int iControlpoint[MAX_NO_CCpoint_ON_ELEMENT], ic, ig, NNG = 3;
+	double val_jCoord_Local = 0.0;
+	double GaussPt[3], Weight[3];
+	double Gg = pow(3.0 / 5.0, 0.5);
+
+	double Position_Data_param[info->DIMENSION];
+	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
+ 
+	GaussPt[0] = -Gg;
+	GaussPt[1] = 0.0;
+	GaussPt[2] = Gg;
+	Weight[0] = 5.0 / 9.0;
+	Weight[1] = 8.0 / 9.0;
+	Weight[2] = 5.0 / 9.0;
+
+	// iCoord=0: Load on Eta=Constant
+	// iCoord=1: Load on Xi=Constant
+	if (iCoord == 0)
+		jCoord = 1;
+	if (iCoord == 1)
+		jCoord = 0;
+
+	// val_Coord: Value of Eta or Xi of the line or surface to give the distributed load
+	// Setting elements needed to computed the distributed load
+
+	for (iii = info->Order[iPatch * info->DIMENSION + iCoord]; iii < info->No_knot[iPatch * info->DIMENSION + iCoord] - info->Order[iPatch * info->DIMENSION + iCoord] - 1; iii++)
+	{
+		double epsi = 0.00000000001;
+
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii] - epsi <= Range_Coord[0])
+			iPos[0] = iii;
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii + 1] - epsi <= Range_Coord[1])
+			iPos[1] = iii + 1;
+	}
+	iRange_ele[0] = iPos[0] - info->Order[iPatch * info->DIMENSION + iCoord];
+	iRange_ele[1] = iPos[1] - info->Order[iPatch * info->DIMENSION + iCoord] - 1;
+	printf("iPos[0] = %d iPos[1] = %d\n", iPos[0], iPos[1]);
+	printf("iRange_ele[0] = %d  iRange_ele[1] = %d\n", iRange_ele[0], iRange_ele[1]);
+
+	if (iPos[0] < 0 || iPos[1] < 0)
+	{
+		printf("Error (Stop) iPos[0] = %d iPos[1] = %d\n", iPos[0], iPos[1]);
+		exit(0);
+	}
+
+	for (jjj = info->Order[iPatch * info->DIMENSION + jCoord]; jjj < info->No_knot[iPatch * info->DIMENSION + jCoord] - info->Order[iPatch * info->DIMENSION + jCoord] - 1; jjj++)
+	{
+		double epsi = 0.00000000001;
+
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj] - epsi <= val_Coord
+			&& info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj + 1] + epsi > val_Coord)
+		{
+			jPos[0] = jjj;
+			jPos[1] = jjj + 1;
+			val_jCoord_Local = -1.0 + 2.0 * (val_Coord - info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj])
+							 / (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj]);
+		}
+	}
+
+	if (jPos[0] < 0 || jPos[1] < 0)
+	{
+		printf("Error (Stop) jPos[0] = %d jPos[1] = %d\n", jPos[0], jPos[1]);
+		exit(0);
+	}
+
+	for (iii = iPos[0]; iii < iPos[1]; iii++)
+	{
+		N_Seg_Load_Element_iDir++;
+	}
+
+	iii = 0;
+	if (iCoord == 1)
+	{
+		iX = jPos[0] - info->Order[iPatch * info->DIMENSION + 0];
+		for (iY = iPos[0] - info->Order[iPatch * info->DIMENSION + 1]; iY < iPos[1] - info->Order[iPatch * info->DIMENSION + 1]; iY++)
+		{
+			No_Element_for_Integration[iii] = SearchForElement(mesh_n, iPatch, iX, iY, info);
+			printf("Check No_Element_for_Integration[%d] = %d\n", iii, No_Element_for_Integration[iii]);
+			iii++;
+		}
+	}
+
+	if (iCoord == 0)
+	{
+		iY = jPos[0] - info->Order[iPatch * info->DIMENSION + 1];
+		for (iX = iPos[0] - info->Order[iPatch * info->DIMENSION + 0]; iX < iPos[1] - info->Order[iPatch * info->DIMENSION + 0]; iX++)
+		{
+			No_Element_for_Integration[iii] = SearchForElement(mesh_n, iPatch, iX, iY, info);
+			printf("Check No_Element_for_Integration[%d] = %d\n", iii, No_Element_for_Integration[iii]);
+			iii++;
+		}
+	}
+	No_Element_For_Dist_Load = iii;
+
+	// Book keeping finished
+
+	for (iii = 0; iii < No_Element_For_Dist_Load; iii++)
+	{
+		if (info->Total_element_all_ID[No_Element_for_Integration[iii]] == 1)
+		{
+			iX = info->ENC[No_Element_for_Integration[iii] * info->DIMENSION + 0];
+			iY = info->ENC[No_Element_for_Integration[iii] * info->DIMENSION + 1];
+
+			for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+				iControlpoint[ic] = info->Controlpoint_of_Element[No_Element_for_Integration[iii] * MAX_NO_CCpoint_ON_ELEMENT + ic];
+
+			for (ig = 0; ig < NNG; ig++)
+			{
+				double Local_Coord[2], sfc, dxyzdge[3], detJ, XiEtaCoordParen, valDistLoad;
+				int icc;
+				Local_Coord[jCoord] = val_jCoord_Local;
+				Local_Coord[iCoord] = GaussPt[ig];
+				printf("ig = %d   Local_Coord[jCoord] = %f Local_Coord[iCoord] = %f\n", ig, Local_Coord[jCoord], Local_Coord[iCoord]);
+
+				ShapeFunc_from_paren(Position_Data_param, Local_Coord, iCoord, No_Element_for_Integration[iii], info);
+				XiEtaCoordParen = Position_Data_param[iCoord];
+				printf("Check  Coeff_Dist_Load[0] = %f Coeff_Dist_Load[1] = %f  Coeff_Dist_Load[2] = %f  Position_Data_param[iCoord] = %f\n", Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2], Position_Data_param[iCoord]);
+				valDistLoad = Coeff_Dist_Load[0] + Coeff_Dist_Load[1] * XiEtaCoordParen + Coeff_Dist_Load[2] * XiEtaCoordParen * XiEtaCoordParen;
+
+				dxyzdge[0] = 0.0;
+				dxyzdge[1] = 0.0;
+				dxyzdge[2] = 0.0;
+				for (icc = 0; icc < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); icc++)
+				{
+					dxyzdge[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
+					dxyzdge[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
+				}
+
+				detJ = sqrt(dxyzdge[0] * dxyzdge[0] + dxyzdge[1] * dxyzdge[1]);
+				printf("Check the value of detJ etc: detJ = %f dxyzdge[0] = %f dxyzdge[1] = %f\n", detJ, dxyzdge[0], dxyzdge[1]);
+				if (type_load < 2)
+				{
+					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+					{
+						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
+					}
+				}
+
+				if (type_load == 2)
+				{
+					double LoadDir[2];
+					LoadDir[0] = dxyzdge[1] / detJ;
+					LoadDir[1] = -dxyzdge[0] / detJ;
+					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+					{
+						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+						printf("info->Equivalent_Nodal_Force[%d][0]=%le\nEquivalent_Nodal_Force[%d][1]=%le\n",
+							   iControlpoint[ic], info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0],
+							   iControlpoint[ic], info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1]);
+					}
+				}
+				if (type_load == 3)
+				{
+					double LoadDir[2];
+					LoadDir[0] = dxyzdge[0] / detJ;
+					LoadDir[1] = dxyzdge[1] / detJ;
+					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+					{
+						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+					}
+				}
+			}
+		}
+	}
+	free(No_Element_for_Integration);
+}
+
+
+void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info)
+{
+	int iii, jjj;
+	int N_Seg_Load_Element_iDir = 0, N_Seg_Load_Element_jDir = 0, kCoord;
+	// int iRange_ele[2];
+	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000}, kPos[2] = {-10000, -10000};
+	int No_Element_For_Dist_Load_iDir, No_Element_For_Dist_Load_jDir;
+	int iX, iY, iZ;
 	int iControlpoint[MAX_NO_CCpoint_ON_ELEMENT], ic, ig, NNG = 3;
 	double val_jCoord_Local = 0.0;
 	double GaussPt[3], Weight[3];
@@ -1229,8 +1529,8 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info)
 void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info)
 {
 	int i, j, k, l;
-	double J;
-	double a[MAX_DIMENSION][MAX_DIMENSION];
+	double J = 0;
+	double a_2x2[2][2], a_3x3[3][3];
 
 	for (i = 0; i < GP_2D; i++)
 	{
@@ -1238,16 +1538,34 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 		{
 			for (k = 0; k < info->DIMENSION; k++)
 			{
-				a[j][k] = 0.0;
-				for (l = 0; l < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; l++)
+				if (info->DIMENSION == 2)
 				{
-					if (m == 0)
+					a_2x2[j][k] = 0.0;
+					for (l = 0; l < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; l++)
 					{
-						a[j][k] += dSF[i * MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+						if (m == 0)
+						{
+							a_2x2[j][k] += dSF[i * MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+						}
+						else if (m == 1)
+						{
+							a_2x2[j][k] += dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+						}
 					}
-					else if (m == 1)
+				}
+				else if (info->DIMENSION == 3)
+				{
+					a_3x3[j][k] = 0.0;
+					for (l = 0; l < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; l++)
 					{
-						a[j][k] += dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+						if (m == 0)
+						{
+							a_3x3[j][k] += dSF[i * MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+						}
+						else if (m == 1)
+						{
+							a_3x3[j][k] += dSF_ex[i * MAX_NO_CCpoint_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CCpoint_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+						}
 					}
 				}
 			}
@@ -1255,12 +1573,27 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 
 		if (info->DIMENSION == 2)
 		{
-			J = InverseMatrix_2x2(a);
-			
+			J = InverseMatrix_2x2(a_2x2);
+
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a_2x2[j][k];
+				}
+			}
 		}
 		else if (info->DIMENSION == 3)
 		{
-			J = InverseMatrix_3x3(a);
+			J = InverseMatrix_3x3(a_3x3);
+
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a_3x3[j][k];
+				}
+			}
 		}
 
 		if (m == 0)
@@ -1270,14 +1603,6 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 		else if (m == 1)
 		{
 			info->Jac_ex[e * GP_2D + i] = J;
-		}
-
-		for (j = 0; j < info->DIMENSION; j++)
-		{
-			for (k = 0; k < info->DIMENSION; k++)
-			{
-				a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a[j][k];
-			}
 		}
 
 		if (J <= 0)
@@ -1926,46 +2251,88 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 // BGマトリックスを求める関数
 void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *info)
 {
-	double a[MAX_DIMENSION][MAX_DIMENSION];
+	double a_2x2[2][2], a_3x3[3][3];
 	double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CCpoint_ON_ELEMENT); // b[info->DIMENSION][MAX_NO_CCpoint_ON_ELEMENT]
 
 	int i, j, k;
 
-	for (i = 0; i < info->DIMENSION; i++)
+	if (info->DIMENSION == 2)
 	{
-		for (j = 0; j < info->DIMENSION; j++)
+		for (i = 0; i < info->DIMENSION; i++)
 		{
-			a[i][j] = 0.0;
-			for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; k++)
+			for (j = 0; j < info->DIMENSION; j++)
 			{
-				a[i][j] += dShape_func(k, j, Local_coord, El_No, info) * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + k] * (info->DIMENSION + 1) + i];
+				a_2x2[i][j] = 0.0;
+				for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; k++)
+				{
+					a_2x2[i][j] += dShape_func(k, j, Local_coord, El_No, info) * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + k] * (info->DIMENSION + 1) + i];
+				}
 			}
 		}
-	}
 
-	InverseMatrix_2x2(a);
+		InverseMatrix_2x2(a_2x2);
 
-	for (i = 0; i < info->DIMENSION; i++)
-	{
-		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; j++)
+		for (i = 0; i < info->DIMENSION; i++)
 		{
-			b[i * MAX_NO_CCpoint_ON_ELEMENT + j] = 0.0;
-			for (k = 0; k < info->DIMENSION; k++)
+			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; j++)
 			{
-				b[i * MAX_NO_CCpoint_ON_ELEMENT + j] += a[k][i] * dShape_func(j, k, Local_coord, El_No, info);
+				b[i * MAX_NO_CCpoint_ON_ELEMENT + j] = 0.0;
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					b[i * MAX_NO_CCpoint_ON_ELEMENT + j] += a_2x2[k][i] * dShape_func(j, k, Local_coord, El_No, info);
+				}
 			}
 		}
-	}
 
-	// 2次元
-	for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
+		// 2次元
+		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
+		{
+			BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+			BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
+			BG[1 * MAX_KIEL_SIZE + 2 * i] = 0.0;
+			BG[1 * MAX_KIEL_SIZE + 2 * i + 1] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
+			BG[2 * MAX_KIEL_SIZE + 2 * i] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
+			BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		}
+	}
+	else if (info->DIMENSION == 3)
 	{
-		BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
-		BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
-		BG[1 * MAX_KIEL_SIZE + 2 * i] = 0.0;
-		BG[1 * MAX_KIEL_SIZE + 2 * i + 1] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
-		BG[2 * MAX_KIEL_SIZE + 2 * i] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
-		BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		for (i = 0; i < info->DIMENSION; i++)
+		{
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				a_3x3[i][j] = 0.0;
+				for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; k++)
+				{
+					a_3x3[i][j] += dShape_func(k, j, Local_coord, El_No, info) * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CCpoint_ON_ELEMENT + k] * (info->DIMENSION + 1) + i];
+				}
+			}
+		}
+
+		InverseMatrix_3x3(a_3x3);
+
+		for (i = 0; i < info->DIMENSION; i++)
+		{
+			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; j++)
+			{
+				b[i * MAX_NO_CCpoint_ON_ELEMENT + j] = 0.0;
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					b[i * MAX_NO_CCpoint_ON_ELEMENT + j] += a_3x3[k][i] * dShape_func(j, k, Local_coord, El_No, info);
+				}
+			}
+		}
+
+		// 3次元
+		// for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
+		// {
+		// 	BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		// 	BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
+		// 	BG[1 * MAX_KIEL_SIZE + 2 * i] = 0.0;
+		// 	BG[1 * MAX_KIEL_SIZE + 2 * i + 1] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		// 	BG[2 * MAX_KIEL_SIZE + 2 * i] = b[1 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		// 	BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CCpoint_ON_ELEMENT + i];
+		// }
 	}
 
 	free(b);

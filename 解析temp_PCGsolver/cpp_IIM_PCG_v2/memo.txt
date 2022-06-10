@@ -1,32 +1,8 @@
 
-共役勾配法用のテストプログラム
+at gdb
 
-実行(cpp_IIM_PCG_v1)
-../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
-../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-../../../../cuda1/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_20x20.txt
-
-../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-export OMP_NUM_THREADS=16
-../../../../cuda_test_3rd/temp/cuda_IIM_PCG_v1.x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-gdb ../../../../cuda_test_3rd/cpp_IIM_PCG_v1.x
-run ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-run ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
-
-実行(IIM_PCG_v2)
-../../../../cuda1/IIM_PCG_v2.x ../input_glo_element.txt ../input_loc.txt
-
-NURBSviewer
-../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_local.txt overlay_view.dat Displacement_loc.dat
-../../../../NURBS_viewer/NURBS_view/NURBS_view.exe input_for_NURBS.txt view.dat Displacement.dat
-
-
-
-cuda test
-../../../../cuda1/IIM_PCG_v2_cu.x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
-../../../../cuda1/IIM_PCG_v2_cu.x ../input_glo_element.txt ../local3_Interaction.txt
+gdb ./src/cpp_IIM_PCG_v2.x
+run ./analysis/input_glo_3_10x10.txt ./analysis/input_loc_3_10x10.txt
 
 
 

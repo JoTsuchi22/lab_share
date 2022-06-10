@@ -58,6 +58,7 @@ struct information {
     double *Value_of_Load;
     int *iPatch_array;
     int *iCoord_array;
+    int *jCoord_array; // new
     int *type_load_array;
     double *val_Coord_array;
     double *Range_Coord_array;
@@ -115,6 +116,7 @@ void Get_Input_2(int tm, char **argv, information *info);
 void Make_INC(int tm, information *info);
 // Distributed Load
 void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, double *Range_Coord, int type_load, double *Coeff_Dist_Load, information *info);
+void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info)
 int SearchForElement(int mesh_n, int iPatch, int iX, int iY, information *info);
 // for s_IGA
 void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, information *info);
@@ -152,8 +154,8 @@ double inner_product(int ndof, double *vec1, double *vec2);
 int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
 int RowCol_to_icount(int row, int col, information *info);
 // tool
-double InverseMatrix_2x2(double M[MAX_DIMENSION][MAX_DIMENSION]);
-double InverseMatrix_3x3(double M[MAX_DIMENSION][MAX_DIMENSION]);
+double InverseMatrix_2x2(double M[2][2]);
+double InverseMatrix_3x3(double M[3][3]);
 // Shape Function
 double Shape_func(int I_No, double *Local_coord, int El_No, information *info);
 void ShapeFunc_from_paren(double *Position_Data_param, double *Local_coord, int j, int e, information *info);

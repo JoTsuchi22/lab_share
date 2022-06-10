@@ -1,7 +1,7 @@
 PROGRAM_NAME	= cpp_IIM_PCG
 VERSION			= v2
 CC				= g++
-CFLAGS			= -O1 -lm -Wall -Wextra
+CFLAGS			= -g -lm -Wall -Wextra
 
 compile:
 	cd ./src && $(CC) -o $(PROGRAM_NAME)_$(VERSION).x $(PROGRAM_NAME)_main_$(VERSION).cpp $(PROGRAM_NAME)_sub_$(VERSION).cpp $(CFLAGS)
