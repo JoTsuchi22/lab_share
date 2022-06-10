@@ -2,8 +2,9 @@
 #define S_IGA_MAIN_H
 
 // gauss array
-int GP_1dir;                              // 1方向のガウス点数
+int GP_1D;                              // 1方向のガウス点数
 int GP_2D;                                // 2次元のガウス点数
+int GP_3D;                                // 3次元のガウス点数
 double Gxi[POW_NG_EXTEND][MAX_DIMENSION]; // ガウス点
 double w[POW_NG_EXTEND];                  // ガウス点での重み
 
@@ -52,7 +53,7 @@ double nu;                     // ポアソン比(-)
 int Total_mesh;
 
 int MAX_ORDER = 0;          // 基底関数の次数の最大値 + 1
-int MAX_NO_CCpoint_ON_ELEMENT;  // new
+int MAX_NO_CP_ON_ELEMENT;  // new
 int MAX_KIEL_SIZE;              // new
 
 int D_MATRIX_SIZE;

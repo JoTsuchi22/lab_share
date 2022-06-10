@@ -5,8 +5,8 @@
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
 #define OUTPUT_SVG 1    // SVG 出力を行わない 0, 行う 1
 #define DM 1            // 平面応力状態:DM=0	平面ひずみ状態:DM=1
-// #define MAX_NO_CCpoint_ON_ELEMENT 16						// 分割節点数
-// #define MAX_KIEL_SIZE MAX_NO_CCpoint_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
+// #define MAX_NO_CP_ON_ELEMENT 16						// 分割節点数
+// #define MAX_KIEL_SIZE MAX_NO_CP_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
 #define NG 4												// Gauss-Legendreの積分点数
 #define POW_NG NG * NG										// NGのDIMENSION乗の計算
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
@@ -116,8 +116,9 @@ void Get_Input_2(int tm, char **argv, information *info);
 void Make_INC(int tm, information *info);
 // Distributed Load
 void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, double *Range_Coord, int type_load, double *Coeff_Dist_Load, information *info);
-void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info)
-int SearchForElement(int mesh_n, int iPatch, int iX, int iY, information *info);
+void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info);
+int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *info);
+int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, information *info);
 // for s_IGA
 void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, information *info);
 void Make_Loc_Glo(information *info);

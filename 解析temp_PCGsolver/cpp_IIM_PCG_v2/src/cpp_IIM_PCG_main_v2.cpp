@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
 	// memory allocation
 	info_ptr->INC = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION));			// INC[MAX_N_NODE][info.DIMENSION]
-	info_ptr->Controlpoint_of_Element = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * MAX_NO_CCpoint_ON_ELEMENT)); // Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CCpoint_ON_ELEMENT]
+	info_ptr->Controlpoint_of_Element = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * MAX_NO_CP_ON_ELEMENT)); // Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CP_ON_ELEMENT]
 	info_ptr->Element_patch = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// Element_patch[MAX_N_ELEMENT]
 	info_ptr->Element_mesh = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// Element_mesh[MAX_N_ELEMENT] 要素がどのメッシュ内にあるかを示す配列
 	info_ptr->line_No_real_element = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));	// line_No_real_element[MAX_N_PATCH][info.DIMENSION] ゼロエレメントではない要素列の数
