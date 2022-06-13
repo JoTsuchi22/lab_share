@@ -118,7 +118,7 @@ void Make_INC(int tm, information *info);
 void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, double *Range_Coord, int type_load, double *Coeff_Dist_Load, information *info);
 void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info);
 int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *info);
-int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, information *info);
+int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, information *info);
 // for s_IGA
 void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, information *info);
 void Make_Loc_Glo(information *info);

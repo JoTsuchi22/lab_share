@@ -2,10 +2,12 @@
 #define S_IGA_SUB_H
 
 // gauss array
-extern int GP_1D;                              // 1方向のガウス点数
+extern int GP_1D;                                // 1方向のガウス点数
 extern int GP_2D;                                // 2次元のガウス点数
 extern int GP_3D;                                // 3次元のガウス点数
+extern int GP_ON_ELEMENT;                        // 要素内のガウス点数
 extern double Gxi_1D[NG_EXTEND];                 // 1次元のガウス点
+extern double w_1D[NG_EXTEND];                   // 1次元のガウス点での重み
 extern double Gxi[POW_NG_EXTEND][MAX_DIMENSION]; // ガウス点
 extern double w[POW_NG_EXTEND];                  // ガウス点での重み
 

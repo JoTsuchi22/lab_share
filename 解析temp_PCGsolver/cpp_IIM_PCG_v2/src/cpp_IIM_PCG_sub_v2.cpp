@@ -734,7 +734,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000};
 	int No_Element_For_Dist_Load;
 	int iX, iY;
-	int ic, ig, NNG = 3;
+	int ic, ig;
 	double val_jCoord_Local = 0.0;
 	double Position_Data_param[MAX_DIMENSION];
 
@@ -838,17 +838,15 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 			for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
 				iControlpoint[ic] = info->Controlpoint_of_Element[No_Element_for_Integration[iii] * MAX_NO_CP_ON_ELEMENT + ic];
 
-			for (ig = 0; ig < NNG; ig++)
+			for (ig = 0; ig < GP_1D; ig++)
 			{
 				double Local_Coord[2], sfc, dxyzdge[3], detJ, XiEtaCoordParen, valDistLoad;
 				int icc;
 				Local_Coord[jCoord] = val_jCoord_Local;
 				Local_Coord[iCoord] = Gxi_1D[ig];
-				printf("ig = %d   Local_Coord[jCoord] = %f Local_Coord[iCoord] = %f\n", ig, Local_Coord[jCoord], Local_Coord[iCoord]);
 
 				ShapeFunc_from_paren(Position_Data_param, Local_Coord, iCoord, No_Element_for_Integration[iii], info);
 				XiEtaCoordParen = Position_Data_param[iCoord];
-				printf("Check  Coeff_Dist_Load[0] = %f Coeff_Dist_Load[1] = %f  Coeff_Dist_Load[2] = %f  Position_Data_param[iCoord] = %f\n", Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2], Position_Data_param[iCoord]);
 				valDistLoad = Coeff_Dist_Load[0] + Coeff_Dist_Load[1] * XiEtaCoordParen + Coeff_Dist_Load[2] * XiEtaCoordParen * XiEtaCoordParen;
 
 				dxyzdge[0] = 0.0;
@@ -861,7 +859,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 				}
 
 				detJ = sqrt(dxyzdge[0] * dxyzdge[0] + dxyzdge[1] * dxyzdge[1]);
-				printf("Check the value of detJ etc: detJ = %f dxyzdge[0] = %f dxyzdge[1] = %f\n", detJ, dxyzdge[0], dxyzdge[1]);
+
 				if (type_load < 2)
 				{
 					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
@@ -870,8 +868,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
 					}
 				}
-
-				if (type_load == 2)
+				else if (type_load == 2)
 				{
 					double LoadDir[2];
 					LoadDir[0] = dxyzdge[1] / detJ;
@@ -881,12 +878,9 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
 						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
 						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
-						printf("info->Equivalent_Nodal_Force[%d][0]=%le\nEquivalent_Nodal_Force[%d][1]=%le\n",
-							   iControlpoint[ic], info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0],
-							   iControlpoint[ic], info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1]);
 					}
 				}
-				if (type_load == 3)
+				else if (type_load == 3)
 				{
 					double LoadDir[2];
 					LoadDir[0] = dxyzdge[0] / detJ;
@@ -916,7 +910,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	double val_kCoord_Local = 0.0;
 	double Position_Data_param[MAX_DIMENSION];
 
-	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
+	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh] * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
 	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
 
 	Make_gauss_array(0);
@@ -1007,7 +1001,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 		{
 			for (iY = jPos[0] - Order[iPatch * info->DIMENSION + 1]; iY < jPos[1] - Order[iPatch * info->DIMENSION + 1]; iY++)
 			{
-				No_Element_for_Integration[iii][jjj] = SearchForElement_3D(mesh_n, iPatch, Total_Element, iX, iY, iZ);
+				No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] = SearchForElement_3D(mesh_n, iPatch, iX, iY, iZ, info);
 				jjj++;
 			}
 			iii++;
@@ -1026,7 +1020,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 		{
 			for (iZ = jPos[0] - Order[iPatch * info->DIMENSION + 2]; iZ < jPos[1] - Order[iPatch * info->DIMENSION + 2]; iZ++) //積分する要素の数
 			{
-				No_Element_for_Integration[iii][jjj] = SearchForElement_3D(mesh_n, iPatch, Total_Element, iX, iY, iZ);
+				No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] = SearchForElement_3D(mesh_n, iPatch, iX, iY, iZ, info);
 				jjj++;
 			}
 			iii++;
@@ -1045,7 +1039,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 		{
 			for (iX = jPos[0] - Order[iPatch * info->DIMENSION + 0]; iX < jPos[1] - Order[iPatch * info->DIMENSION + 0]; iX++) //積分する要素の数
 			{
-				No_Element_for_Integration[iii][jjj] = SearchForElement_3D(mesh_n, iPatch, Total_Element, iX, iY, iZ);
+				No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] = SearchForElement_3D(mesh_n, iPatch, iX, iY, iZ, info);
 				jjj++;
 			}
 			iii++;
@@ -1062,74 +1056,91 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 
 	// Book keeping finished
 
-	for (iii = 0; iii < No_Element_For_Dist_Load; iii++)
+	for (iii = 0; iii < No_Element_For_Dist_Load_iDir; iii++)
 	{
-		if (info->Total_element_all_ID[No_Element_for_Integration[iii]] == 1)
+		for (jjj = 0; jjj < No_Element_For_Dist_Load_jDir; jjj++)
 		{
-			iX = info->ENC[No_Element_for_Integration[iii] * info->DIMENSION + 0];
-			iY = info->ENC[No_Element_for_Integration[iii] * info->DIMENSION + 1];
-
-			for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
-				iControlpoint[ic] = info->Controlpoint_of_Element[No_Element_for_Integration[iii] * MAX_NO_CP_ON_ELEMENT + ic];
-
-			for (ig = 0; ig < NNG; ig++)
+			if (info->Total_element_all_IDNo_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj]] == 1)
 			{
-				double Local_Coord[2], sfc, dxyzdge[3], detJ, XiEtaCoordParen, valDistLoad;
-				int icc;
-				Local_Coord[jCoord] = val_jCoord_Local;
-				Local_Coord[iCoord] = Gxi_1D[ig];
-				printf("ig = %d   Local_Coord[jCoord] = %f Local_Coord[iCoord] = %f\n", ig, Local_Coord[jCoord], Local_Coord[iCoord]);
+				iX = info->ENC[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] * info->DIMENSION + 0];
+				iY = info->ENC[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] * info->DIMENSION + 1];
+				iZ = info->ENC[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] * info->DIMENSION + 2];
 
-				ShapeFunc_from_paren(Position_Data_param, Local_Coord, iCoord, No_Element_for_Integration[iii], info);
-				XiEtaCoordParen = Position_Data_param[iCoord];
-				printf("Check  Coeff_Dist_Load[0] = %f Coeff_Dist_Load[1] = %f  Coeff_Dist_Load[2] = %f  Position_Data_param[iCoord] = %f\n", Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2], Position_Data_param[iCoord]);
-				valDistLoad = Coeff_Dist_Load[0] + Coeff_Dist_Load[1] * XiEtaCoordParen + Coeff_Dist_Load[2] * XiEtaCoordParen * XiEtaCoordParen;
+				for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1) * (info->Order[iPatch * info->DIMENSION + 2] + 1); ic++)
+					iControlpoint[ic] = info->Controlpoint_of_Element[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] * MAX_NO_CP_ON_ELEMENT + ic];
 
-				dxyzdge[0] = 0.0;
-				dxyzdge[1] = 0.0;
-				dxyzdge[2] = 0.0;
-				for (icc = 0; icc < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); icc++)
+				for (ig_i = 0; ig_i < GP_1D; ig_i++)
 				{
-					dxyzdge[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
-					dxyzdge[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
-				}
-
-				detJ = sqrt(dxyzdge[0] * dxyzdge[0] + dxyzdge[1] * dxyzdge[1]);
-				printf("Check the value of detJ etc: detJ = %f dxyzdge[0] = %f dxyzdge[1] = %f\n", detJ, dxyzdge[0], dxyzdge[1]);
-				if (type_load < 2)
-				{
-					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+					for (ig_j = 0; ig_j < GP_1D; ig_j++)
 					{
-						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
-					}
-				}
+						double Local_Coord[3], sfc, dxyzdgez_i[3], dxyzdgez_j[3], detJ, CoordParen_iDir, CoordParen_jDir, valDistLoad;
+						int icc;
+						Local_Coord[kCoord] = val_kCoord_Local;
+						Local_Coord[iCoord] = Gxi_1D[ig_i];
+						Local_Coord[jCoord] = Gxi_1D[ig_j];
 
-				if (type_load == 2)
-				{
-					double LoadDir[2];
-					LoadDir[0] = dxyzdge[1] / detJ;
-					LoadDir[1] = -dxyzdge[0] / detJ;
-					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
-					{
-						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
-						printf("info->Equivalent_Nodal_Force[%d][0]=%le\nEquivalent_Nodal_Force[%d][1]=%le\n",
-							   iControlpoint[ic], info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0],
-							   iControlpoint[ic], info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1]);
-					}
-				}
-				if (type_load == 3)
-				{
-					double LoadDir[2];
-					LoadDir[0] = dxyzdge[0] / detJ;
-					LoadDir[1] = dxyzdge[1] / detJ;
-					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
-					{
-						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+						ShapeFunc_from_paren(Position_Data_param, Local_Coord, iCoord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
+						CoordParen_iDir = Position_Data_param[iCoord];
+
+						ShapeFunc_from_paren(Position_Data_param, Local_Coord, jCoord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
+						CoordParen_jDir = Position_Data_param[jCoord];
+
+						valDistLoad = (iCoeff_Dist_Load[0] + iCoeff_Dist_Load[1] * CoordParen_iDir + iCoeff_Dist_Load[2] * CoordParen_iDir * CoordParen_iDir)
+									* (jCoeff_Dist_Load[0] + jCoeff_Dist_Load[1] * CoordParen_jDir + jCoeff_Dist_Load[2] * CoordParen_jDir * CoordParen_jDir);
+
+						dxyzdgez_i[0] = 0.0;
+						dxyzdgez_i[1] = 0.0;
+						dxyzdgez_i[2] = 0.0;
+
+						dxyzdgez_j[0] = 0.0;
+						dxyzdgez_j[1] = 0.0;
+						dxyzdgez_j[2] = 0.0;
+
+						for (icc = 0; icc < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 2); icc++)
+						{
+							dxyzdgez_i[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
+							dxyzdgez_i[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
+							dxyzdgez_i[2] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 2];
+
+							dxyzdgez_j[0] += dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
+							dxyzdgez_j[1] += dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
+							dxyzdgez_j[2] += dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 2];
+						}
+
+						detJ = (dxyzdgez_i[0] * dxyzdgez_j[1] - dxyzdgez_i[1] * dxyzdgez_j[0]) + (dxyzdgez_i[1] * dxyzdgez_j[2] - dxyzdgez_i[2] * dxyzdgez_j[1]) + (dxyzdgez_i[2] * dxyzdgez_j[0] - dxyzdgez_i[0] * dxyzdgez_j[2]);
+
+						if (type_load < 3)
+						{
+							for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 2); ic++)
+							{
+								sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * w_1D[ig_i] * w_1D[ig_j];
+							}
+						}
+						else if (type_load == 2)
+						{
+							double LoadDir[2];
+							LoadDir[0] = dxyzdge[1] / detJ;
+							LoadDir[1] = -dxyzdge[0] / detJ;
+							for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+							{
+								sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+							}
+						}
+						else if (type_load == 3)
+						{
+							double LoadDir[2];
+							LoadDir[0] = dxyzdge[0] / detJ;
+							LoadDir[1] = dxyzdge[1] / detJ;
+							for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+							{
+								sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+							}
+						}
 					}
 				}
 			}
@@ -1156,9 +1167,21 @@ int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *inf
 	return (iii);
 }
 
-int SearchForElement_3D()
+int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, information *info)
 {
-	
+	int iii;
+
+	for (iii = 0; iii < info->Total_Element_on_mesh[mesh_n]; iii++)
+	{
+		if (info->Element_patch[iii + info->Total_Element_to_mesh[mesh_n]] == iPatch)
+		{
+			if (iX == info->ENC[(iii + info->Total_Element_to_mesh[mesh_n]) * info->DIMENSION + 0] && iY == info->ENC[(iii + info->Total_Element_to_mesh[mesh_n]) * info->DIMENSION + 1] && iZ == info->ENC[(iii + info->Total_Element_to_mesh[mesh_n]) * info->DIMENSION + 2])
+				goto loopend;
+		}
+	}
+	loopend:
+
+	return (iii);
 }
 
 
@@ -1760,6 +1783,7 @@ void Make_gauss_array(int select_GP)
 					Gxi[GP_1D * i + j][0] = G_vec[j];
 					Gxi[GP_1D * i + j][1] = G_vec[i];
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1782,6 +1806,7 @@ void Make_gauss_array(int select_GP)
 					Gxi[GP_1D * i + j][0] = G_vec[j];
 					Gxi[GP_1D * i + j][1] = G_vec[i];
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1805,6 +1830,7 @@ void Make_gauss_array(int select_GP)
 					Gxi[GP_1D * i + j][0] = G_vec[j];
 					Gxi[GP_1D * i + j][1] = G_vec[i];
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1843,6 +1869,7 @@ void Make_gauss_array(int select_GP)
 					Gxi[GP_1D * i + j][0] = G_vec[j];
 					Gxi[GP_1D * i + j][1] = G_vec[i];
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1869,6 +1896,7 @@ void Make_gauss_array(int select_GP)
 						Gxi[i * GP_2D + j * GP_1D + k][2] = G_vec[i];
 					}
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1895,6 +1923,7 @@ void Make_gauss_array(int select_GP)
 						Gxi[i * GP_2D + j * GP_1D + k][2] = G_vec[i];
 					}
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1922,6 +1951,7 @@ void Make_gauss_array(int select_GP)
 						Gxi[i * GP_2D + j * GP_1D + k][2] = G_vec[i];
 					}
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
@@ -1964,6 +1994,7 @@ void Make_gauss_array(int select_GP)
 						Gxi[i * GP_2D + j * GP_1D + k][2] = G_vec[i];
 					}
 				}
+				w_1D[i] = w_vec[i];
 				Gxi_1D[i] = G_vec[i];
 			}
 		}
