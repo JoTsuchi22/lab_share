@@ -38,7 +38,7 @@ void Get_Input_1(int tm, char **argv, information *info)
 	printf("No_Patch: %d\n", temp_i);
 	info->Total_Patch_on_mesh[tm] = temp_i;
 	info->Total_Patch_to_mesh[tm + 1] = info->Total_Patch_to_mesh[tm] + temp_i;
-	printf("info->Total_Patch_to_mesh[%d] = %d\n", tm, info->Total_Patch_to_mesh[tm]);
+	printf("Total_Patch_to_mesh[%d] = %d\n", tm, info->Total_Patch_to_mesh[tm]);
 
 	// コントロールポイント数
 	fscanf(fp, "%d", &temp_i);
@@ -46,7 +46,7 @@ void Get_Input_1(int tm, char **argv, information *info)
 	printf("Total_Control_Point: %d\n", temp_i);
 	info->Total_Control_Point_on_mesh[tm] = temp_i;
 	info->Total_Control_Point_to_mesh[tm + 1] = info->Total_Control_Point_to_mesh[tm] + temp_i;
-	printf("info->Total_Control_Point_to_mesh[%d] = %d\n", tm, info->Total_Control_Point_to_mesh[tm]);
+	printf("Total_Control_Point_to_mesh[%d] = %d\n", tm, info->Total_Control_Point_to_mesh[tm]);
 
 	// 各方向の次数(スキップ)
 	for (i = 0; i < No_Patch; i++)
@@ -146,7 +146,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 			{
 				MAX_ORDER = temp_i;
 			}
-			printf("info->Order[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->Order[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
+			printf("Order[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->Order[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
 		}
 	}
 	fgets(s, 256, fp);
@@ -159,7 +159,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 			fscanf(fp, "%d", &temp_i);
 			info->No_knot[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j] = temp_i;
 			info->Total_Knot_to_patch_dim[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j + 1] = info->Total_Knot_to_patch_dim[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j] + temp_i;
-			printf("info->No_knot[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->No_knot[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
+			printf("No_knot[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->No_knot[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
 		}
 	}
 	fgets(s, 256, fp);
@@ -171,7 +171,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 		{
 			fscanf(fp, "%d", &temp_i);
 			info->No_Control_point[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j] = temp_i;
-			printf("info->No_Control_point[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->No_Control_point[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
+			printf("No_Control_point[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->No_Control_point[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
 		}
 	}
 	fgets(s, 256, fp);
@@ -208,7 +208,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		printf("info->No_Control_point_in_patch[%d] = %d\t", i + info->Total_Patch_to_mesh[tm], info->No_Control_point_in_patch[i + info->Total_Patch_to_mesh[tm]]);
+		printf("No_Control_point_in_patch[%d] = %d\t", i + info->Total_Patch_to_mesh[tm], info->No_Control_point_in_patch[i + info->Total_Patch_to_mesh[tm]]);
 	}
 	printf("\n");
 
@@ -268,11 +268,11 @@ void Get_Input_2(int tm, char **argv, information *info)
 	printf("Total_Element = %d\n", Total_Element);
 	info->Total_Element_on_mesh[tm] = Total_Element;
 	info->Total_Element_to_mesh[tm + 1] = info->Total_Element_to_mesh[tm] + Total_Element;
-	printf("info->Total_Element_on_mesh[%d] = %d\n", tm, info->Total_Element_on_mesh[tm]);
+	printf("Total_Element_on_mesh[%d] = %d\n", tm, info->Total_Element_on_mesh[tm]);
 
 	for (i = 0; i < No_Patch; i++)
 	{
-		printf("info->No_Control_point_ON_ELEMENT[%d] = %d\n", i + info->Total_Patch_to_mesh[tm], info->No_Control_point_ON_ELEMENT[i + info->Total_Patch_to_mesh[tm]]);
+		printf("No_Control_point_ON_ELEMENT[%d] = %d\n", i + info->Total_Patch_to_mesh[tm], info->No_Control_point_ON_ELEMENT[i + info->Total_Patch_to_mesh[tm]]);
 	}
 
 	// 節点座標
@@ -328,6 +328,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 	fgets(s, 256, fp);
 
 	// 拘束
+	printf("\nConstraint_Node\n");
 	for (i = 0; i < Total_Constraint; i++)
 	{
 		fscanf(fp, "%d %d %lf",
@@ -336,10 +337,10 @@ void Get_Input_2(int tm, char **argv, information *info)
 			   &info->Value_of_Constraint[i + info->Total_Constraint_to_mesh[tm]]);
 		info->Constraint_Node_Dir[(i + info->Total_Constraint_to_mesh[tm]) * 2 + 0] = info->Constraint_Node_Dir[(i + info->Total_Constraint_to_mesh[tm]) * 2 + 0] + info->Total_Control_Point_to_mesh[tm];
 
-		printf("info->Constraint_Node_Dir[%d] = %d info->Constraint_Node_Dir[%d] = %d info->Value_of_Constraint[%d] = %le \n",
-			   (i + info->Total_Constraint_to_mesh[tm]) * 2 + 0, info->Constraint_Node_Dir[(i + info->Total_Constraint_to_mesh[tm]) * 2 + 0],
-			   (i + info->Total_Constraint_to_mesh[tm]) * 2 + 1, info->Constraint_Node_Dir[(i + info->Total_Constraint_to_mesh[tm]) * 2 + 1],
-			   i + info->Total_Constraint_to_mesh[tm], info->Value_of_Constraint[i + info->Total_Constraint_to_mesh[tm]]);
+		printf("%d %d %le \n",
+			   info->Constraint_Node_Dir[(i + info->Total_Constraint_to_mesh[tm]) * 2 + 0],
+			   info->Constraint_Node_Dir[(i + info->Total_Constraint_to_mesh[tm]) * 2 + 1],
+			   info->Value_of_Constraint[i + info->Total_Constraint_to_mesh[tm]]);
 	}
 	fgets(s, 256, fp);
 
@@ -352,7 +353,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 			   &info->Value_of_Load[i + info->Total_Load_to_mesh[tm]]);
 		info->Load_Node_Dir[(i + info->Total_Load_to_mesh[tm]) * 2 + 0] = info->Load_Node_Dir[(i + info->Total_Load_to_mesh[tm]) * 2 + 0] + info->Total_Control_Point_to_mesh[tm];
 
-		printf("info->Load_Node_Dir[%d]= %d info->Load_Node_Dir[%d]= %d info->Value_of_Load[%d] = %le\n",
+		printf("Load_Node_Dir[%d]= %d Load_Node_Dir[%d]= %d Value_of_Load[%d] = %le\n",
 			   (i + info->Total_Load_to_mesh[tm]) * 2 + 0, info->Load_Node_Dir[(i + info->Total_Load_to_mesh[tm]) * 2 + 0],
 			   (i + info->Total_Load_to_mesh[tm]) * 2 + 1, info->Load_Node_Dir[(i + info->Total_Load_to_mesh[tm]) * 2 + 1],
 			   i + info->Total_Load_to_mesh[tm], info->Value_of_Load[i + info->Total_Load_to_mesh[tm]]);
@@ -730,7 +731,6 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 {
 	int iii, jjj;
 	int N_Seg_Load_Element_iDir = 0, jCoord;
-	int iRange_ele[2];
 	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000};
 	int No_Element_For_Dist_Load;
 	int iX, iY;
@@ -741,7 +741,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
 	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
 
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 
 	// iCoord=0: Load on Eta=Constant
 	// iCoord=1: Load on Xi=Constant
@@ -766,10 +766,6 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii + 1] - epsi <= Range_Coord[1])
 			iPos[1] = iii + 1;
 	}
-	iRange_ele[0] = iPos[0] - info->Order[iPatch * info->DIMENSION + iCoord];
-	iRange_ele[1] = iPos[1] - info->Order[iPatch * info->DIMENSION + iCoord] - 1;
-	printf("iPos[0] = %d iPos[1] = %d\n", iPos[0], iPos[1]);
-	printf("iRange_ele[0] = %d  iRange_ele[1] = %d\n", iRange_ele[0], iRange_ele[1]);
 
 	if (iPos[0] < 0 || iPos[1] < 0)
 	{
@@ -809,7 +805,6 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 		for (iY = iPos[0] - info->Order[iPatch * info->DIMENSION + 1]; iY < iPos[1] - info->Order[iPatch * info->DIMENSION + 1]; iY++)
 		{
 			No_Element_for_Integration[iii] = SearchForElement_2D(mesh_n, iPatch, iX, iY, info);
-			printf("Check No_Element_for_Integration[%d] = %d\n", iii, No_Element_for_Integration[iii]);
 			iii++;
 		}
 	}
@@ -820,7 +815,6 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 		for (iX = iPos[0] - info->Order[iPatch * info->DIMENSION + 0]; iX < iPos[1] - info->Order[iPatch * info->DIMENSION + 0]; iX++)
 		{
 			No_Element_for_Integration[iii] = SearchForElement_2D(mesh_n, iPatch, iX, iY, info);
-			printf("Check No_Element_for_Integration[%d] = %d\n", iii, No_Element_for_Integration[iii]);
 			iii++;
 		}
 	}
@@ -865,7 +859,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
 					{
 						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * w_1D[ig];
 					}
 				}
 				else if (type_load == 2) // 法線方向
@@ -876,8 +870,8 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
 					{
 						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * w_1D[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * w_1D[ig];
 					}
 				}
 				else if (type_load == 3)
@@ -888,8 +882,8 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 					for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
 					{
 						sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii], info);
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * w_1D[ig];
+						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * w_1D[ig];
 					}
 				}
 			}
@@ -913,9 +907,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh] * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
 	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
 
-	Make_gauss_array(0);
-
-	// int iRange_ele[2], NNG = 3;
+	Make_gauss_array(0, info);
 
 	if (iCoord == 0 && jCoord == 1)
 	{
@@ -937,9 +929,9 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	{
 		double epsi = 0.00000000001;
 
-		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii] - epsi <= Range_Coord[0])
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii] - epsi <= iRange_Coord[0])
 			iPos[0] = iii;
-		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii + 1] - epsi <= Range_Coord[1])
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + iCoord] + iii + 1] - epsi <= iRange_Coord[1])
 			iPos[1] = iii + 1;
 	}
 	if (iPos[0] < 0 || iPos[1] < 0)
@@ -952,9 +944,9 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	{
 		double epsi = 0.00000000001;
 
-		if (Position_Knots[iPatch][jCoord][jjj] - epsi <= jRange_Coord[0])
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj] - epsi <= jRange_Coord[0])
 			jPos[0] = jjj;
-		if (Position_Knots[iPatch][jCoord][jjj + 1] - epsi <= jRange_Coord[1])
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + jCoord] + jjj + 1] - epsi <= jRange_Coord[1])
 			jPos[1] = jjj + 1;
 	}
 	if (jPos[0] < 0 || jPos[1] < 0)
@@ -967,13 +959,13 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	{
 		double epsi = 0.00000000001;
 
-		if (Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk] - epsi <= val_Coord
-			&& Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk + 1] + epsi > val_Coord)
+		if (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk] - epsi <= val_Coord
+			&& info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk + 1] + epsi > val_Coord)
 		{
 			kPos[0] = kkk;
 			kPos[1] = kkk + 1;
-			val_kCoord_Local = -1.0 + 2.0 * (val_Coord - Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk])
-							 / (Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk + 1] - Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk]);
+			val_kCoord_Local = - 1.0 + 2.0 * (val_Coord - info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk])
+							 / (info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[iPatch * info->DIMENSION + kCoord] + kkk]);
 		}
 	}
 	if (kPos[0] < 0 || kPos[1] < 0)
@@ -996,10 +988,10 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 
 	if (iCoord == 0 && jCoord == 1)
 	{
-		iZ = kPos[0] - Order[iPatch * info->DIMENSION + 2];
-		for (iX = iPos[0] - Order[iPatch * info->DIMENSION + 0]; iX < iPos[1] - Order[iPatch * info->DIMENSION + 0]; iX++)
+		iZ = kPos[0] - info->Order[iPatch * info->DIMENSION + 2];
+		for (iX = iPos[0] - info->Order[iPatch * info->DIMENSION + 0]; iX < iPos[1] - info->Order[iPatch * info->DIMENSION + 0]; iX++)
 		{
-			for (iY = jPos[0] - Order[iPatch * info->DIMENSION + 1]; iY < jPos[1] - Order[iPatch * info->DIMENSION + 1]; iY++)
+			for (iY = jPos[0] - info->Order[iPatch * info->DIMENSION + 1]; iY < jPos[1] - info->Order[iPatch * info->DIMENSION + 1]; iY++)
 			{
 				No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] = SearchForElement_3D(mesh_n, iPatch, iX, iY, iZ, info);
 				jjj++;
@@ -1007,7 +999,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 			iii++;
 			jjj = 0;
 		}
-		for (iY = jPos[0] - Order[iPatch * info->DIMENSION + 1]; iY < jPos[1] - Order[iPatch * info->DIMENSION + 1]; iY++)
+		for (iY = jPos[0] - info->Order[iPatch * info->DIMENSION + 1]; iY < jPos[1] - info->Order[iPatch * info->DIMENSION + 1]; iY++)
 		{
 			jjj++;
 		}
@@ -1015,10 +1007,10 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	else if (iCoord == 1 && jCoord == 2)
 	{
 		iii = 0, jjj = 0;
-		iX = kPos[0] - Order[iPatch * info->DIMENSION + 0];
-		for (iY = iPos[0] - Order[iPatch * info->DIMENSION + 1]; iY < iPos[1] - Order[iPatch * info->DIMENSION + 1]; iY++) //積分する要素の数
+		iX = kPos[0] - info->Order[iPatch * info->DIMENSION + 0];
+		for (iY = iPos[0] - info->Order[iPatch * info->DIMENSION + 1]; iY < iPos[1] - info->Order[iPatch * info->DIMENSION + 1]; iY++) //積分する要素の数
 		{
-			for (iZ = jPos[0] - Order[iPatch * info->DIMENSION + 2]; iZ < jPos[1] - Order[iPatch * info->DIMENSION + 2]; iZ++) //積分する要素の数
+			for (iZ = jPos[0] - info->Order[iPatch * info->DIMENSION + 2]; iZ < jPos[1] - info->Order[iPatch * info->DIMENSION + 2]; iZ++) //積分する要素の数
 			{
 				No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] = SearchForElement_3D(mesh_n, iPatch, iX, iY, iZ, info);
 				jjj++;
@@ -1026,7 +1018,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 			iii++;
 			jjj = 0;
 		}
-		for (iZ = jPos[0] - Order[iPatch * info->DIMENSION + 2]; iZ < jPos[1] - Order[iPatch * info->DIMENSION + 2]; iZ++)
+		for (iZ = jPos[0] - info->Order[iPatch * info->DIMENSION + 2]; iZ < jPos[1] - info->Order[iPatch * info->DIMENSION + 2]; iZ++)
 		{
 			jjj++;
 		}
@@ -1034,10 +1026,10 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	else if (iCoord == 2 && jCoord == 0)
 	{
 		
-		iY = kPos[0] - Order[iPatch * info->DIMENSION + 1];
-		for (iZ = iPos[0] - Order[iPatch * info->DIMENSION + 2]; iZ < iPos[1] - Order[iPatch * info->DIMENSION + 2]; iZ++) //積分する要素の数
+		iY = kPos[0] - info->Order[iPatch * info->DIMENSION + 1];
+		for (iZ = iPos[0] - info->Order[iPatch * info->DIMENSION + 2]; iZ < iPos[1] - info->Order[iPatch * info->DIMENSION + 2]; iZ++) //積分する要素の数
 		{
-			for (iX = jPos[0] - Order[iPatch * info->DIMENSION + 0]; iX < jPos[1] - Order[iPatch * info->DIMENSION + 0]; iX++) //積分する要素の数
+			for (iX = jPos[0] - info->Order[iPatch * info->DIMENSION + 0]; iX < jPos[1] - info->Order[iPatch * info->DIMENSION + 0]; iX++) //積分する要素の数
 			{
 				No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] = SearchForElement_3D(mesh_n, iPatch, iX, iY, iZ, info);
 				jjj++;
@@ -1045,7 +1037,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 			iii++;
 			jjj = 0;
 		}
-		for (iX = jPos[0] - Order[iPatch * info->DIMENSION + 0]; iX < jPos[1] - Order[iPatch * info->DIMENSION + 0]; iX++)
+		for (iX = jPos[0] - info->Order[iPatch * info->DIMENSION + 0]; iX < jPos[1] - info->Order[iPatch * info->DIMENSION + 0]; iX++)
 		{
 			jjj++;
 		}
@@ -1060,7 +1052,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	{
 		for (jjj = 0; jjj < No_Element_For_Dist_Load_jDir; jjj++)
 		{
-			if (info->Total_element_all_IDNo_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj]] == 1)
+			if (info->Total_element_all_ID[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj]] == 1)
 			{
 				iX = info->ENC[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] * info->DIMENSION + 0];
 				iY = info->ENC[No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj] * info->DIMENSION + 1];
@@ -1196,7 +1188,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 	for (m = 0; m < 2; m++) // 最初 NG 個のガウス点で重なりを求め, info->NNLOVER[e] >= 2 の e に対して, 再度 NG_EXTEND 個のガウス点で重なりを求める
 	{
-		Make_gauss_array(m);
+		Make_gauss_array(m, info);
 
 		// グローバルパッチの Preprocessing 作成
 		if (m == 0)
@@ -1740,7 +1732,7 @@ void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, 
 }
 
 
-void Make_gauss_array(int select_GP)
+void Make_gauss_array(int select_GP, information *info)
 {
 	int i, j, k;
 
@@ -2211,17 +2203,17 @@ void Make_K_Whole_Val(information *info)
 
 		if (info->Element_mesh[i] == 0 && re == 0) // 2つめの条件は効率化のため
 		{
-			Make_gauss_array(0);
+			Make_gauss_array(0, info);
 		}
 		else if (info->Element_mesh[i] > 0)
 		{
 			if (info->NNLOVER[i] == 1 && (info->NNLOVER[info->real_element[re - 1]] != 1 || info->Element_mesh[info->real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
 			{
-				Make_gauss_array(0);
+				Make_gauss_array(0, info);
 			}
 			else if (info->NNLOVER[i] >= 2 && (info->NNLOVER[info->real_element[re - 1]] == 1 || info->Element_mesh[info->real_element[re - 1]] == 0)) // 2つめ以降の条件は効率化のため
 			{
-				Make_gauss_array(1);
+				Make_gauss_array(1, info);
 			}
 		}
 
@@ -2641,7 +2633,7 @@ void Make_F_Vec_disp_const(information *info)
 
 	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
 
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 
 	for (ie = 0; ie < info->real_Total_Element_to_mesh[Total_mesh]; ie++)
 	{
@@ -6003,7 +5995,7 @@ void Make_Strain(int Total_Element)
 	int N, e, i, j;
 	// printf("Strain\n");
 
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 
 	for (e = 0; e < Total_Element; e++)
 	{
@@ -6044,7 +6036,7 @@ void Make_Stress_2D(double E, double nu, int Total_Element, int DM)
 {
 	static double info->D[D_MATRIX_SIZE][D_MATRIX_SIZE];
 	int e, i, j, k;
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 	Make_D_Matrix_2D(info->D, E, nu, DM);
 
 	for (e = 0; e < Total_Element; e++)
@@ -6065,7 +6057,7 @@ void Make_ReactionForce(int Total_Control_Point)
 	int e, i, j, k, l, re;
 	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], X[MAX_NO_CP_ON_ELEMENT][MAX_DIMENSION], J;
 
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 
 	for (i = 0; i < Total_Control_Point * info->DIMENSION; i++)
 		ReactionForce[i] = 0.0;
@@ -6098,7 +6090,7 @@ void Make_ReactionForce(int Total_Control_Point)
 void Make_Parameter_z(int Total_Element, double E, double nu, int DM)
 {
 	int e, k;
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 
 	if (DM == 0)
 	{
@@ -6130,7 +6122,7 @@ void Make_Parameter_z_overlay(int Total_Element, double E, double nu, int DM)
 {
 	int e, k;
 
-	Make_gauss_array(0);
+	Make_gauss_array(0, info);
 
 	if (DM == 0)
 	{

@@ -131,7 +131,7 @@ void Make_Gauss_Coordinate(int m, int e, information *info);
 void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info);
 void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info);
 void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info);
-void Make_gauss_array(int select_GP);
+void Make_gauss_array(int select_GP, information *info);
 // K matrix
 void Make_D_Matrix(information *info);
 void Make_Index_Dof(information *info);

@@ -1,8 +1,13 @@
 
 at gdb
 
+2D
 gdb ./src/cpp_IIM_PCG_v2.x
 run ./analysis/input_glo_3_10x10.txt ./analysis/input_loc_3_10x10.txt
+
+3D
+gdb ./src/cpp_IIM_PCG_v2.x
+run ./analysis/input_3D/input.txt
 
 
 
