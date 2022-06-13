@@ -76,26 +76,26 @@ int main(int argc, char **argv)
 	// memory allocation
 	info_ptr->Order = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));					// Order[MAX_N_PATCH][info.DIMENSION]
 	info_ptr->No_knot = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));				// No_knot[MAX_N_PATCH][info.DIMENSION]
-	info_ptr->Total_Control_Point_to_patch = (int *)calloc((info.Total_Patch_to_mesh[Total_mesh] + 1), sizeof(int));	// Total_Control_Point_to_patch[MAX_N_PATCH]
+	info_ptr->Total_Control_Point_to_patch = (int *)calloc((info.Total_Patch_to_mesh[Total_mesh] + 1), sizeof(int));		// Total_Control_Point_to_patch[MAX_N_PATCH]
 	info_ptr->Total_Knot_to_patch_dim = (int *)calloc((info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION + 1), sizeof(int));	// Total_Knot_to_patch_dim[MAX_N_PATCH][info.DIMENSION]
-	info_ptr->Position_Knots = (double *)malloc(sizeof(double) * info.Total_Knot_to_mesh[Total_mesh]);					// Position_Knots[MAX_N_PATCH][info.DIMENSION][MAX_N_KNOT];
+	info_ptr->Position_Knots = (double *)malloc(sizeof(double) * info.Total_Knot_to_mesh[Total_mesh]);						// Position_Knots[MAX_N_PATCH][info.DIMENSION][MAX_N_KNOT];
 	info_ptr->No_Control_point = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));		// Order[MAX_N_PATCH][info.DIMENSION]
-	info_ptr->No_Control_point_in_patch = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));			// No_Control_point_in_patch[MAX_N_PATCH]
-	info_ptr->Patch_Control_point = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Patch_Control_point[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
-	info_ptr->No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));		// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
+	info_ptr->No_Control_point_in_patch = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));				// No_Control_point_in_patch[MAX_N_PATCH]
+	info_ptr->Patch_Control_point = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Patch_Control_point[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
+	info_ptr->No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));			// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
 	info_ptr->Node_Coordinate = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh] * (info.DIMENSION + 1)));	// Node_Coordinate[MAX_N_NODE][info.DIMENSION + 1];
-	info_ptr->Control_Coord_x = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Coord[info.DIMENSION][MAX_N_NODE];
-	info_ptr->Control_Coord_y = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Coord[info.DIMENSION][MAX_N_NODE];
-	info_ptr->Control_Weight = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));		// Control_Weight[MAX_N_NODE];
-	info_ptr->Constraint_Node_Dir = (int *)malloc(sizeof(int) * (info.Total_Constraint_to_mesh[Total_mesh] * 2));		// Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
-	info_ptr->Value_of_Constraint = (double *)calloc(info.Total_Constraint_to_mesh[Total_mesh], sizeof(double));		// Value_of_Constraint[MAX_N_CONSTRAINT];
-	info_ptr->Load_Node_Dir = (int *)malloc(sizeof(int) * (info.Total_Load_to_mesh[Total_mesh] * 2));					// Load_Node_Dir[MAX_N_LOAD][2];
-	info_ptr->Value_of_Load = (double *)calloc(info.Total_Load_to_mesh[Total_mesh], sizeof(double));					// Value_of_Load[MAX_N_LOAD];
-	info_ptr->iPatch_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);				// iPatch_array[MAX_N_DISTRIBUTE_FORCE]
-	info_ptr->iCoord_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);				// iCoord_array[MAX_N_DISTRIBUTE_FORCE]
-	info_ptr->jCoord_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);				// jCoord_array[MAX_N_DISTRIBUTE_FORCE]
-	info_ptr->type_load_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);			// type_load_array[MAX_N_DISTRIBUTE_FORCE]
-	info_ptr->val_Coord_array = (double *)calloc(info.Total_DistributeForce_to_mesh[Total_mesh], sizeof(double));		// val_Coord_array[MAX_N_DISTRIBUTE_FORCE]
+	info_ptr->Control_Coord_x = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Coord[info.DIMENSION][MAX_N_NODE];
+	info_ptr->Control_Coord_y = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Coord[info.DIMENSION][MAX_N_NODE];
+	info_ptr->Control_Weight = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Weight[MAX_N_NODE];
+	info_ptr->Constraint_Node_Dir = (int *)malloc(sizeof(int) * (info.Total_Constraint_to_mesh[Total_mesh] * 2));			// Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
+	info_ptr->Value_of_Constraint = (double *)calloc(info.Total_Constraint_to_mesh[Total_mesh], sizeof(double));			// Value_of_Constraint[MAX_N_CONSTRAINT];
+	info_ptr->Load_Node_Dir = (int *)malloc(sizeof(int) * (info.Total_Load_to_mesh[Total_mesh] * 2));						// Load_Node_Dir[MAX_N_LOAD][2];
+	info_ptr->Value_of_Load = (double *)calloc(info.Total_Load_to_mesh[Total_mesh], sizeof(double));						// Value_of_Load[MAX_N_LOAD];
+	info_ptr->iPatch_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);					// iPatch_array[MAX_N_DISTRIBUTE_FORCE]
+	info_ptr->iCoord_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);					// iCoord_array[MAX_N_DISTRIBUTE_FORCE]
+	info_ptr->jCoord_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);					// jCoord_array[MAX_N_DISTRIBUTE_FORCE]
+	info_ptr->type_load_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);				// type_load_array[MAX_N_DISTRIBUTE_FORCE]
+	info_ptr->val_Coord_array = (double *)calloc(info.Total_DistributeForce_to_mesh[Total_mesh], sizeof(double));			// val_Coord_array[MAX_N_DISTRIBUTE_FORCE]
 	info_ptr->Range_Coord_array = (double *)calloc((info.Total_DistributeForce_to_mesh[Total_mesh] * 2 * 2), sizeof(double));	// Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2] (DIM = 3 のとき 2 -> 4)
 	info_ptr->Coeff_Dist_Load_array = (double *)calloc((info.Total_DistributeForce_to_mesh[Total_mesh] * 3 * 2), sizeof(double));	// Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3] (DIM = 3 のとき 3 -> 6)
 	if (info.Order == NULL || info.No_knot == NULL || info.Total_Control_Point_to_patch == NULL || info.Total_Knot_to_patch_dim == NULL || info.Position_Knots == NULL || info.No_Control_point == NULL || info.No_Control_point_in_patch == NULL || info.Patch_Control_point == NULL || info.No_Control_point_ON_ELEMENT == NULL || info.Node_Coordinate == NULL || info.Control_Coord_x == NULL || info.Control_Coord_y == NULL || info.Control_Weight == NULL || info.Constraint_Node_Dir == NULL || info.Value_of_Constraint == NULL || info.Load_Node_Dir == NULL || info.Value_of_Load == NULL || info.iPatch_array == NULL || info.iCoord_array == NULL || info.jCoord_array == NULL || info.type_load_array == NULL || info.val_Coord_array == NULL || info.Range_Coord_array == NULL || info.Coeff_Dist_Load_array == NULL)
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	for (i = 1; i < Total_mesh; i++)
 	{
 		int mesh_n_org = 0;
-		Check_coupled_Glo_Loc_element_for_Gauss(i, mesh_n_org, &info);
+		Check_coupled_Glo_Loc_element(i, mesh_n_org, &info);
 		Make_Loc_Glo(&info);
 	}
 	printf("\nFinish check_over_parameter\n\n");

@@ -868,7 +868,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 						info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * Weight[ig];
 					}
 				}
-				else if (type_load == 2)
+				else if (type_load == 2) // 法線方向
 				{
 					double LoadDir[2];
 					LoadDir[0] = dxyzdge[1] / detJ;
@@ -1117,28 +1117,18 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + type_load] += valDistLoad * sfc * detJ * w_1D[ig_i] * w_1D[ig_j];
 							}
 						}
-						else if (type_load == 2)
+						else if (type_load == 3) // 法線方向
 						{
-							double LoadDir[2];
-							LoadDir[0] = dxyzdge[1] / detJ;
-							LoadDir[1] = -dxyzdge[0] / detJ;
-							for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
+							double LoadDir[3];
+							LoadDir[0] = (dxyzdgez_i[1] * dxyzdgez_j[2] + dxyzdgez_i[2] * dxyzdgez_j[1]) / detJ;
+							LoadDir[1] = (dxyzdgez_i[2] * dxyzdgez_j[0] + dxyzdgez_i[0] * dxyzdgez_j[2]) / detJ;
+							LoadDir[2] = (dxyzdgez_i[0] * dxyzdgez_j[1] + dxyzdgez_i[1] * dxyzdgez_j[0]) / detJ;
+							for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 2); ic++)
 							{
 								sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
-								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
-							}
-						}
-						else if (type_load == 3)
-						{
-							double LoadDir[2];
-							LoadDir[0] = dxyzdge[0] / detJ;
-							LoadDir[1] = dxyzdge[1] / detJ;
-							for (ic = 0; ic < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); ic++)
-							{
-								sfc = Shape_func(ic, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
-								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] += LoadDir[0] * valDistLoad * sfc * detJ * Weight[ig];
-								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] += LoadDir[1] * valDistLoad * sfc * detJ * Weight[ig];
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 0] +=   LoadDir[0] * valDistLoad * sfc * detJ * w_1D[ig_i] * w_1D[ig_j];
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 1] +=   LoadDir[1] * valDistLoad * sfc * detJ * w_1D[ig_i] * w_1D[ig_j];
+								info->Equivalent_Nodal_Force[iControlpoint[ic] * info->DIMENSION + 2] += - LoadDir[2] * valDistLoad * sfc * detJ * w_1D[ig_i] * w_1D[ig_j];
 							}
 						}
 					}
@@ -1167,6 +1157,7 @@ int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *inf
 	return (iii);
 }
 
+
 int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, information *info)
 {
 	int iii;
@@ -1186,7 +1177,7 @@ int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, informat
 
 
 // for s_IGA, coupled matrix を求める, 要素の重なりを要素のガウス点から求める
-void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, information *info)
+void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info)
 {
 	int re, e;
 	int i, j, k, m;

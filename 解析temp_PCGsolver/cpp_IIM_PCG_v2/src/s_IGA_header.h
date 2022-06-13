@@ -120,7 +120,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *info);
 int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, information *info);
 // for s_IGA
-void Check_coupled_Glo_Loc_element_for_Gauss(int mesh_n_over, int mesh_n_org, information *info);
+void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info);
 void Make_Loc_Glo(information *info);
 int ele_check(int patch_n, double *para_coord, int *temp_element_n, information *info);
 void sort(int total, int *element_n_point);
