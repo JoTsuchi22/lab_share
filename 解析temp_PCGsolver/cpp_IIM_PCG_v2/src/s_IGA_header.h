@@ -9,8 +9,10 @@
 // #define MAX_KIEL_SIZE MAX_NO_CP_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
 #define NG 4												// Gauss-Legendreの積分点数
 #define POW_NG NG * NG										// NGのDIMENSION乗の計算
+#define MAX_POW_NG NG * NG * NG 							// NGのDIMENSION乗の計算
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
 #define POW_NG_EXTEND NG_EXTEND * NG_EXTEND			        // NGのDIMENSION乗の計算
+#define MAX_POW_NG_EXTEND NG_EXTEND * NG_EXTEND	* NG_EXTEND // NGのDIMENSION乗の計算
 #define K_DIVISION_LENGE 10 	                            // 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
 #define EPS 1.0e-10				                            // 連立1次方程式の残差
 #define N_STRAIN 4
@@ -208,10 +210,87 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					   double *output_x, double *output_y,
 					   double *output_dxi_x, double *output_deta_x,
 					   double *output_dxi_y, double *output_deta_y);
+double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
+double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z);
 int Calc_xi_eta(double px, double py,
 				double *input_knot_vec_xi, double *input_knot_vec_eta,
 				int cntl_p_n_xi, int cntl_p_n_eta, int order_xi, int order_eta,
 				double *output_xi, double *output_eta, information *info);
+int Calc_xi_eta_zeta(double px, double py, double pz,
+				     double *input_knot_vec_xi, double *input_knot_vec_eta, double *input_knot_vec_zeta,
+				     int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                     int order_xi, int order_eta, int order_zeta,
+				     double *output_xi, double *output_eta, double *output_zeta, information *info);
 // Postprocessing
 void Make_Displacement(information *info);
 // for s_IGA overlay

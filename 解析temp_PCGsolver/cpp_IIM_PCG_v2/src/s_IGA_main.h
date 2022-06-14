@@ -2,14 +2,14 @@
 #define S_IGA_MAIN_H
 
 // gauss array
-int GP_1D;                                // 1方向のガウス点数
-int GP_2D;                                // 2次元のガウス点数
-int GP_3D;                                // 3次元のガウス点数
-int GP_ON_ELEMENT;                        // 要素内のガウス点数
-double Gxi_1D[NG_EXTEND];                 // 1次元のガウス点
-double w_1D[NG_EXTEND];                   // 1次元のガウス点での重み
-double Gxi[POW_NG_EXTEND][MAX_DIMENSION]; // ガウス点
-double w[POW_NG_EXTEND];                  // ガウス点での重み
+int GP_1D;                                    // 1方向のガウス点数
+int GP_2D;                                    // 2次元のガウス点数
+int GP_3D;                                    // 3次元のガウス点数
+int GP_ON_ELEMENT;                            // 要素内のガウス点数
+double Gxi_1D[MAX_POW_NG];                    // 1次元のガウス点
+double w_1D[MAX_POW_NG];                      // 1次元のガウス点での重み
+double Gxi[MAX_POW_NG_EXTEND][MAX_DIMENSION]; // ガウス点
+double w[MAX_POW_NG_EXTEND];                  // ガウス点での重み
 
 // double Strain[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
 // double Strain_glo[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];

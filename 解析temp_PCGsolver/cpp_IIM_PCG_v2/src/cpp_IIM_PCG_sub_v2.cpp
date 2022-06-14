@@ -1,8 +1,7 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <string.h>
 #include <math.h>
-// #include <assert.h>
 #include <time.h>
 
 // header
@@ -423,11 +422,6 @@ void Get_Input_2(int tm, char **argv, information *info)
 // INC 等の作成
 void Make_INC(int tm, information *info)
 {
-	// 各最大値
-	MAX_ORDER += 1; // 次数の最大値 + 1
-	MAX_NO_CP_ON_ELEMENT = pow(MAX_ORDER, info->DIMENSION);
-	MAX_KIEL_SIZE = MAX_NO_CP_ON_ELEMENT * info->DIMENSION;
-
 	// info->INC の計算(節点番号をξ, ηの番号で表す為の配列)
 	for (tm = 0; tm < Total_mesh; tm++)
 	{
@@ -440,7 +434,7 @@ void Make_INC(int tm, information *info)
 		int Total_Element_to_Now = info->Total_Element_to_mesh[tm];
 		int Total_DistributeForce = info->Total_DistributeForce_to_mesh[tm + 1] - info->Total_DistributeForce_to_mesh[tm];
 
-		if (info->DIMENSION == 2) // for s-IGA
+		if (info->DIMENSION == 2)
 		{
 			e = 0;
 			for (l = 0; l < No_Patch; l++)
@@ -730,7 +724,7 @@ void Make_INC(int tm, information *info)
 void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, double *Range_Coord, int type_load, double *Coeff_Dist_Load, information *info)
 {
 	int iii, jjj;
-	int N_Seg_Load_Element_iDir = 0, jCoord;
+	int N_Seg_Load_Element_iDir = 0, jCoord = 0;
 	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000};
 	int No_Element_For_Dist_Load;
 	int iX, iY;
@@ -896,7 +890,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info)
 {
 	int iii, jjj, kkk;
-	int N_Seg_Load_Element_iDir = 0, N_Seg_Load_Element_jDir = 0, kCoord;
+	int N_Seg_Load_Element_iDir = 0, N_Seg_Load_Element_jDir = 0, kCoord = 0;
 	int iPos[2] = {-10000, -10000}, jPos[2] = {-10000, -10000}, kPos[2] = {-10000, -10000};
 	int No_Element_For_Dist_Load_iDir, No_Element_For_Dist_Load_jDir;
 	int iX, iY, iZ;
@@ -1174,11 +1168,11 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 	int re, e;
 	int i, j, k, m;
 	int l, ll;
-	int n_elements_over_point[POW_NG_EXTEND];
+	int n_elements_over_point[MAX_POW_NG_EXTEND];
 	int MAX_NNLOVER = 0;
 
 	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
-	int *element_n_point = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT * POW_NG_EXTEND);
+	int *element_n_point = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT * MAX_POW_NG_EXTEND);
 	int *Check_coupled_No = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER);
 
 	for (i = 0; i < MAX_N_ELEMENT_OVER; i++)
@@ -1203,8 +1197,8 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 		// ローカルパッチ(mesh_n_over)各要素の頂点の物理座標算出
 		for (re = 0; re < info->real_Total_Element_on_mesh[mesh_n_over]; re++)
 		{
-			int i_gg, i_ee;
-			double output_para[info->DIMENSION];
+			int n;
+			double output_para[MAX_DIMENSION];
 			int Total_n_elements;
 
 			e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_over]];
@@ -1227,53 +1221,53 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 				ll = 0;
 
 				// ローカルパッチ各要素のガウス点の物理座標のグローバルパッチでの(xi, eta)算出
-				for (i = 0; i < info->Total_Patch_on_mesh[mesh_n_org]; i++)
+				if (info->DIMENSIONO == 2)
 				{
-					// グローバルパッチ i での各方向ノットベクトル
-					double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 0]);
-					double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 1]);
+					for (i = 0; i < info->Total_Patch_on_mesh[mesh_n_org]; i++)
+					{
+						// グローバルパッチ i での各方向ノットベクトル
+						double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 0]);
+						double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 1]);
 
-					for (j = 0; j < info->No_knot[i * info->DIMENSION + 0]; j++)
-					{
-						temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 0] + j];
-					}
-					for (j = 0; j < info->No_knot[i * info->DIMENSION + 1]; j++)
-					{
-						temp_Position_Knots_eta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 1] + j];
-					}
-
-					for (i_ee = 0; i_ee < GP_1D; i_ee++)
-					{
-						for (i_gg = 0; i_gg < GP_1D; i_gg++)
+						for (j = 0; j < info->No_knot[i * info->DIMENSION + 0]; j++)
 						{
-							int g_n = i_ee * GP_1D + i_gg;
-							double data_result_shape[info->DIMENSION] = {0.0};
+							temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 0] + j];
+						}
+						for (j = 0; j < info->No_knot[i * info->DIMENSION + 1]; j++)
+						{
+							temp_Position_Knots_eta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 1] + j];
+						}
+
+						for (n = 0; n < GP_ON_ELEMENT; n++)
+						{
+							double data_result_shape[MAX_DIMENSION] = {0.0};
 
 							for (l = 0; l < info->DIMENSION; l++)
 							{
 								if (m == 0)
 								{
-									data_result_shape[l] = info->Gauss_Coordinate[e * GP_2D * info->DIMENSION + g_n * info->DIMENSION + l];
+									data_result_shape[l] = info->Gauss_Coordinate[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + l];
 								}
 								else if (m == 1)
 								{
-									data_result_shape[l] = info->Gauss_Coordinate_ex[e * GP_2D * info->DIMENSION + g_n * info->DIMENSION + l];
+									data_result_shape[l] = info->Gauss_Coordinate_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + l];
 								}
 							}
 							int itr_n = Calc_xi_eta(data_result_shape[0], data_result_shape[1],
 													temp_Position_Knots_xi, temp_Position_Knots_eta,
-													info->No_Control_point[i * info->DIMENSION + 0], info->No_Control_point[i * info->DIMENSION + 1], info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1],
+													info->No_Control_point[i * info->DIMENSION + 0], info->No_Control_point[i * info->DIMENSION + 1],
+													info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1],
 													&output_para[0], &output_para[1], info);
 							
 							if (m == 0)
 							{
-								info->Loc_parameter_on_Glo[e * GP_2D * info->DIMENSION + g_n * info->DIMENSION + 0] = output_para[0];
-								info->Loc_parameter_on_Glo[e * GP_2D * info->DIMENSION + g_n * info->DIMENSION + 1] = output_para[1];
+								info->Loc_parameter_on_Glo[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 0] = output_para[0];
+								info->Loc_parameter_on_Glo[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 1] = output_para[1];
 							}
 							else if (m == 1)
 							{
-								info->Loc_parameter_on_Glo_ex[e * GP_2D * info->DIMENSION + g_n * info->DIMENSION + 0] = output_para[0];
-								info->Loc_parameter_on_Glo_ex[e * GP_2D * info->DIMENSION + g_n * info->DIMENSION + 1] = output_para[1];
+								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 0] = output_para[0];
+								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 1] = output_para[1];
 							}
 
 							// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
@@ -1290,8 +1284,82 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 							}
 							k++;
 						}
+						free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
 					}
-					free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
+				}
+				else if (info->DIMENSION == 3)
+				{
+					for (i = 0; i < info->Total_Patch_on_mesh[mesh_n_org]; i++)
+					{
+						// グローバルパッチ i での各方向ノットベクトル
+						double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 0]);
+						double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 1]);
+						double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 2]);
+
+						for (j = 0; j < info->No_knot[i * info->DIMENSION + 0]; j++)
+						{
+							temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 0] + j];
+						}
+						for (j = 0; j < info->No_knot[i * info->DIMENSION + 1]; j++)
+						{
+							temp_Position_Knots_eta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 1] + j];
+						}
+						for (j = 0; j < info->No_knot[i * info->DIMENSION + 2]; j++)
+						{
+							temp_Position_Knots_zeta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 2] + j];
+						}
+
+						for (n = 0; n < GP_ON_ELEMENT; n++)
+						{
+							double data_result_shape[MAX_DIMENSION] = {0.0};
+
+							for (l = 0; l < info->DIMENSION; l++)
+							{
+								if (m == 0)
+								{
+									data_result_shape[l] = info->Gauss_Coordinate[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + l];
+								}
+								else if (m == 1)
+								{
+									data_result_shape[l] = info->Gauss_Coordinate_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + l];
+								}
+							}
+
+							int itr_n = Calc_xi_eta_zeta(data_result_shape[0], data_result_shape[1], data_result_shape[2],
+														 temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+														 info->No_Control_point[i * info->DIMENSION + 0], info->No_Control_point[i * info->DIMENSION + 1], info->No_Control_point[i * info->DIMENSION + 2],
+														 info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1], info->Order[i * info->DIMENSION + 2],
+														 &output_para[0], &output_para[1], &output_para[2], info);
+							
+							if (m == 0)
+							{
+								info->Loc_parameter_on_Glo[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 0] = output_para[0];
+								info->Loc_parameter_on_Glo[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 1] = output_para[1];
+								info->Loc_parameter_on_Glo[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 2] = output_para[2];
+							}
+							else if (m == 1)
+							{
+								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 0] = output_para[0];
+								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 1] = output_para[1];
+								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 2] = output_para[2];
+							}
+
+							// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
+							n_elements_over_point[k] = ele_check(i, output_para, temp_element_n, info);
+							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
+							{
+								n_elements_over_point[k] = 0;
+							}
+							Total_n_elements += n_elements_over_point[k];
+							for (l = 0; l < n_elements_over_point[k]; l++)
+							{
+								element_n_point[ll] = temp_element_n[l];
+								ll++;
+							}
+							k++;
+						}
+						free(temp_Position_Knots_xi), free(temp_Position_Knots_eta), free(temp_Position_Knots_zeta);
+					}
 				}
 				// 昇順ソート
 				sort(Total_n_elements, element_n_point);
@@ -1535,10 +1603,12 @@ void Make_Gauss_Coordinate(int m, int e, information *info)
 	double temp_coordinate[MAX_DIMENSION];
 	double R;
 
-	for (i = 0; i < GP_2D; i++)
+	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
-		temp_coordinate[0] = Gxi[i][0];
-		temp_coordinate[1] = Gxi[i][1];
+		for (j = 0; j < info->DIMENSION; j++)
+		{
+			temp_coordinate[j] = Gxi[i][j];
+		}
 		
 		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 		{
@@ -1548,11 +1618,11 @@ void Make_Gauss_Coordinate(int m, int e, information *info)
 			{
 				if (m == 0)
 				{
-					info->Gauss_Coordinate[e * GP_2D * info->DIMENSION + i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
+					info->Gauss_Coordinate[e * GP_ON_ELEMENT * info->DIMENSION + i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
 				}
 				else if (m == 1)
 				{
-					info->Gauss_Coordinate_ex[e * GP_2D * info->DIMENSION + i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
+					info->Gauss_Coordinate_ex[e * GP_ON_ELEMENT * info->DIMENSION + i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
 				}
 			}
 		}
@@ -1565,10 +1635,12 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info)
 	int i, j, k;
 	double temp_coordinate[MAX_DIMENSION];
 
-	for (i = 0; i < GP_2D; i++)
+	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
-		temp_coordinate[0] = Gxi[i][0];
-		temp_coordinate[1] = Gxi[i][1];
+		for (j = 0; j < info->DIMENSION; j++)
+		{
+			temp_coordinate[j] = Gxi[i][j];
+		}
 
 		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 		{
@@ -1594,7 +1666,7 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 	double J = 0;
 	double a_2x2[2][2], a_3x3[3][3];
 
-	for (i = 0; i < GP_2D; i++)
+	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
 		for (j = 0; j < info->DIMENSION; j++)
 		{
@@ -1660,11 +1732,11 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 
 		if (m == 0)
 		{
-			info->Jac[e * GP_2D + i] = J;
+			info->Jac[e * GP_ON_ELEMENT + i] = J;
 		}
 		else if (m == 1)
 		{
-			info->Jac_ex[e * GP_2D + i] = J;
+			info->Jac_ex[e * GP_ON_ELEMENT + i] = J;
 		}
 
 		if (J <= 0)
@@ -1681,7 +1753,7 @@ void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, 
 	int i, j, k, l;
 	double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT);	// b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
 
-	for (i = 0; i < GP_2D; i++)
+	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
 		for (j = 0; j < info->DIMENSION; j++)
 		{
@@ -1703,31 +1775,100 @@ void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, 
 		}
 
 		// 2次元
-		if (m == 0)
+		if (info->DIMENSION == 2)
 		{
-			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+			if (m == 0)
 			{
-				info->B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-				info->B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
-				info->B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
-				info->B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-				info->B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-				info->B_Matrix[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+				{
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+					
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+				}
+			}
+			else if (m == 1)
+			{
+				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+				{
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+				}
 			}
 		}
-		else if (m == 1)
+		else if (info->DIMENSION == 3)
 		{
-			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+			if (m == 0)
 			{
-				info->B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-				info->B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
-				info->B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)] = 0.0;
-				info->B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-				info->B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-				info->B_Matrix_ex[e * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+				{
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+				}
+			}
+			else if (m == 1)
+			{
+				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+				{
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+				}
 			}
 		}
 	}
+
 	free(b);
 }
 
@@ -1747,6 +1888,15 @@ void Make_gauss_array(int select_GP, information *info)
 
 	GP_2D = GP_1D * GP_1D;
 	GP_3D = GP_2D * GP_1D;
+
+	if (info->DIMENSION == 2)
+	{
+		GP_ON_ELEMENT = GP_2D;
+	}
+	else if (info->DIMENSION == 3)
+	{
+		GP_ON_ELEMENT = GP_3D;
+	}
 
 	if (info->DIMENSION == 2)
 	{
@@ -4001,7 +4151,1375 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 }
 
 
-//算出したローカルパッチ各要素の頂点の物理座標のグローバルパッチでの(xi,eta)算出
+double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		rBasisFunc(knot_vec_xi, i, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			rBasisFunc(knot_vec_eta, j, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				rBasisFunc(knot_vec_zeta, k, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + (j * cntl_p_n_xi) + (k * cntl_p_n_xi * cntl_p_n_eta);
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_y += temp4 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_z += temp4 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		lBasisFunc(knot_vec_xi, i, cntl_p_n_xi, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			rBasisFunc(knot_vec_eta, j, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				rBasisFunc(knot_vec_zeta, k, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_y += temp4 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_z += temp4 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		rBasisFunc(knot_vec_xi, i, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			lBasisFunc(knot_vec_eta, j, cntl_p_n_eta, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				rBasisFunc(knot_vec_zeta, k, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_y += temp4 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_z += temp4 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		rBasisFunc(knot_vec_xi, i, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			rBasisFunc(knot_vec_eta, j, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				lBasisFunc(knot_vec_zeta, k, cntl_p_n_zeta, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_y += temp4 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_z += temp4 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		lBasisFunc(knot_vec_xi, i, cntl_p_n_xi, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			lBasisFunc(knot_vec_eta, j, cntl_p_n_eta, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				rBasisFunc(knot_vec_zeta, k, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[temp_index];
+				dzeta_molecule_y += temp4 * cntl_py[temp_index];
+				dzeta_molecule_z += temp4 * cntl_pz[temp_index];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		lBasisFunc(knot_vec_xi, i, cntl_p_n_xi, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			rBasisFunc(knot_vec_eta, j, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				lBasisFunc(knot_vec_zeta, k, cntl_p_n_zeta, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_y += temp4 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_z += temp4 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		rBasisFunc(knot_vec_xi, i, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			lBasisFunc(knot_vec_eta, j, cntl_p_n_eta, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				lBasisFunc(knot_vec_zeta, k, cntl_p_n_zeta, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[temp_index];
+				dzeta_molecule_y += temp4 * cntl_py[temp_index];
+				dzeta_molecule_z += temp4 * cntl_pz[temp_index];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_vec_zeta,
+                       double *cntl_px, double *cntl_py, double *cntl_pz,
+                       int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                       double *weight, int order_xi, int order_eta, int order_zeta,
+                       double xi, double eta, double zeta,
+                       double *output_x, double *output_y, double *output_z,
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
+{
+	int i, j, k, temp_index;
+	double temp1, temp2, temp3, temp4;
+	double molecule_x, molecule_y, molecule_z;
+	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
+	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
+	double temp_output_xi, temp_output_eta, temp_output_zeta;
+	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
+
+	molecule_x = 0.0;
+	molecule_y = 0.0;
+	molecule_z = 0.0;
+	denominator = 0.0;
+
+	dxi_molecule_x = 0.0;
+	dxi_molecule_y = 0.0;
+	dxi_molecule_z = 0.0;
+	dxi_denominator = 0.0;
+
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
+
+	dzeta_molecule_x = 0.0;
+	dzeta_molecule_y = 0.0;
+	dzeta_molecule_z = 0.0;
+	dzeta_denominator = 0.0;
+
+	int index_min_xi   = 0;
+	int index_max_xi   = cntl_p_n_xi - 1;
+	int index_min_eta  = 0;
+	int index_max_eta  = cntl_p_n_eta - 1;
+	int index_min_zeta = 0;
+	int index_max_zeta = cntl_p_n_zeta - 1;
+
+	// xi
+	for (i = 0; i < cntl_p_n_xi; i++)
+	{
+		if ( knot_vec_xi[i + 1] >= xi )
+		{
+			index_min_xi = i - order_xi;
+			index_max_xi = i + 1;
+			break;
+		}
+	}
+
+	if (index_min_xi < 0)
+	{
+		index_min_xi = 0;
+		index_max_xi = order_xi + 1;
+	}
+
+	if (index_max_xi > cntl_p_n_xi)
+	{
+		index_min_xi = cntl_p_n_xi - order_xi - 1;
+		index_max_xi = cntl_p_n_xi;
+	}
+
+	// eta
+	for (i = 0; i < cntl_p_n_eta; i++)
+	{
+		if ( knot_vec_eta[i + 1] >= eta )
+		{
+			index_min_eta = i - order_eta;
+			index_max_eta = i + 1;
+			break;
+		}
+	}
+	if (index_min_eta < 0)
+	{
+		index_min_eta = 0;
+		index_max_eta = order_eta + 1;
+	}
+
+	if (index_max_eta > cntl_p_n_eta)
+	{
+		index_min_eta = cntl_p_n_eta - order_eta - 1;
+		index_max_eta = cntl_p_n_eta;
+	}
+
+	// zeta
+	for (i = 0; i < cntl_p_n_zeta; i++)
+	{
+		if ( knot_vec_zeta[i + 1] >= zeta )
+		{
+			index_min_zeta = i - order_zeta;
+			index_max_zeta = i + 1;
+			break;
+		}
+	}
+	if (index_min_zeta < 0)
+	{
+		index_min_zeta = 0;
+		index_max_zeta = order_zeta + 1;
+	}
+
+	if (index_max_zeta > cntl_p_n_zeta)
+	{
+		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
+		index_max_zeta = cntl_p_n_zeta;
+	}
+
+	for (i = index_min_xi; i < index_max_xi; i++)
+	{
+		lBasisFunc(knot_vec_xi, i, cntl_p_n_xi, order_xi, xi, &temp_output_xi, &temp_d_output_xi);
+		for (j = index_min_eta; j < index_max_eta; j++)
+		{
+			lBasisFunc(knot_vec_eta, j, cntl_p_n_eta, order_eta, eta, &temp_output_eta, &temp_d_output_eta);
+			for (k = index_min_zeta; k < index_max_zeta; k++)
+			{
+				lBasisFunc(knot_vec_zeta, k, cntl_p_n_zeta, order_zeta, zeta, &temp_output_zeta, &temp_d_output_zeta);
+
+				temp_index = i + j * cntl_p_n_xi + k * cntl_p_n_xi * cntl_p_n_eta;
+
+				temp1 = temp_output_xi   * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp2 = temp_d_output_xi * temp_output_eta   * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp3 = temp_output_xi   * temp_d_output_eta * temp_output_zeta   * weight[Patch_controlpoint[0][temp_index]];
+				temp4 = temp_output_xi   * temp_output_eta   * temp_d_output_zeta * weight[Patch_controlpoint[0][temp_index]];
+
+				molecule_x += temp1 * cntl_px[Patch_controlpoint[0][temp_index]];
+				molecule_y += temp1 * cntl_py[Patch_controlpoint[0][temp_index]];
+				molecule_z += temp1 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				denominator += temp1;
+
+				dxi_molecule_x += temp2 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_y += temp2 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dxi_molecule_z += temp2 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dxi_denominator += temp2;
+
+				deta_molecule_x += temp3 * cntl_px[Patch_controlpoint[0][temp_index]];
+				deta_molecule_y += temp3 * cntl_py[Patch_controlpoint[0][temp_index]];
+				deta_molecule_z += temp3 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				deta_denominator += temp3;
+
+				dzeta_molecule_x += temp4 * cntl_px[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_y += temp4 * cntl_py[Patch_controlpoint[0][temp_index]];
+				dzeta_molecule_z += temp4 * cntl_pz[Patch_controlpoint[0][temp_index]];
+				dzeta_denominator += temp4;
+			}
+		}
+	}
+
+	(*output_x) = molecule_x / denominator;
+	(*output_y) = molecule_y / denominator;
+	(*output_z) = molecule_z / denominator;
+	(*output_dxi_x)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_y)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
+	(*output_dxi_z)   = weight[Patch_controlpoint[0][temp_index]] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
+	(*output_deta_x)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[Patch_controlpoint[0][temp_index]] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
+	(*output_dzeta_x) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_y) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
+	(*output_dzeta_z) = weight[Patch_controlpoint[0][temp_index]] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
+
+	return denominator;
+}
+
+
+// 算出したローカルパッチ各要素の頂点の物理座標のグローバルパッチでの(xi,eta)算出
 int Calc_xi_eta(double px, double py,
 				double *input_knot_vec_xi, double *input_knot_vec_eta,
 				int cntl_p_n_xi, int cntl_p_n_eta, int order_xi, int order_eta,
@@ -4019,7 +5537,7 @@ int Calc_xi_eta(double px, double py,
 	int i;
 	// int repeat = 1000;
 	// double tol = 10e-8;
-	int repeat = 100;
+	int repeat = 10;
 	double tol = 10e-14;
 
 	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
@@ -4219,6 +5737,626 @@ int Calc_xi_eta(double px, double py,
 
 	free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
 
+	return 0;
+}
+
+
+int Calc_xi_eta_zeta(double px, double py, double pz,
+				     double *input_knot_vec_xi, double *input_knot_vec_eta, double *input_knot_vec_zeta,
+				     int cntl_p_n_xi, int cntl_p_n_eta, int cntl_p_n_zeta,
+                     int order_xi, int order_eta, int order_zeta,
+				     double *output_xi, double *output_eta, double *output_zeta, information *info)
+{
+	double temp_xi, temp_eta, temp_zeta;
+	double temp_x, temp_y, temp_z;
+	double temp_matrix[3][3];
+	double temp_dxi, temp_deta, temp_dzeta;
+    double temp_tol_x, temp_tol_y, temp_tol_z;
+
+	(*output_xi)   = 0.0;
+	(*output_eta)  = 0.0;
+	(*output_zeta) = 0.0;
+
+	int i, j;
+	// int repeat  = 5;
+	// int repeat2 = 5;
+	// double tol = 10e-22;
+	int repeat  = 10;
+	int repeat2 = 5;
+	double tol = 10e-14;
+	double coef = 0.0;
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			rrrNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			lrrNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			rlrNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			rrlNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			llrNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			lrlNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			rllNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
+
+	for (j = 0; j < repeat2; j++)
+	{
+		// 初期値の設定
+		if (j == 0)
+		{
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= 0.5;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= 0.5;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= 0.5;
+		}
+		else
+		{
+			coef = j / repeat2;
+			temp_xi = knot_vec_xi[0] + knot_vec_xi[cntl_p_n_xi + order_xi];
+			temp_xi *= coef;
+			temp_eta = knot_vec_eta[0] + knot_vec_eta[cntl_p_n_eta + order_eta];
+			temp_eta *= coef;
+			temp_zeta = knot_vec_zeta[0] + knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+			temp_zeta *= coef;
+		}
+
+		for (i = 0; i < repeat; i++)
+		{
+			lllNURBS_volume(Position_Knots[0][0], Position_Knots[0][1], Position_Knots[0][2],
+							Control_Coord[0], Control_Coord[1], Control_Coord[2],
+							No_Control_point[0][0], No_Control_point[0][1], No_Control_point[0][2],
+							Control_Weight, Order[0][0], Order[0][1], Order[0][2],
+							temp_xi, temp_eta, temp_zeta,
+							&temp_x, &temp_y, &temp_z,
+							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
+							&temp_matrix[1][0], &temp_matrix[1][1], &temp_matrix[1][2],
+							&temp_matrix[2][0], &temp_matrix[2][1], &temp_matrix[2][2]);
+
+			temp_tol_x = px - temp_x;
+			temp_tol_x *= temp_tol_x;
+			temp_tol_y = py - temp_y;
+			temp_tol_y *= temp_tol_y;
+			temp_tol_z = pz - temp_z;
+			temp_tol_z *= temp_tol_z;
+
+			// 収束した場合
+			if (temp_tol_x < tol && temp_tol_y < tol && temp_tol_z < tol && i != 0)
+			{
+				(*output_xi)   = temp_xi;
+				(*output_eta)  = temp_eta;
+				(*output_zeta) = temp_zeta;
+				return i;
+			}
+
+			InverseMatrix_3x3(temp_matrix);
+
+			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
+			temp_xi   = temp_xi + temp_dxi;
+			temp_eta  = temp_eta + temp_deta;
+			temp_zeta = temp_zeta + temp_dzeta;
+			if (temp_xi < knot_vec_xi[0])
+				temp_xi = knot_vec_xi[0];
+			if (temp_xi > knot_vec_xi[cntl_p_n_xi + order_xi])
+				temp_xi = knot_vec_xi[cntl_p_n_xi + order_xi];
+			if (temp_eta < knot_vec_eta[0])
+				temp_eta = knot_vec_eta[0];
+			if (temp_eta > knot_vec_eta[cntl_p_n_eta + order_eta])
+				temp_eta = knot_vec_eta[cntl_p_n_eta + order_eta];
+			if (temp_zeta < knot_vec_zeta[0])
+				temp_zeta = knot_vec_zeta[0];
+			if (temp_zeta > knot_vec_zeta[cntl_p_n_zeta + order_zeta])
+				temp_zeta = knot_vec_zeta[cntl_p_n_zeta + order_zeta];
+		}
+	}
 	return 0;
 }
 

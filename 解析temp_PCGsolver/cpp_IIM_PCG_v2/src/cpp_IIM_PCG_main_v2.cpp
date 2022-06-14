@@ -13,11 +13,10 @@
  *
  ****************************************************************/
 
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <string.h>
 #include <math.h>
-// #include <assert.h>
 #include <time.h>
 
 // header
@@ -86,6 +85,7 @@ int main(int argc, char **argv)
 	info_ptr->Node_Coordinate = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh] * (info.DIMENSION + 1)));	// Node_Coordinate[MAX_N_NODE][info.DIMENSION + 1];
 	info_ptr->Control_Coord_x = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Coord[info.DIMENSION][MAX_N_NODE];
 	info_ptr->Control_Coord_y = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Coord[info.DIMENSION][MAX_N_NODE];
+	info_ptr->Control_Coord_z = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Coord[info.DIMENSION][MAX_N_NODE];
 	info_ptr->Control_Weight = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Weight[MAX_N_NODE];
 	info_ptr->Constraint_Node_Dir = (int *)malloc(sizeof(int) * (info.Total_Constraint_to_mesh[Total_mesh] * 2));			// Constraint_Node_Dir[MAX_N_CONSTRAINT][2];
 	info_ptr->Value_of_Constraint = (double *)calloc(info.Total_Constraint_to_mesh[Total_mesh], sizeof(double));			// Value_of_Constraint[MAX_N_CONSTRAINT];
@@ -110,6 +110,11 @@ int main(int argc, char **argv)
 	}
 
 	printf("\nFinish Get Input data\n\n");
+
+	// 各最大値
+	MAX_ORDER += 1; // 次数の最大値 + 1
+	MAX_NO_CP_ON_ELEMENT = pow(MAX_ORDER, info.DIMENSION);
+	MAX_KIEL_SIZE = MAX_NO_CP_ON_ELEMENT * info.DIMENSION;
 
 	// memory allocation
 	info_ptr->INC = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION));			// INC[MAX_N_NODE][info.DIMENSION]
