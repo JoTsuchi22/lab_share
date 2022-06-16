@@ -29,7 +29,7 @@ mkdir_output:
 	cd ./analysis && mkdir -p output
 
 # test run
-testrun0:	compile run0 view0
+testrun0:	run0 view0
 
 testrun1:	compile run1 view0
 

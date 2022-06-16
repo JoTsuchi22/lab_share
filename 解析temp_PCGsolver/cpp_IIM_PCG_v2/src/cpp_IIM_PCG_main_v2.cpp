@@ -1,5 +1,5 @@
 /****************************************************************
- * s-IGA :)
+ * S-IGA :)
  *
  * 仮定条件
  * 	ローカルメッシュ同士は原則被りなしと仮定
@@ -34,18 +34,18 @@ int main(int argc, char **argv)
 
 	Total_mesh = argc - 1;
 
-	// 引数の個数確認
+	// check arguments
 	if (argc <= 1)
 	{
 		printf("Argument is missing\n");
 	}
-	else if (argc == 2) // 通常IGA: input file 1つ
+	else if (argc == 2) // IGA: input file = 1
 	{
 		printf("IGA carried out.(No local mesh)\n");
 	}
-	else if (argc >= 3) // s-IGA: input file 複数
+	else if (argc >= 3) // S-IGA: input file > 1
 	{
-		printf("s-IGA carried out.(%d local meshes)\n", argc - 2);
+		printf("S-IGA carried out.(%d local meshes)\n", argc - 2);
 	}
 
 	start = clock();
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-	// ファイル読み込み1回目
+	// ファイル読み込み 1 回目
     for (tm = 0; tm < Total_mesh; tm++)
     {
 		Get_Input_1(tm, argv, &info);
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-	// ファイル読み込み2回目
+	// ファイル読み込み 2 回目
 	for (tm = 0; tm < Total_mesh; tm++)
     {
 		Get_Input_2(tm, argv, &info);
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	MAX_KIEL_SIZE = MAX_NO_CP_ON_ELEMENT * info.DIMENSION;
 
 	// memory allocation
-	info_ptr->INC = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION));			// INC[MAX_N_NODE][info.DIMENSION]
+	info_ptr->INC = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION));	// INC[MAX_N_PATCH][MAX_N_NODE][info.DIMENSION]
 	info_ptr->Controlpoint_of_Element = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * MAX_NO_CP_ON_ELEMENT)); // Controlpoint_of_Element[MAX_N_ELEMENT][MAX_NO_CP_ON_ELEMENT]
 	info_ptr->Element_patch = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// Element_patch[MAX_N_ELEMENT]
 	info_ptr->Element_mesh = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// Element_mesh[MAX_N_ELEMENT] 要素がどのメッシュ内にあるかを示す配列
@@ -127,11 +127,11 @@ int main(int argc, char **argv)
 	info_ptr->line_No_Total_element = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));	// line_No_Total_element[MAX_N_PATCH][info.DIMENSION] ゼロエレメントを含むすべての要素列の数
 	info_ptr->difference = (double *)calloc(info.Total_Knot_to_mesh[Total_mesh], sizeof(double));						// difference[MAX_N_PATCH][info.DIMENSION][MAX_N_KNOT] 隣り合うノットベクトルの差
 	info_ptr->Total_element_all_ID = (int *)calloc(info.Total_Element_to_mesh[Total_mesh], sizeof(int));				// Total_element_all_ID[MAX_N_ELEMENT] ゼロエレメントではない要素 = 1, ゼロエレメント = 0
-	info_ptr->ENC = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * info.DIMENSION));					// ENC[MAX_N_ELEMENT][info.DIMENSION] ENC[パッチ][全ての要素][0, 1] = x, y方向の何番目の要素か
+	info_ptr->ENC = (int *)malloc(sizeof(int) * (info.Total_Element_to_mesh[Total_mesh] * info.DIMENSION));				// ENC[MAX_N_ELEMENT][info.DIMENSION] ENC[パッチ][全ての要素][0, 1] = x, y方向の何番目の要素か
 	info_ptr->real_element_line = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh] * info.DIMENSION)); // real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][info.DIMENSION] ゼロエレメントではない要素列
-	info_ptr->real_element = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);							// real_element[MAX_N_ELEMENT] ゼロエレメントではない要素の番号
+	info_ptr->real_element = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// real_element[MAX_N_ELEMENT] ゼロエレメントではない要素の番号
 	info_ptr->real_El_No_on_mesh = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh]));	// real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]
-	info_ptr->Equivalent_Nodal_Force = (double *)calloc(info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION, sizeof(double));	// Equivalent_Nodal_Force[MAX_N_NODE][info.DIMENSION] Equivalent nodal forces arising from the distributed load
+	info_ptr->Equivalent_Nodal_Force = (double *)calloc(MAX_CP * info.DIMENSION, sizeof(double));						// Equivalent_Nodal_Force[MAX_N_NODE][info.DIMENSION] Equivalent nodal forces arising from the distributed load
 	if (info.INC == NULL || info.Controlpoint_of_Element == NULL || info.Element_patch == NULL || info.Element_mesh == NULL || info.line_No_real_element == NULL || info.line_No_Total_element == NULL || info.difference == NULL || info.Total_element_all_ID == NULL || info.ENC == NULL || info.real_element_line == NULL || info.real_element == NULL || info.real_El_No_on_mesh == NULL || info.Equivalent_Nodal_Force == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
@@ -179,12 +179,12 @@ int main(int argc, char **argv)
 		int mesh_n_org = 0;
 		for (i = 1; i < Total_mesh; i++)
 		{
+			// check_over_parameter, NNLOVER の算出
 			Check_coupled_Glo_Loc_element(i, mesh_n_org, &info);
 			Make_Loc_Glo(&info);
 		}
 		printf("\nFinish check_over_parameter\n\n");
 	}
-	// check_over_parameter, NNLOVER の算出
 
 	// memory allocation
 	MAX_K_WHOLE_SIZE = info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION;
@@ -228,11 +228,26 @@ int main(int argc, char **argv)
 	// memory free
 	free(info.Equivalent_Nodal_Force);
 
-	// PCG法
-    printf("\nStart PCG solver\n\n");
-    int max_itr = K_Whole_Size;
-	PCG_Solver(max_itr, EPS, &info);
-	printf("\nFinish PCG solver\n\n");
+	// solver
+	int max_itr = K_Whole_Size;
+	if (Total_mesh == 1) // CG法 <- IGA
+	{
+		printf("\nStart CG solver\n\n");
+		CG_Solver(K_Whole_Size, max_itr, EPS, 0, &info);
+		printf("\nFinish CG solver\n\n");
+	}
+	else if (Total_mesh >= 1) // PCG法 <- S-IGA
+	{
+		printf("\nStart PCG solver\n\n");
+		PCG_Solver(max_itr, EPS, &info);
+		printf("\nFinish PCG solver\n\n");
+	}
+
+	// printf("\nStart PCG solver\n\n");
+	// int max_itr = K_Whole_Size;
+	// PCG_Solver(max_itr, EPS, &info);
+	// printf("\nFinish PCG solver\n\n");
+
 
 	// memory free
 

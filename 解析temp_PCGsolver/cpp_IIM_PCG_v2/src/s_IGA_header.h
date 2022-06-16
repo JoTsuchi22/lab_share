@@ -127,7 +127,7 @@ void Preprocessing_IGA(information *info);
 // for s_IGA
 void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info);
 void Make_Loc_Glo(information *info);
-int ele_check(int patch_n, double *para_coord, int *temp_element_n, information *info);
+int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad, information *info);
 void sort(int total, int *element_n_point);
 int duplicate_delete(int total, int element_n, int *element_n_point, information *info);
 // Preprocessing
@@ -159,6 +159,13 @@ void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double
 double inner_product(int ndof, double *vec1, double *vec2);
 int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
 int RowCol_to_icount(int row, int col, information *info);
+
+// CG solver
+void mat_vec_crs(double *vec_result, double *vec, const int ndof, information *info);
+int check_conv_CG(int ndof, double alphak, double *pp, double eps, int itr, information *info);
+void Diag_Scaling_CG_pre(int ndof, int flag_operation, double *diag_scaling, information *info);
+void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val, information *info);
+
 // tool
 double InverseMatrix_2x2(double M[2][2]);
 double InverseMatrix_3x3(double M[3][3]);
