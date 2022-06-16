@@ -56,6 +56,7 @@ extern double nu;                     // ポアソン比(-)
 extern int Total_mesh;
 
 extern int MAX_ORDER;          // 基底関数の次数の最大値 + 1
+extern int MAX_CP;
 extern int MAX_NO_CP_ON_ELEMENT;  // new
 extern int MAX_KIEL_SIZE;              // new
 

@@ -23,6 +23,8 @@
 #include "s_IGA_header.h"
 #include "s_IGA_main.h"
 
+using namespace std;
+
 int main(int argc, char **argv)
 {
 	int i, tm;
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
 	info_ptr->Position_Knots = (double *)malloc(sizeof(double) * info.Total_Knot_to_mesh[Total_mesh]);						// Position_Knots[MAX_N_PATCH][info.DIMENSION][MAX_N_KNOT];
 	info_ptr->No_Control_point = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.DIMENSION));		// Order[MAX_N_PATCH][info.DIMENSION]
 	info_ptr->No_Control_point_in_patch = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));				// No_Control_point_in_patch[MAX_N_PATCH]
-	info_ptr->Patch_Control_point = (int *)malloc(sizeof(int) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Patch_Control_point[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
+	info_ptr->Patch_Control_point = (int *)malloc(sizeof(int) * MAX_CP);													// Patch_Control_point[MAX_N_PATCH][MAX_N_Controlpoint_in_Patch]
 	info_ptr->No_Control_point_ON_ELEMENT = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh]));			// No_Control_point_ON_ELEMENT[MAX_N_PATCH]
 	info_ptr->Node_Coordinate = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh] * (info.DIMENSION + 1)));	// Node_Coordinate[MAX_N_NODE][info.DIMENSION + 1];
 	info_ptr->Control_Coord_x = (double *)malloc(sizeof(double) * (info.Total_Control_Point_to_mesh[Total_mesh]));			// Control_Coord[info.DIMENSION][MAX_N_NODE];
@@ -109,7 +111,7 @@ int main(int argc, char **argv)
 		Get_Input_2(tm, argv, &info);
 	}
 
-	printf("\nFinish Get Input data\n\n");
+	printf("\n\nFinish Get Input data\n\n");
 
 	// 各最大値
 	MAX_ORDER += 1; // 次数の最大値 + 1
@@ -136,7 +138,9 @@ int main(int argc, char **argv)
 	}
 
 	// INC 等の作成
-	Make_INC(tm, &info);
+	Make_INC(&info);
+
+	printf("\nFinish Make INC\n\n");
 
 	// memory free
 	free(info.real_element_line), free(info.Total_element_all_ID), free(info.difference);
@@ -150,29 +154,37 @@ int main(int argc, char **argv)
 	{
 		D_MATRIX_SIZE = 6;
 	}
-	info_ptr->NNLOVER = (int *)malloc(sizeof(int) * info.real_Total_Element_to_mesh[Total_mesh]);
-	info_ptr->NELOVER = (int *)malloc(sizeof(int) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER);
-	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * info.DIMENSION, sizeof(double));
-	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * info.DIMENSION, sizeof(double));
-	info_ptr->Jac = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG);
-	info_ptr->Jac_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND);
-	info_ptr->B_Matrix = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	info_ptr->B_Matrix_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * D_MATRIX_SIZE * MAX_KIEL_SIZE);
-	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG * info.DIMENSION * sizeof(double));
-	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * POW_NG_EXTEND * info.DIMENSION * sizeof(double));
+	info_ptr->NNLOVER = (int *)calloc(info.real_Total_Element_to_mesh[Total_mesh], sizeof(int));
+	info_ptr->NELOVER = (int *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER, sizeof(int));
+	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG * info.DIMENSION, sizeof(double));
+	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND * info.DIMENSION, sizeof(double));
+	info_ptr->Jac = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG);
+	info_ptr->Jac_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND);
+	info_ptr->B_Matrix = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	info_ptr->B_Matrix_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG * info.DIMENSION * sizeof(double));
+	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND * info.DIMENSION * sizeof(double));
 	if (info.NNLOVER == NULL || info.NELOVER == NULL || info.Gauss_Coordinate == NULL || info.Gauss_Coordinate_ex == NULL || info.Jac == NULL || info.Jac_ex == NULL || info.B_Matrix == NULL || info.B_Matrix_ex == NULL || info.Loc_parameter_on_Glo == NULL || info.Loc_parameter_on_Glo_ex == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
 	}
 
-	// check_over_parameter, NNLOVER の算出
-	for (i = 1; i < Total_mesh; i++)
+	if (Total_mesh == 1) // IGA
+	{
+		Preprocessing_IGA(&info);
+		printf("\nFinish Preprocessing\n\n");
+	}
+	else if (Total_mesh >= 2) // S-IGA
 	{
 		int mesh_n_org = 0;
-		Check_coupled_Glo_Loc_element(i, mesh_n_org, &info);
-		Make_Loc_Glo(&info);
+		for (i = 1; i < Total_mesh; i++)
+		{
+			Check_coupled_Glo_Loc_element(i, mesh_n_org, &info);
+			Make_Loc_Glo(&info);
+		}
+		printf("\nFinish check_over_parameter\n\n");
 	}
-	printf("\nFinish check_over_parameter\n\n");
+	// check_over_parameter, NNLOVER の算出
 
 	// memory allocation
 	MAX_K_WHOLE_SIZE = info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION;

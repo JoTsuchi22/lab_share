@@ -23,6 +23,7 @@
 #define DIVISION_ELE 10                                     // 一要素あたりの分割数
 #define DBL_MAX 1.7976931348623158e+308                     // max value
 #define ERROR -999
+#define ERR 0.0000000000001
 
 struct information {
     int DIMENSION;  // new
@@ -115,12 +116,14 @@ struct information {
 // Get input file data
 void Get_Input_1(int tm, char **argv, information *info);
 void Get_Input_2(int tm, char **argv, information *info);
-void Make_INC(int tm, information *info);
+void Make_INC(information *info);
 // Distributed Load
 void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, double *Range_Coord, int type_load, double *Coeff_Dist_Load, information *info);
 void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double val_Coord, double *iRange_Coord, double *jRange_Coord, int type_load, double *iCoeff_Dist_Load, double *jCoeff_Dist_Load, information *info);
 int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *info);
 int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, information *info);
+// for IGA
+void Preprocessing_IGA(information *info);
 // for s_IGA
 void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info);
 void Make_Loc_Glo(information *info);
@@ -164,7 +167,8 @@ double Shape_func(int I_No, double *Local_coord, int El_No, information *info);
 void ShapeFunc_from_paren(double *Position_Data_param, double *Local_coord, int j, int e, information *info);
 void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, double *dShape, information *info);
 double dShape_func(int I_No, int xez, double *Local_coord, int El_No, information *info);
-void NURBS_deriv(double *Local_coord, int El_No, double *dShape_func1, double *dShape_func2, information *info);
+void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double *dShape_func2, information *info);
+void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double *dShape_func2, double *dShape_func3, information *info);
 double dShapeFunc_from_paren(int j, int e, information *info);
 // Newton-Raphson
 double BasisFunc(double *knot_vec, int knot_index, int order, double xi, double *output, double *d_output);
@@ -302,14 +306,13 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 						 int knot_n_xi_loc, int knot_n_eta_loc,
 						 int cntl_p_n_xi_loc, int cntl_p_n_eta_loc,
 						 double *knot_vec_xi_loc, double *knot_vec_eta_loc,
-						 double *cntl_px_loc, double *cntl_py_loc,
-						 double *weight_loc,
+						 double *cntl_px_loc, double *cntl_py_loc, double *weight_loc,
 						 int order_xi_glo, int order_eta_glo,
 						 int cntl_p_n_xi_glo, int cntl_p_n_eta_glo,
 						 double *knot_vec_xi_glo, double *knot_vec_eta_glo,
 						 double *cntl_px_glo, double *cntl_py_glo,
-						 double *disp_cntl_px_glo, double *disp_cntl_py_glo,
-						 double *weight_glo, int patch_num, information *info);
+						 double *disp_cntl_px_glo, double *disp_cntl_py_glo, double *weight_glo,
+                         int patch_num, information *info);
 int CalcXiEtaByNR(double px, double py,
 				  double *input_knot_vec_xi, double *input_knot_vec_eta,
 				  double *cntl_px, double *cntl_py,

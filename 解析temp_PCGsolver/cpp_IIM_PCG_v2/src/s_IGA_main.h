@@ -56,6 +56,7 @@ double nu;                     // ポアソン比(-)
 int Total_mesh;
 
 int MAX_ORDER = 0;          // 基底関数の次数の最大値 + 1
+int MAX_CP = 0;
 int MAX_NO_CP_ON_ELEMENT;  // new
 int MAX_KIEL_SIZE;              // new
 

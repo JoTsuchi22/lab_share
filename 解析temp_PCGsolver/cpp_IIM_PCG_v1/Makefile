@@ -16,6 +16,9 @@ run1:	mkdir_output
 run2:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_30x30.txt
 
+run_2D_IGA:	mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_2D/input.txt
+
 # NURBS viewer, 0: local, 1: global
 view0:
 	./src/NURBS_viewer/NURBS_view.exe ./analysis/output/input_local.txt ./analysis/output/overlay_view.dat ./analysis/output/Displacement_loc.dat
@@ -30,3 +33,5 @@ mkdir_output:
 testrun0:	compile run0 view0
 
 testrun1:	compile run1 view0
+
+testrun2:	compile run_2D_IGA view0
