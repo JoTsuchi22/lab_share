@@ -456,25 +456,26 @@ void Make_INC(information *info)
 			for (l = 0; l < No_Patch; l++)
 			{
 				i = 0;
-				for (jj = 0; jj < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; jj++)
+				int patch = l + Total_Patch_to_Now;
+				for (jj = 0; jj < info->No_Control_point[patch * info->DIMENSION + 1]; jj++)
 				{
-					for (ii = 0; ii < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; ii++)
+					for (ii = 0; ii < info->No_Control_point[patch * info->DIMENSION + 0]; ii++)
 					{
-						info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 0] = ii;
-						info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 1] = jj;
+						info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i] * info->DIMENSION + 0] = ii;
+						info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i] * info->DIMENSION + 1] = jj;
 
-						if (ii >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] && jj >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1])
+						if (ii >= info->Order[patch * info->DIMENSION + 0] && jj >= info->Order[patch * info->DIMENSION + 1])
 						{
-							for (jjloc = 0; jjloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; jjloc++)
+							for (jjloc = 0; jjloc <= info->Order[patch * info->DIMENSION + 1]; jjloc++)
 							{
-								for (iiloc = 0; iiloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; iiloc++)
+								for (iiloc = 0; iiloc <= info->Order[patch * info->DIMENSION + 0]; iiloc++)
 								{
-									B = info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i - jjloc * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0] - iiloc];
-									b = jjloc * (info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] + 1) + iiloc;
+									B = info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i - jjloc * info->No_Control_point[patch * info->DIMENSION + 0] - iiloc];
+									b = jjloc * (info->Order[patch * info->DIMENSION + 0] + 1) + iiloc;
 									info->Controlpoint_of_Element[(e + Total_Element_to_Now) * MAX_NO_CP_ON_ELEMENT + b] = B;
 								}
 							}
-							info->Element_patch[e + Total_Element_to_Now] = l + Total_Patch_to_Now;
+							info->Element_patch[e + Total_Element_to_Now] = patch;
 							info->Element_mesh[e + Total_Element_to_Now] = tm;
 							e++;
 						}
@@ -489,31 +490,32 @@ void Make_INC(information *info)
 			for (l = 0; l < No_Patch; l++)
 			{
 				i = 0;
-				for (kk = 0; kk < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 2]; kk++)
+				int patch = l + Total_Patch_to_Now;
+				for (kk = 0; kk < info->No_Control_point[patch * info->DIMENSION + 2]; kk++)
 				{
-					for (jj = 0; jj < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; jj++)
+					for (jj = 0; jj < info->No_Control_point[patch * info->DIMENSION + 1]; jj++)
 					{
-						for (ii = 0; ii < info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; ii++)
+						for (ii = 0; ii < info->No_Control_point[patch * info->DIMENSION + 0]; ii++)
 						{
-							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 0] = ii;
-							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 1] = jj;
-							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i] * info->DIMENSION + 2] = kk;
+							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i] * info->DIMENSION + 0] = ii;
+							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i] * info->DIMENSION + 1] = jj;
+							info->INC[info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i] * info->DIMENSION + 2] = kk;
 
-							if (ii >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] && jj >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1] && kk >= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 2])
+							if (ii >= info->Order[patch * info->DIMENSION + 0] && jj >= info->Order[patch * info->DIMENSION + 1] && kk >= info->Order[patch * info->DIMENSION + 2])
 							{
-								for (kkloc = 0; kkloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 2]; kkloc++)
+								for (kkloc = 0; kkloc <= info->Order[patch * info->DIMENSION + 2]; kkloc++)
 								{
-									for (jjloc = 0; jjloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; jjloc++)
+									for (jjloc = 0; jjloc <= info->Order[patch * info->DIMENSION + 1]; jjloc++)
 									{
-										for (iiloc = 0; iiloc <= info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; iiloc++)
+										for (iiloc = 0; iiloc <= info->Order[patch * info->DIMENSION + 0]; iiloc++)
 										{
-											B = info->Patch_Control_point[info->Total_Control_Point_to_patch[l + Total_Patch_to_Now] + i - kkloc * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0] * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 1] - jjloc * info->No_Control_point[(l + Total_Patch_to_Now) * info->DIMENSION + 0] - iiloc];
-											b = kkloc * (info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] + 1) * (info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 1] + 1) + jjloc * (info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + 0] + 1) + iiloc;
+											B = info->Patch_Control_point[info->Total_Control_Point_to_patch[patch] + i - kkloc * info->No_Control_point[patch * info->DIMENSION + 0] * info->No_Control_point[patch * info->DIMENSION + 1] - jjloc * info->No_Control_point[patch * info->DIMENSION + 0] - iiloc];
+											b = kkloc * (info->Order[patch * info->DIMENSION + 0] + 1) * (info->Order[patch * info->DIMENSION + 1] + 1) + jjloc * (info->Order[patch * info->DIMENSION + 0] + 1) + iiloc;
 											info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + b] = B;
 										}
 									}
 								}
-								info->Element_patch[e + Total_Element_to_Now] = l + Total_Patch_to_Now;
+								info->Element_patch[e + Total_Element_to_Now] = patch;
 								info->Element_mesh[e + Total_Element_to_Now] = tm;
 								e++;
 							}
@@ -527,25 +529,27 @@ void Make_INC(information *info)
 		// for s-IGA line_No_real_elementの初期化
 		for (l = 0; l < No_Patch; l++)
 		{
+			int patch = l + Total_Patch_to_Now;
 			for (j = 0; j < info->DIMENSION; j++)
 			{
-				info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + j] = 0;
+				info->line_No_real_element[patch * info->DIMENSION + j] = 0;
 			}
 		}
 
 		for (l = 0; l < No_Patch; l++)
 		{
+			int patch = l + Total_Patch_to_Now;
 			for (j = 0; j < info->DIMENSION; j++)
 			{
-				info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + j] = info->No_knot[(l + Total_Patch_to_Now) * info->DIMENSION + j] - 2 * info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + j] - 1;
+				info->line_No_Total_element[patch * info->DIMENSION + j] = info->No_knot[patch * info->DIMENSION + j] - 2 * info->Order[patch * info->DIMENSION + j] - 1;
 
-				for (kkk = info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + j]; kkk < info->No_knot[(l + Total_Patch_to_Now) * info->DIMENSION + j] - info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + j] - 1; kkk++)
+				for (kkk = info->Order[patch * info->DIMENSION + j]; kkk < info->No_knot[patch * info->DIMENSION + j] - info->Order[patch * info->DIMENSION + j] - 1; kkk++)
 				{
-					info->difference[info->Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * info->DIMENSION + j] + kkk - info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + j]]
-						= info->Position_Knots[info->Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * info->DIMENSION + j] + kkk + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * info->DIMENSION + j] + kkk];
-					if (info->difference[info->Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * info->DIMENSION + j] + kkk - info->Order[(l + Total_Patch_to_Now) * info->DIMENSION + j]] != 0)
+					info->difference[info->Total_Knot_to_patch_dim[patch * info->DIMENSION + j] + kkk - info->Order[patch * info->DIMENSION + j]]
+						= info->Position_Knots[info->Total_Knot_to_patch_dim[patch * info->DIMENSION + j] + kkk + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[patch * info->DIMENSION + j] + kkk];
+					if (info->difference[info->Total_Knot_to_patch_dim[patch * info->DIMENSION + j] + kkk - info->Order[patch * info->DIMENSION + j]] != 0)
 					{
-						info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + j]++;
+						info->line_No_real_element[patch * info->DIMENSION + j]++;
 					}
 				}
 			}
@@ -562,9 +566,10 @@ void Make_INC(information *info)
 			i = 0;
 			for (l = 0; l < No_Patch; l++)
 			{
-				for (y = 0; y < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; y++)
+				int patch = l + Total_Patch_to_Now;
+				for (y = 0; y < info->line_No_Total_element[patch * info->DIMENSION + 1]; y++)
 				{
-					for (x = 0; x < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; x++)
+					for (x = 0; x < info->line_No_Total_element[patch * info->DIMENSION + 0]; x++)
 					{
 						info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 0] = x;
 						info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 1] = y;
@@ -578,11 +583,12 @@ void Make_INC(information *info)
 			i = 0;
 			for (l = 0; l < No_Patch; l++)
 			{
-				for (z = 0; z < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 2]; z++)
+				int patch = l + Total_Patch_to_Now;
+				for (z = 0; z < info->line_No_Total_element[patch * info->DIMENSION + 2]; z++)
 				{
-					for (y = 0; y < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 1]; y++)
+					for (y = 0; y < info->line_No_Total_element[patch * info->DIMENSION + 1]; y++)
 					{
-						for (x = 0; x < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + 0]; x++)
+						for (x = 0; x < info->line_No_Total_element[patch * info->DIMENSION + 0]; x++)
 						{
 							info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 0] = x;
 							info->ENC[(i + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 1] = y;
@@ -600,11 +606,12 @@ void Make_INC(information *info)
 			for (l = 0; l < No_Patch; l++)
 			{
 				e = 0;
-				for (k = 0; k < info->line_No_Total_element[(l + Total_Patch_to_Now) * info->DIMENSION + j]; k++)
+				int patch = l + Total_Patch_to_Now;
+				for (k = 0; k < info->line_No_Total_element[patch * info->DIMENSION + j]; k++)
 				{
-					if (info->difference[info->Total_Knot_to_patch_dim[(l + Total_Patch_to_Now) * info->DIMENSION + j] + k] != 0)
+					if (info->difference[info->Total_Knot_to_patch_dim[patch * info->DIMENSION + j] + k] != 0)
 					{
-						info->real_element_line[(l + Total_Patch_to_Now) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + e * info->DIMENSION + j] = k;
+						info->real_element_line[patch * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + e * info->DIMENSION + j] = k;
 						e++;
 					}
 				}
@@ -644,7 +651,8 @@ void Make_INC(information *info)
 
 			for (l = 0; l < No_Patch; l++)
 			{
-				real_Total_Element += info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + 0] * info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + 1];
+				int patch = l + Total_Patch_to_Now;
+				real_Total_Element += info->line_No_real_element[patch * info->DIMENSION + 0] * info->line_No_real_element[patch * info->DIMENSION + 1];
 			}
 			info->real_Total_Element_on_mesh[tm] = real_Total_Element;
 			info->real_Total_Element_to_mesh[tm + 1] = info->real_Total_Element_to_mesh[tm] + real_Total_Element;
@@ -687,7 +695,8 @@ void Make_INC(information *info)
 
 			for (l = 0; l < No_Patch; l++)
 			{
-				real_Total_Element += info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + 0] * info->line_No_real_element[(l + Total_Patch_to_Now) * info->DIMENSION + 1];
+				int patch = l + Total_Patch_to_Now;
+				real_Total_Element += info->line_No_real_element[patch * info->DIMENSION + 0] * info->line_No_real_element[patch * info->DIMENSION + 1] * info->line_No_real_element[patch * info->DIMENSION + 2];
 			}
 			info->real_Total_Element_on_mesh[tm] = real_Total_Element;
 			info->real_Total_Element_to_mesh[tm + 1] = info->real_Total_Element_to_mesh[tm] + real_Total_Element;
@@ -1781,6 +1790,7 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 				jac = 0.0;
 			else
 				jac = J;
+
 			printf("Error, J = %le\n, J must be positive value.", jac);
 			exit(1);
 		}
