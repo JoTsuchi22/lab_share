@@ -153,11 +153,10 @@ void Make_F_Vec_disp_const(information *info);
 void Add_Equivalent_Nodal_Force_to_F_Vec(information *info);
 // PCG solver
 void PCG_Solver(int max_itetarion, double eps, information *info);
-void Make_M(double *M, int *M_Ptr, int *M_Col, int ndof, information *info);
-void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *right_vec, double *gg, double *dd, double *pp);
+void Make_M(double *M, int *M_Ptr, int *M_Col, double *M_diag, int ndof, information *info);
+void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, double *M_diag, double *right_vec, double *gg, double *dd, double *pp, double *temp_r);
 void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof);
 double inner_product(int ndof, double *vec1, double *vec2);
-int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
 int RowCol_to_icount(int row, int col, information *info);
 // tool
 double InverseMatrix_2x2(double M[2][2]);

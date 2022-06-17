@@ -270,25 +270,14 @@ int main(int argc, char **argv)
 		printf("\nFinish K_output_svg\n\n");
 	}
 
-
-
-
+	// viewer のための出力
+	output_for_viewer(&info);
+	printf("\nFinish output_for_viewer\n\n");
 
 	if (info.DIMENSION == 3)
 	{
 		exit(0);
 	}
-
-
-
-
-
-
-
-
-	// viewer のための出力
-	output_for_viewer(&info);
-	printf("\nFinish output_for_viewer\n\n");
 
 	// memory allocation
 	DIVISION_ELEMENT = (DIVISION_ELE + 1) * (DIVISION_ELE + 1);
