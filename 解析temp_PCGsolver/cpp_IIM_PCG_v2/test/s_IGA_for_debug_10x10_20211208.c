@@ -713,6 +713,14 @@ int main(int argc, char *argv[])
     //}   //ローカルメッシュのためにinput fileの読み込みのループ終了
     //printf("K_Whole_overlaid_Size=%d\n",K_Whole_overlaid_Size);
     printf("Finish Make_K_Whole\n");
+
+	printf("f_vec\n");
+	for (i = 0; i < K_Whole_Size; i++)
+	{
+		printf("%d\t%le\n", i, rhs_vec[i]);
+	}
+
+	exit(1);
 	/*
 	//グローバルパッチとローカルパッチの重なり
 	for (i = 0; i < Total_mesh - 1; i++)	//mesh_n_org

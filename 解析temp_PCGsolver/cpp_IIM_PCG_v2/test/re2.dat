@@ -1,0 +1,1 @@
+gcc -o a.x s_IGA_for_debug_10x10_20211208.c -O1 -lm -Wall -Wextra

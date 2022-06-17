@@ -623,13 +623,14 @@ void Make_INC(information *info)
 		{
 			for (n = 0; n < Total_Element; n++)
 			{
-				for (p = 0; p < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 0]; p++)
+				int ele = n + Total_Element_to_Now;
+				for (p = 0; p < info->line_No_real_element[info->Element_patch[ele] * info->DIMENSION + 0]; p++)
 				{
-					if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 0] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + p * info->DIMENSION + 0])
+					if (info->ENC[ele * info->DIMENSION + 0] == info->real_element_line[info->Element_patch[ele] * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + p * info->DIMENSION + 0])
 					{
-						for (q = 0; q < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 1]; q++)
+						for (q = 0; q < info->line_No_real_element[info->Element_patch[ele] * info->DIMENSION + 1]; q++)
 						{
-							if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 1] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + q * info->DIMENSION + 1])
+							if (info->ENC[ele * info->DIMENSION + 1] == info->real_element_line[info->Element_patch[ele] * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + q * info->DIMENSION + 1])
 							{
 								info->Total_element_all_ID[n]++;
 							}
@@ -661,17 +662,18 @@ void Make_INC(information *info)
 		{
 			for (n = 0; n < Total_Element; n++)
 			{
-				for (o = 0; o < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 0]; o++)
+				int ele = n + Total_Element_to_Now;
+				for (o = 0; o < info->line_No_real_element[info->Element_patch[ele] * info->DIMENSION + 0]; o++)
 				{
-					if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 0] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + o * info->DIMENSION + 0])
+					if (info->ENC[ele * info->DIMENSION + 0] == info->real_element_line[info->Element_patch[ele] * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + o * info->DIMENSION + 0])
 					{
-						for (p = 0; p < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 1]; p++)
+						for (p = 0; p < info->line_No_real_element[info->Element_patch[ele] * info->DIMENSION + 1]; p++)
 						{
-							if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 1] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + p * info->DIMENSION + 1])
+							if (info->ENC[ele * info->DIMENSION + 1] == info->real_element_line[info->Element_patch[ele] * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + p * info->DIMENSION + 1])
 							{
-								for (q = 0; q < info->line_No_real_element[(info->Element_patch[n + Total_Element_to_Now]) * info->DIMENSION + 2]; q++)
+								for (q = 0; q < info->line_No_real_element[info->Element_patch[ele] * info->DIMENSION + 2]; q++)
 								{
-									if (info->ENC[(n + info->Total_Element_to_mesh[tm]) * info->DIMENSION + 2] == info->real_element_line[(info->Element_patch[n + Total_Element_to_Now]) * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + q * info->DIMENSION + 2])
+									if (info->ENC[ele * info->DIMENSION + 2] == info->real_element_line[info->Element_patch[ele] * (info->Total_Element_to_mesh[Total_mesh] * info->DIMENSION) + q * info->DIMENSION + 2])
 									{
 										info->Total_element_all_ID[n]++;
 									}
@@ -684,8 +686,8 @@ void Make_INC(information *info)
 				// IDが1の要素に番号を振る
 				if (info->Total_element_all_ID[n] == 1)
 				{
-					info->real_element[r + info->real_Total_Element_to_mesh[tm]] = n + Total_Element_to_Now;
-					info->real_El_No_on_mesh[tm * info->Total_Element_to_mesh[Total_mesh] + r] = n + Total_Element_to_Now;
+					info->real_element[r + info->real_Total_Element_to_mesh[tm]] = ele;
+					info->real_El_No_on_mesh[tm * info->Total_Element_to_mesh[Total_mesh] + r] = ele;
 					r++;
 				}
 			}
@@ -754,7 +756,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 	int iX, iY;
 	int ic, ig;
 	double val_jCoord_Local = 0.0;
-	double Position_Data_param[MAX_DIMENSION];
+	double Position_Data_param[MAX_DIMENSION] = {0.0};
 
 	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
 	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
@@ -917,7 +919,7 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	int iX, iY, iZ;
 	int ic, ig_i, ig_j;
 	double val_kCoord_Local = 0.0;
-	double Position_Data_param[MAX_DIMENSION];
+	double Position_Data_param[MAX_DIMENSION] = {0.0};
 
 	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh] * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
 	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
@@ -2414,10 +2416,6 @@ void Make_K_Whole_Val(information *info)
 	for (re = 0; re < info->real_Total_Element_to_mesh[Total_mesh]; re++)
 	{
 		i = info->real_element[re];
-		if (i != re)
-		{
-			cout << "OMG" << endl;
-		}
 
 		if (Total_mesh == 1) // IGA
 		{
@@ -2805,7 +2803,7 @@ void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, 
 	int i, j, k;
 	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
 
-	//[B]T[info->D][B]Jの計算
+	//[B]T[D][B]Jの計算
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
 		for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -3253,142 +3251,6 @@ int RowCol_to_icount(int row, int col, information *info)
 		}
 	}
 	return -1;
-}
-
-
-// CG solver
-void mat_vec_crs(double *vec_result, double *vec, const int ndof, information *info)
-{
-	int i, j, icount = 0;
-
-	for (i = 0; i < ndof; i++)
-		vec_result[i] = 0.0;
-
-	for (i = 0; i < ndof; i++)
-	{
-		for (j = info->K_Whole_Ptr[i]; j < info->K_Whole_Ptr[i + 1]; j++)
-		{
-			vec_result[i] += info->K_Whole_Val[icount] * vec[info->K_Whole_Col[j]];
-			if (i != info->K_Whole_Col[j])
-			{
-				vec_result[info->K_Whole_Col[j]] += info->K_Whole_Val[icount] * vec[i];
-			}
-			icount++;
-		}
-	}
-}
-
-
-int check_conv_CG(int ndof, double alphak, double *pp, double eps, int itr, information *info)
-{
-	double rrr1 = 0.0, rrr2 = 0.0, rrr3;
-	int i, istop = 0;
-
-	printf("ndof=%d alphak= %15e\t", ndof, alphak);
-	for (i = 0; i < ndof; i++)
-	{
-		rrr1 += pp[i] * pp[i];
-		rrr2 += info->sol_vec[i] * info->sol_vec[i];
-	}
-	rrr3 = fabs(alphak) * sqrt(rrr1 / rrr2);
-	printf("Iteration# = %d  residual = %15e (%15e)\n", itr, rrr3, eps);
-	if (rrr3 < eps)
-		istop = 1;
-
-	return (istop);
-}
-
-
-void Diag_Scaling_CG_pre(int ndof, int flag_operation, double *diag_scaling, information *info)
-{
-	int i, j;
-	int icount = 0;
-	/* flag_opertion = 0: Pre process to the CG solver
-			A <-- Dt A D  and b <-- Dt b */
-	/* flag_operation = 1: Post process to the CG solver
-			b <-- Dt b  */
-	if (flag_operation == 0)
-	{
-		diag_scaling[0] = 1.0 / sqrt(info->K_Whole_Val[0]);
-		for (i = 1; i < ndof; i++)
-		{
-			diag_scaling[i] = 1.0 / sqrt(info->K_Whole_Val[info->K_Whole_Ptr[i]]);
-		}
-		for (i = 0; i < ndof; i++)
-		{
-			for (j = info->K_Whole_Ptr[i]; j < info->K_Whole_Ptr[i + 1]; j++)
-			{
-				info->K_Whole_Val[icount] = info->K_Whole_Val[icount] * diag_scaling[i] * diag_scaling[info->K_Whole_Col[j]];
-				icount++;
-			}
-			printf("rhs_vec_before[%d]:%le diag_scaling[%d]:%le\n", i, info->rhs_vec[i], i, diag_scaling[i]);
-			info->rhs_vec[i] = info->rhs_vec[i] * diag_scaling[i];
-		}
-	}
-	if (flag_operation == 1)
-	{
-		for (i = 0; i < ndof; i++)
-		{
-			info->sol_vec[i] = info->sol_vec[i] * diag_scaling[i];
-		}
-	}
-}
-
-
-void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val, information *info)
-{
-	double qqq, ppp, rrr;
-	double alphak, betak;
-	int i;
-	int itr;
-	int ii, istop;
-
-	double *diag_scaling = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);
-	double *gg = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);
-	double *dd = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);
-	double *pp = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);
-
-	Diag_Scaling_CG_pre(K_Whole_Size, 0, diag_scaling, info);
-
-	/* Program to solve linear equations by using the CG method */
-	if (flag_ini_val == 0)
-		for (i = 0; i < ndof; i++)
-			info->sol_vec[i] = 0.0;
-
-	/* Initializing the solution vector if it were not given */
-	mat_vec_crs(dd, info->sol_vec, ndof, info);
-	for (i = 0; i < ndof; i++)
-	{
-		gg[i] = info->rhs_vec[i] - dd[i];
-		printf("rhs_vec[%d] = %f dd[%d] = %f\n", i, info->rhs_vec[i], i, dd[i]);
-		pp[i] = gg[i];
-	}
-
-	for (itr = 0; itr < max_itr; itr++)
-	{
-		ppp = inner_product(ndof, gg, gg);
-		mat_vec_crs(dd, pp, ndof, info);
-		rrr = inner_product(ndof, dd, pp);
-		alphak = ppp / rrr;
-		//printf("ppp=%f rrr=%f\n", ppp, rrr);
-		//printf("i=%d",i);
-		for (ii = 0; ii < ndof; ii++)
-		{
-			info->sol_vec[ii] += alphak * pp[ii];
-			gg[ii] -= alphak * dd[ii];
-		}
-		qqq = inner_product(ndof, gg, dd);
-		betak = qqq / rrr;
-		for (ii = 0; ii < ndof; ii++)
-			pp[ii] = gg[ii] - betak * pp[ii];
-		istop = check_conv_CG(ndof, alphak, pp, eps, itr, info);
-		if (istop == 1)
-			break;
-	}
-
-	Diag_Scaling_CG_pre(K_Whole_Size, 1, diag_scaling, info);
-
-	free(diag_scaling), free(gg), free(dd), free(pp);
 }
 
 
@@ -6748,53 +6610,52 @@ void s_IGA_overlay(information *info)
 	division_ele_xi = DIVISION_ELE;
 	division_ele_eta = DIVISION_ELE;
 
+	// output
 	fp = fopen("view.dat", "w");
 	fprintf(fp, "%d\t%d\t%d\n", 1, division_ele_xi, division_ele_eta);
 	fclose(fp);
 
-	// 重ね合わせ結果出力のためのoverlay_view.dat作成
 	fp = fopen("overlay_view.dat", "w");
 	fprintf(fp, "%d\t%d\t%d\n", 1, division_ele_xi, division_ele_eta);
 	fclose(fp);
 
-	// グラフ作成のための出力
-	fp = fopen("disp_graph.txt", "w");
+	fp = fopen("disp.txt", "w");
 	fprintf(fp, "patch_n\tx\ty\tdisp_x\tdisp_y\n");
 	fclose(fp);
 
-	fp = fopen("stress_y_graph.txt", "w");
+	fp = fopen("stress_y.txt", "w");
 	fprintf(fp, "patch_n\tx\ty\tstress_yy\n");
 	fclose(fp);
 
-	fp = fopen("stress_y_graph_0.txt", "w");
+	fp = fopen("stress_y_0.txt", "w");
 	fprintf(fp, "patch_n\tx\ty\tstress_yy\n");
 	fclose(fp);
 
-	fp = fopen("stress_vm_graph.txt", "w");
+	fp = fopen("stress_vm.txt", "w");
 	fprintf(fp, "xi\teta\tx\ty\tstress_vm\n");
 	fclose(fp);
 
-	fp = fopen("over_disp_graph.txt", "w");
+	fp = fopen("overlay_disp.txt", "w");
 	fprintf(fp, "patch_n\tx\ty\tdisp_x\tdisp_y\n");
 	fclose(fp);
 
-	fp = fopen("over_stress_x_graph.txt", "w");
+	fp = fopen("overlay_stress_x.txt", "w");
 	fprintf(fp, "x\ty\tstress_xx\n");
 	fclose(fp);
 
-	fp = fopen("over_stress_y_graph.txt", "w");
+	fp = fopen("overlay_stress_y.txt", "w");
 	fprintf(fp, "x\ty\tstress_yy\n");
 	fclose(fp);
 
-	fp = fopen("over_stress_y_graph_0.txt", "w");
+	fp = fopen("overlay_stress_y_0.txt", "w");
 	fprintf(fp, "x\ty\tstress_yy\n");
 	fclose(fp);
 
-	fp = fopen("over_stress_r_theta_graph.txt", "w");
+	fp = fopen("overlay_stress_r_theta.txt", "w");
 	fprintf(fp, "xi\teta\tx\ty\tstress_r\tstress_theta\n");
 	fclose(fp);
 
-	fp = fopen("over_stress_vm_graph.txt", "w");
+	fp = fopen("overlay_stress_vm.txt", "w");
 	fprintf(fp, "xi\teta\tx\ty\tstress_vm\n");
 	fclose(fp);
 
@@ -6802,7 +6663,7 @@ void s_IGA_overlay(information *info)
 	for (i = 0; i < patch_n; i++)
 	{
 
-		fp = fopen("stress_vm_graph.txt", "a");
+		fp = fopen("stress_vm.txt", "a");
 		fprintf(fp, "\npatch_n;%d\n\n", i);
 		fclose(fp);
 
@@ -7209,7 +7070,7 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 	fclose(fp);
 
 	// グラフ用ファイル書き込み
-	fp = fopen("disp_graph.txt", "a");
+	fp = fopen("disp.txt", "a");
 	for (i = 0; i < division_n_xi; i++)
 	{
 		for (j = 0; j < division_n_eta; j++)
@@ -7224,7 +7085,7 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 	}
 	fclose(fp);
 
-	fp = fopen("stress_y_graph.txt", "a");
+	fp = fopen("stress_y.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7248,7 +7109,7 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 	}
 	fclose(fp);
 
-	fp = fopen("stress_y_graph_0.txt", "a");
+	fp = fopen("stress_y_0.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7275,7 +7136,7 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 	}
 	fclose(fp);
 
-	fp = fopen("stress_vm_graph.txt", "a");
+	fp = fopen("stress_vm.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7526,7 +7387,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	fclose(fp);
 
 	//グラフ用ファイル書き込み
-	fp = fopen("over_disp_graph.txt", "a");
+	fp = fopen("overlay_disp.txt", "a");
 	for (i = 0; i < division_n_xi; i++)
 	{
 		for (j = 0; j < division_n_eta; j++)
@@ -7541,7 +7402,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	}
 	fclose(fp);
 
-	fp = fopen("over_stress_x_graph.txt", "a");
+	fp = fopen("overlay_stress_x.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7564,7 +7425,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	}
 	fclose(fp);
 
-	fp = fopen("over_stress_y_graph.txt", "a");
+	fp = fopen("overlay_stress_y.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7587,7 +7448,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	}
 	fclose(fp);
 
-	fp = fopen("over_stress_y_graph_0.txt", "a");
+	fp = fopen("overlay_stress_y_0.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7613,7 +7474,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	}
 	fclose(fp);
 
-	fp = fopen("over_stress_r_theta_graph.txt", "a");
+	fp = fopen("overlay_stress_r_theta.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -7644,7 +7505,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	}
 	fclose(fp);
 
-	fp = fopen("over_stress_vm_graph.txt", "a");
+	fp = fopen("overlay_stress_vm.txt", "a");
 	for (i = 0; i < element_n_xi; i++)
 	{
 		for (j = 0; j < element_n_eta; j++)
@@ -8391,6 +8252,80 @@ void output_for_viewer(information *info)
 		fprintf(fp, "%d:	%.16e %.16e \n", i, info->Displacement[(i + glo_cntl_p_n) * info->DIMENSION + 0], info->Displacement[(i + glo_cntl_p_n) * info->DIMENSION + 1]);
 	}
 	fclose(fp);
+}
+
+
+void IGA_view(information *info)
+{
+	int i, j;
+
+	// 一要素の分割数
+	division_ele_xi = DIVISION_ELE;
+	division_ele_eta = DIVISION_ELE;
+
+	// output
+	fp = fopen("view.dat", "w");
+	fprintf(fp, "%d\t%d\t%d\n", 1, division_ele_xi, division_ele_eta);
+	fclose(fp);
+
+	fp = fopen("disp.txt", "w");
+	fprintf(fp, "patch_n\tx\ty\tdisp_x\tdisp_y\n");
+	fclose(fp);
+
+	fp = fopen("stress_y.txt", "w");
+	fprintf(fp, "patch_n\tx\ty\tstress_yy\n");
+	fclose(fp);
+
+	fp = fopen("stress_y_0.txt", "w");
+	fprintf(fp, "patch_n\tx\ty\tstress_yy\n");
+	fclose(fp);
+
+	fp = fopen("stress_vm.txt", "w");
+	fprintf(fp, "xi\teta\tx\ty\tstress_vm\n");
+	fclose(fp);
+
+	for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		fp = fopen("stress_vm.txt", "a");
+		fprintf(fp, "\npatch_n;%d\n\n", i);
+		fclose(fp);
+
+		// パッチ i での各方向ノットベクトル, Coodinate, displacement
+		double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 0]);
+		double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 1]);
+		double *temp_Coord_x = (double *)malloc(sizeof(double) * info->No_Control_point_in_patch[i]);
+		double *temp_Coord_y = (double *)malloc(sizeof(double) * info->No_Control_point_in_patch[i]);
+		double *temp_Coord_w = (double *)malloc(sizeof(double) * info->No_Control_point_in_patch[i]);
+		double *temp_disp_x = (double *)malloc(sizeof(double) * info->No_Control_point_in_patch[i]);
+		double *temp_disp_y = (double *)malloc(sizeof(double) * info->No_Control_point_in_patch[i]);
+
+		for (j = 0; j < info->No_knot[i * info->DIMENSION + 0]; j++)
+		{
+			temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 0] + j];
+		}
+		for (j = 0; j < info->No_knot[i * info->DIMENSION + 1]; j++)
+		{
+			temp_Position_Knots_eta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 1] + j];
+		}
+
+		for (j = 0; j < info->No_Control_point_in_patch[i]; j++)
+		{
+			// temp_Coord_x[j] = info->Control_Coord_x[info->Total_Control_Point_to_patch[i] + j];
+			// temp_Coord_y[j] = info->Control_Coord_y[info->Total_Control_Point_to_patch[i] + j];
+			// temp_Coord_w[j] = info->Control_Weight[info->Total_Control_Point_to_patch[i] + j];
+			// temp_disp_x[j] = info->Displacement[(info->Total_Control_Point_to_patch[i] + j) * info->DIMENSION + 0];
+			// temp_disp_y[j] = info->Displacement[(info->Total_Control_Point_to_patch[i] + j) * info->DIMENSION + 1];
+			temp_Coord_x[j] = info->Control_Coord_x[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
+			temp_Coord_y[j] = info->Control_Coord_y[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
+			temp_Coord_w[j] = info->Control_Weight[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
+			temp_disp_x[j] = info->Displacement[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j] * info->DIMENSION + 0];
+			temp_disp_y[j] = info->Displacement[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j] * info->DIMENSION + 1];
+		}
+
+		Calculation(info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1], info->No_knot[i * info->DIMENSION + 0], info->No_knot[i * info->DIMENSION + 1], info->No_Control_point[i * info->DIMENSION + 0], info->No_Control_point[i * info->DIMENSION + 1],
+					temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Coord_x, temp_Coord_y, temp_Coord_w,
+					temp_disp_x, temp_disp_y, i, info);
+	}
 }
 
 

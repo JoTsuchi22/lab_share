@@ -20,7 +20,7 @@
 #define MAX_N_ELEMENT_OVER 100  				            // グローバルメッシュ内の1要素に重なる最大要素数
 #define MAX_N_ELEMENT_OVER_POINT 5				            // ローカル要素内の1点に重なるグローバル要素
 // #define MAX_N_ELEMENT_OVER_ELEMENT MAX_N_ELEMENT_OVER_POINT * POW_NG_EXTEND // ローカルメッシュ内の1要素に重なる最大要素数
-#define DIVISION_ELE 10                                     // 一要素あたりの分割数
+#define DIVISION_ELE 5                                      // 一要素あたりの分割数
 #define DBL_MAX 1.7976931348623158e+308                     // max value
 #define ERROR -999
 #define ERR 0.0000000000001
@@ -159,13 +159,6 @@ void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double
 double inner_product(int ndof, double *vec1, double *vec2);
 int M_check_conv_CG(int ndof, double alphak, double *pp, double eps, double *solution_vec);
 int RowCol_to_icount(int row, int col, information *info);
-
-// CG solver
-void mat_vec_crs(double *vec_result, double *vec, const int ndof, information *info);
-int check_conv_CG(int ndof, double alphak, double *pp, double eps, int itr, information *info);
-void Diag_Scaling_CG_pre(int ndof, int flag_operation, double *diag_scaling, information *info);
-void CG_Solver(int ndof, int max_itr, double eps, int flag_ini_val, information *info);
-
 // tool
 double InverseMatrix_2x2(double M[2][2]);
 double InverseMatrix_3x3(double M[3][3]);
@@ -331,6 +324,7 @@ int CalcXiEtaByNR(double px, double py,
 				  double *strain_xx_glo, double *strain_yy_glo, double *strain_xy_glo);
 // output
 void output_for_viewer(information *info);
+void IGA_view(information *info);
 void K_output_svg(information *info);
 
 

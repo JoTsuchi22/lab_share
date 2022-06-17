@@ -1,4 +1,0 @@
-xi	eta	x	y	stress_vm
-
-patch_n;0
-

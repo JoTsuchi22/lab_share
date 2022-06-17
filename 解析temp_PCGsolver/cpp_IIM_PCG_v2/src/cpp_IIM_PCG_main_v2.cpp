@@ -212,8 +212,8 @@ int main(int argc, char **argv)
 	free(info.ENC), free(info.Node_To_Node), free(info.Total_Control_Point_To_Node);
 
 	// memory allocation
-	info_ptr->sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// sol_vec[MAX_K_WHOLE_SIZE]
-	info_ptr->rhs_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));	// rhs_vec[MAX_K_WHOLE_SIZE]
+	info_ptr->sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// sol_vec[MAX_K_WHOLE_SIZE]
+	info_ptr->rhs_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// rhs_vec[MAX_K_WHOLE_SIZE]
 	if (info.sol_vec == NULL ||	info.rhs_vec == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
@@ -228,25 +228,10 @@ int main(int argc, char **argv)
 	// memory free
 	free(info.Equivalent_Nodal_Force);
 
-	// solver
+	printf("\nStart PCG solver\n\n");
 	int max_itr = K_Whole_Size;
-	if (Total_mesh == 1) // CG法 <- IGA
-	{
-		printf("\nStart CG solver\n\n");
-		CG_Solver(K_Whole_Size, max_itr, EPS, 0, &info);
-		printf("\nFinish CG solver\n\n");
-	}
-	else if (Total_mesh >= 1) // PCG法 <- S-IGA
-	{
-		printf("\nStart PCG solver\n\n");
-		PCG_Solver(max_itr, EPS, &info);
-		printf("\nFinish PCG solver\n\n");
-	}
-
-	// printf("\nStart PCG solver\n\n");
-	// int max_itr = K_Whole_Size;
-	// PCG_Solver(max_itr, EPS, &info);
-	// printf("\nFinish PCG solver\n\n");
+	PCG_Solver(max_itr, EPS, &info);
+	printf("\nFinish PCG solver\n\n");
 
 
 	// memory free
@@ -283,25 +268,36 @@ int main(int argc, char **argv)
 	output_for_viewer(&info);
 	printf("\nFinish output_for_viewer\n\n");
 
+	// memory allocation
+	DIVISION_ELEMENT = (DIVISION_ELE + 1) * (DIVISION_ELE + 1);
+	info_ptr->coord_x = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// coord_x[MAX_POINTS][MAX_POINTS]
+	info_ptr->coord_y = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// coord_y[MAX_POINTS][MAX_POINTS]
+	info_ptr->disp_x = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// disp_x[MAX_POINTS][MAX_POINTS]
+	info_ptr->disp_y = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// disp_y[MAX_POINTS][MAX_POINTS]
+	info_ptr->strain = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT * 3);	// strain[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1][3] // 0: xx, 1: yy, 2: xy
+	info_ptr->stress = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT * 3);	// stress[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1][3]
+	if (info.coord_x == NULL || info.coord_y == NULL || info.disp_x == NULL || info.disp_y == NULL || info.strain == NULL || info.stress == NULL) 
+	{
+		printf("Cannot allocate memory\n"); exit(1);
+	}
+
+	// IGA のポスト処理
+	if(Total_mesh == 1)
+	{
+		printf("\nStart IGA Postprocessing\n\n");
+		start = clock();
+		IGA_view(&info);
+		end = clock();
+		printf("\nIGA Postprocessing time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
+		printf("\nFinish IGA Postprocessing\n\n");
+		exit(0);
+	}
+
 	// 重ね合わせをスキップしてJ積分を行う
 	if (SKIP_S_IGA != 1)
 	{
 		printf("\nStart s_IGA overlay\n\n");
 		start = clock();
-
-		// memory allocation
-		DIVISION_ELEMENT = (DIVISION_ELE + 1) * (DIVISION_ELE + 1);
-		info_ptr->coord_x = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// coord_x[MAX_POINTS][MAX_POINTS]
-		info_ptr->coord_y = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// coord_y[MAX_POINTS][MAX_POINTS]
-		info_ptr->disp_x = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// disp_x[MAX_POINTS][MAX_POINTS]
-		info_ptr->disp_y = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// disp_y[MAX_POINTS][MAX_POINTS]
-		info_ptr->strain = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT * 3);	// strain[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1][3] // 0: xx, 1: yy, 2: xy
-		info_ptr->stress = (double *)malloc(sizeof(double) * 2 * info.Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT * 3);	// stress[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1][3]
-		if (info.coord_x == NULL || info.coord_y == NULL || info.disp_x == NULL || info.disp_y == NULL || info.strain == NULL || info.stress == NULL) 
-		{
-			printf("Cannot allocate memory\n"); exit(1);
-		}
-
 		s_IGA_overlay(&info);
 		end = clock();
 		printf("\noverlay time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
