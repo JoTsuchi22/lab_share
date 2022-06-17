@@ -5,8 +5,8 @@
 #include <time.h>
 
 // header
-#include "s_IGA_header.h"
-#include "s_IGA_sub.h"
+#include "S_IGA_header.h"
+#include "S_IGA_sub.h"
 
 using namespace std;
 
@@ -382,8 +382,8 @@ void Get_Input_2(int tm, char **argv, information *info)
 		{
 			fscanf(fp, "%d %d %d %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &val_Coord, &Range_Coord[0], &Range_Coord[1], &Coeff_Dist_Load[0], &Coeff_Dist_Load[1], &Coeff_Dist_Load[2]);
 			printf("Distibuted load nober: %d\n", i);
-			printf("type_load: %d  iPatch: %d iCoord: %d  val_Coord: %le  Range_Coord: %le  %le\nCoef_Dist_Load: %le %le %le\n",
-				type_load, iPatch, iCoord, val_Coord, Range_Coord[0], Range_Coord[1], Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2]);
+			printf("type_load: %d iPatch: %d iCoord: %d val_Coord: %le Range_Coord: %le %le\nCoef_Dist_Load: %le %le %le\n",
+					type_load, iPatch, iCoord, val_Coord, Range_Coord[0], Range_Coord[1], Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2]);
 
 			// for S-IGA
 			info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]] = type_load;
@@ -407,9 +407,9 @@ void Get_Input_2(int tm, char **argv, information *info)
 			fscanf(fp, "%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &jCoord, &val_Coord, &iRange_Coord[0], &iRange_Coord[1], &jRange_Coord[0], &jRange_Coord[1], &iCoeff_Dist_Load[0], &iCoeff_Dist_Load[1], &iCoeff_Dist_Load[2], &jCoeff_Dist_Load[0], &jCoeff_Dist_Load[1], &jCoeff_Dist_Load[2]);
 			printf("Distibuted load nober: %d\n", i);
 			printf("type_load: %d iPatch: %d iCoord: %d jCoord: %d val_Coord: %le\nRange_Coord: %le %le %le %le\nCoef_Dist_Load: %le %le %le %le %le %le\n",
-				type_load, iPatch, iCoord, jCoord, val_Coord,
-				iRange_Coord[0], iRange_Coord[1], jRange_Coord[0], jRange_Coord[1],
-				iCoeff_Dist_Load[0], iCoeff_Dist_Load[1], iCoeff_Dist_Load[2], jCoeff_Dist_Load[0], jCoeff_Dist_Load[1], jCoeff_Dist_Load[2]);
+					type_load, iPatch, iCoord, jCoord, val_Coord,
+					iRange_Coord[0], iRange_Coord[1], jRange_Coord[0], jRange_Coord[1],
+					iCoeff_Dist_Load[0], iCoeff_Dist_Load[1], iCoeff_Dist_Load[2], jCoeff_Dist_Load[0], jCoeff_Dist_Load[1], jCoeff_Dist_Load[2]);
 
 			// for S-IGA
 			info->type_load_array[i + info->Total_DistributeForce_to_mesh[tm]] = type_load;
@@ -1195,7 +1195,7 @@ void Preprocessing_IGA(information *info)
 }
 
 
-// for s_IGA, coupled matrix を求める, 要素の重なりを要素のガウス点から求める
+// for S_IGA, coupled matrix を求める, 要素の重なりを要素のガウス点から求める
 void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info)
 {
 	int re, e;
@@ -1793,7 +1793,7 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 			else
 				jac = J;
 
-			printf("Error, J = %le\n, J must be positive value.", jac);
+			printf("Error, J = %le\nJ must be positive value.", jac);
 			exit(1);
 		}
 	}
@@ -3263,10 +3263,7 @@ double InverseMatrix_2x2(double Matrix[2][2])
 	double det = Matrix[0][0] * Matrix[1][1] - Matrix[0][1] * Matrix[1][0];
 
 	if (det == 0)
-	{
-		printf("Error in InverseMatrix_2x2, det = 0\n");
 		return ERROR;
-	}
 
 	for (i = 0; i < 2; i++)
 	{
@@ -3289,10 +3286,7 @@ double InverseMatrix_3x3(double Matrix[3][3])
 	double det = Matrix[0][0] * Matrix[1][1] * Matrix[2][2] + Matrix[1][0] * Matrix[2][1] * Matrix[0][2] + Matrix[2][0] * Matrix[0][1] * Matrix[1][2] - Matrix[0][0] * Matrix[2][1] * Matrix[1][2] - Matrix[2][0] * Matrix[1][1] * Matrix[0][2] - Matrix[1][0] * Matrix[0][1] * Matrix[2][2];
 
 	if (det == 0)
-	{
-		printf("Error in InverseMatrix_3x3, det = 0\n");
 		return ERROR;
-	}
 
 	for (i = 0; i < 3; i++)
 	{
@@ -6599,11 +6593,10 @@ void Make_Displacement(information *info)
 }
 
 
-// for s_IGA overlay
-void s_IGA_overlay(information *info)
+// for S-IGA overlay
+void S_IGA_overlay(information *info)
 {
 	int i, j, k;
-	int patch_n = info->Total_Patch_to_mesh[Total_mesh];
 	int n_patch_glo = info->Total_Patch_to_mesh[1];
 
 	// 一要素の分割数
@@ -6660,9 +6653,8 @@ void s_IGA_overlay(information *info)
 	fclose(fp);
 
 	// 重ね合わせ
-	for (i = 0; i < patch_n; i++)
+	for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
 	{
-
 		fp = fopen("stress_vm.txt", "a");
 		fprintf(fp, "\npatch_n;%d\n\n", i);
 		fclose(fp);
@@ -6687,11 +6679,11 @@ void s_IGA_overlay(information *info)
 
 		for (j = 0; j < info->No_Control_point_in_patch[i]; j++)
 		{
-			temp_Coord_x[j] = info->Control_Coord_x[info->Total_Control_Point_to_patch[i] + j];
-			temp_Coord_y[j] = info->Control_Coord_y[info->Total_Control_Point_to_patch[i] + j];
-			temp_Coord_w[j] = info->Control_Weight[info->Total_Control_Point_to_patch[i] + j];
-			temp_disp_x[j] = info->Displacement[(info->Total_Control_Point_to_patch[i] + j) * info->DIMENSION + 0];
-			temp_disp_y[j] = info->Displacement[(info->Total_Control_Point_to_patch[i] + j) * info->DIMENSION + 1];
+			temp_Coord_x[j] = info->Control_Coord_x[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
+			temp_Coord_y[j] = info->Control_Coord_y[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
+			temp_Coord_w[j] = info->Control_Weight[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
+			temp_disp_x[j] = info->Displacement[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j] * info->DIMENSION + 0];
+			temp_disp_y[j] = info->Displacement[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j] * info->DIMENSION + 1];
 		}
 
 		Calculation(info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1], info->No_knot[i * info->DIMENSION + 0], info->No_knot[i * info->DIMENSION + 1], info->No_Control_point[i * info->DIMENSION + 0], info->No_Control_point[i * info->DIMENSION + 1],
@@ -6722,11 +6714,11 @@ void s_IGA_overlay(information *info)
 
 				for (k = 0; k < info->No_Control_point_in_patch[j]; k++)
 				{
-					temp_Coord_x_glo[k] = info->Control_Coord_x[info->Total_Control_Point_to_patch[j] + k];
-					temp_Coord_y_glo[k] = info->Control_Coord_y[info->Total_Control_Point_to_patch[j] + k];
-					temp_Coord_w_glo[k] = info->Control_Weight[info->Total_Control_Point_to_patch[j] + k];
-					temp_disp_x_glo[k] = info->Displacement[(info->Total_Control_Point_to_patch[j] + k) * info->DIMENSION + 0];
-					temp_disp_y_glo[k] = info->Displacement[(info->Total_Control_Point_to_patch[j] + k) * info->DIMENSION + 1];
+					temp_Coord_x_glo[k] = info->Control_Coord_x[info->Patch_Control_point[info->Total_Control_Point_to_patch[j] + k]];
+					temp_Coord_y_glo[k] = info->Control_Coord_y[info->Patch_Control_point[info->Total_Control_Point_to_patch[j] + k]];
+					temp_Coord_w_glo[k] = info->Control_Weight[info->Patch_Control_point[info->Total_Control_Point_to_patch[j] + k]];
+					temp_disp_x_glo[k] = info->Displacement[(info->Patch_Control_point[info->Total_Control_Point_to_patch[j] + k]) * info->DIMENSION + 0];
+					temp_disp_y_glo[k] = info->Displacement[(info->Patch_Control_point[info->Total_Control_Point_to_patch[j] + k]) * info->DIMENSION + 1];
 				}
 
 				Calculation_overlay(info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1],
@@ -8310,11 +8302,6 @@ void IGA_view(information *info)
 
 		for (j = 0; j < info->No_Control_point_in_patch[i]; j++)
 		{
-			// temp_Coord_x[j] = info->Control_Coord_x[info->Total_Control_Point_to_patch[i] + j];
-			// temp_Coord_y[j] = info->Control_Coord_y[info->Total_Control_Point_to_patch[i] + j];
-			// temp_Coord_w[j] = info->Control_Weight[info->Total_Control_Point_to_patch[i] + j];
-			// temp_disp_x[j] = info->Displacement[(info->Total_Control_Point_to_patch[i] + j) * info->DIMENSION + 0];
-			// temp_disp_y[j] = info->Displacement[(info->Total_Control_Point_to_patch[i] + j) * info->DIMENSION + 1];
 			temp_Coord_x[j] = info->Control_Coord_x[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
 			temp_Coord_y[j] = info->Control_Coord_y[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];
 			temp_Coord_w[j] = info->Control_Weight[info->Patch_Control_point[info->Total_Control_Point_to_patch[i] + j]];

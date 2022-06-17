@@ -124,7 +124,7 @@ int SearchForElement_2D(int mesh_n, int iPatch, int iX, int iY, information *inf
 int SearchForElement_3D(int mesh_n, int iPatch, int iX, int iY, int iZ, information *info);
 // for IGA
 void Preprocessing_IGA(information *info);
-// for s_IGA
+// for S_IGA
 void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info);
 void Make_Loc_Glo(information *info);
 int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad, information *info);
@@ -297,8 +297,8 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 				     double *output_xi, double *output_eta, double *output_zeta, information *info);
 // Postprocessing
 void Make_Displacement(information *info);
-// for s_IGA overlay
-void s_IGA_overlay(information *info);
+// for S_IGA overlay
+void S_IGA_overlay(information *info);
 void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int cntl_p_n_xi, int cntl_p_n_eta,
 				 double *input_knot_vec_xi, double *input_knot_vec_eta, double *cntl_px, double *cntl_py, double *weight,
 				 double *disp_cntl_px, double *disp_cntl_py, int patch_num, information *info);

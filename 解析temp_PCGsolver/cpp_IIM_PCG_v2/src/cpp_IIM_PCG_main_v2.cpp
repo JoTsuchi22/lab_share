@@ -20,8 +20,8 @@
 #include <time.h>
 
 // header
-#include "s_IGA_header.h"
-#include "s_IGA_main.h"
+#include "S_IGA_header.h"
+#include "S_IGA_main.h"
 
 using namespace std;
 
@@ -243,19 +243,25 @@ int main(int argc, char **argv)
 		printf("Cannot allocate memory\n"); exit(1);
 	}
 
-	// Postprocessing
+	// Make Displacement
 	Make_Displacement(&info);
 	printf("\nFinish Make_Displacement\n\n");
+
 	end = clock();
 	printf("\nAnalysis time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
+
+	// Postprocessing
 	// Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
 	printf("\nFinish Make_Strain\n\n");
 	// Make_Stress_2D(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
 	printf("\nFinish Make_Stress\n\n");
 	// Make_ReactionForce(Total_Control_Point_to_mesh[Total_mesh]);
 	printf("\nFinish Make_ReactionForce\n\n");
-	// Make_Parameter_z(real_Total_Element_to_mesh[Total_mesh], E, nu, DM);
-	printf("\nFinish Make_Parameter_z\n\n");
+	if (info.DIMENSION == 2)
+	{
+		// Make_Parameter_z(real_Total_Element_to_mesh[Total_mesh], E, nu, DM);
+		printf("\nFinish Make_Parameter_z\n\n");
+	}
 
 	// Kマトリックスのsvg出力
 	if (OUTPUT_SVG == 1)
@@ -263,6 +269,22 @@ int main(int argc, char **argv)
 		K_output_svg(&info);
 		printf("\nFinish K_output_svg\n\n");
 	}
+
+
+
+
+
+	if (info.DIMENSION == 3)
+	{
+		exit(0);
+	}
+
+
+
+
+
+
+
 
 	// viewer のための出力
 	output_for_viewer(&info);
@@ -296,12 +318,12 @@ int main(int argc, char **argv)
 	// 重ね合わせをスキップしてJ積分を行う
 	if (SKIP_S_IGA != 1)
 	{
-		printf("\nStart s_IGA overlay\n\n");
+		printf("\nStart S_IGA overlay\n\n");
 		start = clock();
-		s_IGA_overlay(&info);
+		S_IGA_overlay(&info);
 		end = clock();
-		printf("\noverlay time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
-		printf("\nFinish s_IGA overlay\n\n");
+		printf("\nS-IGA overlay time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
+		printf("\nFinish S_IGA overlay\n\n");
 	}
 	else if (SKIP_S_IGA == 1)
 	{

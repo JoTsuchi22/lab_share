@@ -12,7 +12,7 @@ compile_fast:
 
 # for debug
 run0:	mkdir_output
-	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt > result.dat
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_10x10.txt ../input_loc_3_10x10.txt
 
 run1:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_20x20.txt ../input_loc_3_20x20.txt
@@ -26,12 +26,15 @@ run_2D:	mkdir_output
 run_3D:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D/input.txt
 
+run_crack:	mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_crack/input_glo.txt ../input_crack/input_loc.txt
+
 # NURBS viewer, 0: local, 1: global
 view0:
-	./src/NURBS_viewer/NURBS_view.exe ./analysis/output/input_local.txt ./analysis/output/overlay_view.dat ./analysis/output/Displacement_loc.dat > temp.dat
+	cd ./analysis/output && ../../src/NURBS_viewer/NURBS_view.exe ./input_local.txt ./overlay_view.dat ./Displacement_loc.dat > temp.dat
 
 view1:
-	./src/NURBS_viewer/NURBS_view.exe ./analysis/output/input_for_NURBS.txt ./analysis/output/view.dat ./analysis/output/Displacement.dat > temp.dat
+	cd ./analysis/output && ../../src/NURBS_viewer/NURBS_view.exe ./input_for_NURBS.txt ./view.dat ./Displacement.dat > temp.dat
 
 mkdir_output:
 	cd ./analysis && mkdir -p output
@@ -44,3 +47,5 @@ testrun1:	compile run1 view0
 testrun_2D: compile_fast run_2D view1
 
 testrun_3D: compile run_3D view0
+
+testrun_crack: compile_fast run_crack view0
