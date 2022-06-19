@@ -5,13 +5,9 @@
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
 #define OUTPUT_SVG 1    // SVG 出力を行わない 0, 行う 1
 #define DM 1            // 平面応力状態:DM=0	平面ひずみ状態:DM=1
-// #define MAX_NO_CP_ON_ELEMENT 16						// 分割節点数
-// #define MAX_KIEL_SIZE MAX_NO_CP_ON_ELEMENT * DIMENSION	// 要素分割マトリックスの大きさ
 #define NG 4												// Gauss-Legendreの積分点数
-#define POW_NG NG * NG										// NGのDIMENSION乗の計算
 #define MAX_POW_NG NG * NG * NG 							// NGのDIMENSION乗の計算
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
-#define POW_NG_EXTEND NG_EXTEND * NG_EXTEND			        // NGのDIMENSION乗の計算
 #define MAX_POW_NG_EXTEND NG_EXTEND * NG_EXTEND	* NG_EXTEND // NGのDIMENSION乗の計算
 #define K_DIVISION_LENGE 10 	                            // 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
 #define EPS 1.0e-10				                            // 連立1次方程式の残差
@@ -19,14 +15,13 @@
 #define N_STRESS 4
 #define MAX_N_ELEMENT_OVER 100  				            // グローバルメッシュ内の1要素に重なる最大要素数
 #define MAX_N_ELEMENT_OVER_POINT 5				            // ローカル要素内の1点に重なるグローバル要素
-// #define MAX_N_ELEMENT_OVER_ELEMENT MAX_N_ELEMENT_OVER_POINT * POW_NG_EXTEND // ローカルメッシュ内の1要素に重なる最大要素数
 #define DIVISION_ELE 5                                      // 一要素あたりの分割数
 #define DBL_MAX 1.7976931348623158e+308                     // max value
 #define ERROR -999
 #define ERR 0.0000000000001
 
 struct information {
-    int DIMENSION;  // new
+    int DIMENSION;
 
     int *Total_Knot_to_mesh;
     int *Total_Patch_on_mesh;
@@ -53,7 +48,7 @@ struct information {
     double *Node_Coordinate;
     double *Control_Coord_x;
     double *Control_Coord_y;
-    double *Control_Coord_z; // new
+    double *Control_Coord_z;
     double *Control_Weight;
     int *Constraint_Node_Dir;
     double *Value_of_Constraint;
@@ -61,7 +56,7 @@ struct information {
     double *Value_of_Load;
     int *iPatch_array;
     int *iCoord_array;
-    int *jCoord_array; // new
+    int *jCoord_array;
     int *type_load_array;
     double *val_Coord_array;
     double *Range_Coord_array;
@@ -83,6 +78,9 @@ struct information {
 
     int *NNLOVER;
     int *NELOVER;
+    double *a_matrix;
+    double *dSF;
+    double *dSF_ex;
     double *Gauss_Coordinate;
     double *Gauss_Coordinate_ex;
     double *Jac;
@@ -133,9 +131,9 @@ int duplicate_delete(int total, int element_n, int *element_n_point, information
 // Preprocessing
 void Preprocessing(int m, int e, information *info);
 void Make_Gauss_Coordinate(int m, int e, information *info);
-void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info);
-void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info);
-void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info);
+void Make_dSF(int m, int e, information *info);
+void Make_Jac(int m, int e, information *info);
+void Make_B_Matrix(int m, int e, information *info);
 void Make_gauss_array(int select_GP, information *info);
 // K matrix
 void Make_D_Matrix(information *info);
@@ -158,8 +156,6 @@ void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, doubl
 void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof);
 double inner_product(int ndof, double *vec1, double *vec2);
 int RowCol_to_icount(int row, int col, information *info);
-// GMRES solver
-void GMRES_Solver(int max_itetarion, double eps, information *info);
 // tool
 double InverseMatrix_2x2(double M[2][2]);
 double InverseMatrix_3x3(double M[3][3]);

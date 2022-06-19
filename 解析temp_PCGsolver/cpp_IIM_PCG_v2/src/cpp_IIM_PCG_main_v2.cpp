@@ -159,6 +159,9 @@ int main(int argc, char **argv)
 	}
 	info_ptr->NNLOVER = (int *)calloc(info.real_Total_Element_to_mesh[Total_mesh], sizeof(int));
 	info_ptr->NELOVER = (int *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER, sizeof(int));
+	info_ptr->a_matrix = (double *)malloc(sizeof(double) * MAX_POW_NG_EXTEND * info.DIMENSION * info.DIMENSION);
+	info_ptr->dSF = (double *)malloc(sizeof(double) * MAX_POW_NG * MAX_NO_CP_ON_ELEMENT * info.DIMENSION);
+	info_ptr->dSF_ex = (double *)malloc(sizeof(double) * MAX_POW_NG_EXTEND * MAX_NO_CP_ON_ELEMENT * info.DIMENSION);
 	info_ptr->Gauss_Coordinate = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG * info.DIMENSION, sizeof(double));
 	info_ptr->Gauss_Coordinate_ex = (double *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND * info.DIMENSION, sizeof(double));
 	info_ptr->Jac = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG);
@@ -167,7 +170,7 @@ int main(int argc, char **argv)
 	info_ptr->B_Matrix_ex = (double *)malloc(sizeof(double) * info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND * D_MATRIX_SIZE * MAX_KIEL_SIZE);
 	info_ptr->Loc_parameter_on_Glo = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG * info.DIMENSION * sizeof(double));
 	info_ptr->Loc_parameter_on_Glo_ex = (double *)malloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_POW_NG_EXTEND * info.DIMENSION * sizeof(double));
-	if (info.NNLOVER == NULL || info.NELOVER == NULL || info.Gauss_Coordinate == NULL || info.Gauss_Coordinate_ex == NULL || info.Jac == NULL || info.Jac_ex == NULL || info.B_Matrix == NULL || info.B_Matrix_ex == NULL || info.Loc_parameter_on_Glo == NULL || info.Loc_parameter_on_Glo_ex == NULL)
+	if (info.NNLOVER == NULL || info.NELOVER == NULL || info.a_matrix == NULL || info.dSF == NULL || info.dSF_ex == NULL || info.Gauss_Coordinate == NULL || info.Gauss_Coordinate_ex == NULL || info.Jac == NULL || info.Jac_ex == NULL || info.B_Matrix == NULL || info.B_Matrix_ex == NULL || info.Loc_parameter_on_Glo == NULL || info.Loc_parameter_on_Glo_ex == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
 	}
@@ -244,29 +247,14 @@ int main(int argc, char **argv)
 	free(info.Equivalent_Nodal_Force);
 
 	// solve Kd = f
-	int sover_select = 0;
-	if (sover_select == 0)
-	{
-		printf("\nStart PCG solver\n\n");
-		start[1] = chrono::system_clock::now();
-		int max_itr = K_Whole_Size;
-		PCG_Solver(max_itr, EPS, &info);
-		end[1] = chrono::system_clock::now();
-		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
-		printf("\nSolver time: %.3f[s]\n\n", time);
-		printf("\nFinish PCG solver\n\n");
-	}
-	else if(sover_select == 1)
-	{
-		printf("\nStart GMRES solver\n\n");
-		start[1] = chrono::system_clock::now();
-		int max_itr = K_Whole_Size;
-		GMRES_Solver(max_itr, EPS, &info);
-		end[1] = chrono::system_clock::now();
-		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
-		printf("\nSolver time: %.3f[s]\n\n", time);
-		printf("\nFinish GMRES solver\n\n");
-	}
+	printf("\nStart PCG solver\n\n");
+	start[1] = chrono::system_clock::now();
+	int max_itr = K_Whole_Size;
+	PCG_Solver(max_itr, EPS, &info);
+	end[1] = chrono::system_clock::now();
+	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+	printf("\nSolver time: %.3f[s]\n\n", time);
+	printf("\nFinish PCG solver\n\n");
 
 	// memory free
 

@@ -1626,19 +1626,13 @@ int duplicate_delete(int total, int element_n, int *element_n_point, information
 // Preprocessing
 void Preprocessing(int m, int e, information *info)
 {
-	double *a_matrix = (double *)malloc(sizeof(double) * MAX_POW_NG_EXTEND * info->DIMENSION * info->DIMENSION);	// a_matrix[POW_NG_EXTEND * info->DIMENSION * info->DIMENSION]
-	double *dSF = (double *)malloc(sizeof(double) * MAX_POW_NG * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);			// dSF[POW_NG * MAX_NO_CP_ON_ELEMENT * info->DIMENSION]
-	double *dSF_ex = (double *)malloc(sizeof(double) * MAX_POW_NG_EXTEND * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);	// dSF_ex[POW_NG_EXTEND * MAX_NO_CP_ON_ELEMENT * info->DIMENSION]
-
 	// ガウス点の物理座標を計算
 	Make_Gauss_Coordinate(m, e, info);
 
 	// ガウス点でのヤコビアン, Bマトリックスを計算
-	Make_dSF(m, e, dSF, dSF_ex, info);
-	Make_Jac(m, e, dSF, dSF_ex, a_matrix, info);
-	Make_B_Matrix(m, e, dSF, dSF_ex, a_matrix, info);
-
-	free(a_matrix), free(dSF), free(dSF_ex);
+	Make_dSF(m, e, info);
+	Make_Jac(m, e, info);
+	Make_B_Matrix(m, e, info);
 }
 
 
@@ -1675,7 +1669,7 @@ void Make_Gauss_Coordinate(int m, int e, information *info)
 }
 
 
-void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info)
+void Make_dSF(int m, int e, information *info)
 {
 	int i, j, k;
 	double temp_coordinate[MAX_DIMENSION];
@@ -1693,11 +1687,11 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info)
 			{
 				if (m == 0)
 				{
-					dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
+					info->dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
 				}
 				else if (m == 1)
 				{
-					dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
+					info->dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
 				}
 			}
 		}
@@ -1705,10 +1699,10 @@ void Make_dSF(int m, int e, double *dSF, double *dSF_ex, information *info)
 }
 
 
-void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info)
+void Make_Jac(int m, int e, information *info)
 {
 	int i, j, k, l;
-	double J = 0;
+	double J = 0.0;
 	double a_2x2[2][2], a_3x3[3][3];
 
 	for (i = 0; i < GP_ON_ELEMENT; i++)
@@ -1724,11 +1718,11 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 					{
 						if (m == 0)
 						{
-							a_2x2[j][k] += dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+							a_2x2[j][k] += info->dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
 						}
 						else if (m == 1)
 						{
-							a_2x2[j][k] += dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+							a_2x2[j][k] += info->dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
 						}
 					}
 				}
@@ -1739,11 +1733,11 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 					{
 						if (m == 0)
 						{
-							a_3x3[j][k] += dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+							a_3x3[j][k] += info->dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
 						}
 						else if (m == 1)
 						{
-							a_3x3[j][k] += dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
+							a_3x3[j][k] += info->dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + l * info->DIMENSION + k] * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + l] * (info->DIMENSION + 1) + j];
 						}
 					}
 				}
@@ -1758,7 +1752,7 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 			{
 				for (k = 0; k < info->DIMENSION; k++)
 				{
-					a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a_2x2[j][k];
+					info->a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a_2x2[j][k];
 				}
 			}
 		}
@@ -1770,7 +1764,7 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 			{
 				for (k = 0; k < info->DIMENSION; k++)
 				{
-					a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a_3x3[j][k];
+					info->a_matrix[i * info->DIMENSION * info->DIMENSION + j * info->DIMENSION + k] = a_3x3[j][k];
 				}
 			}
 		}
@@ -1799,7 +1793,7 @@ void Make_Jac(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, infor
 }
 
 
-void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, information *info)
+void Make_B_Matrix(int m, int e, information *info)
 {
 	int i, j, k, l;
 	double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT);	// b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
@@ -1815,11 +1809,11 @@ void Make_B_Matrix(int m, int e, double *dSF, double *dSF_ex, double *a_matrix, 
 				{
 					if (m == 0)
 					{
-						b[j * MAX_NO_CP_ON_ELEMENT + k] += a_matrix[i * info->DIMENSION * info->DIMENSION + l * info->DIMENSION + j] * dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + k * info->DIMENSION + l];
+						b[j * MAX_NO_CP_ON_ELEMENT + k] += info->a_matrix[i * info->DIMENSION * info->DIMENSION + l * info->DIMENSION + j] * info->dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + k * info->DIMENSION + l];
 					}
 					else if (m == 1)
 					{
-						b[j * MAX_NO_CP_ON_ELEMENT + k] += a_matrix[i * info->DIMENSION * info->DIMENSION + l * info->DIMENSION + j] * dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + k * info->DIMENSION + l];
+						b[j * MAX_NO_CP_ON_ELEMENT + k] += info->a_matrix[i * info->DIMENSION * info->DIMENSION + l * info->DIMENSION + j] * info->dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + k * info->DIMENSION + l];
 					}
 				}
 			}
@@ -2664,9 +2658,9 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 	
 	int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]] * info->DIMENSION;
 
-	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);  // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-	double J = 0;
+	double J = 0.0;
 
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
@@ -2676,28 +2670,28 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 		}
 	}
 
-	for (i = 0; i < GP_2D; i++)
+	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
 		// J, B の作成
-		if (GP_2D == POW_NG)
+		if (GP_1D == NG)
 		{
-			J = info->Jac[El_No * GP_2D + i];
+			J = info->Jac[El_No * GP_ON_ELEMENT + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
-		else if (GP_2D == POW_NG_EXTEND)
+		else if (GP_1D == NG_EXTEND)
 		{
-			J = info->Jac_ex[El_No * GP_2D + i];
+			J = info->Jac_ex[El_No * GP_ON_ELEMENT + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[El_No * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
@@ -2721,13 +2715,13 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 {
 	int i, j, k, l;
 
-	int BDBJ_flag;
+	int BDBJ_flag = 0;
 	int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No_glo]] * info->DIMENSION;
 
-	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);  // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
 	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
-	double J = 0;
+	double J = 0.0;
 
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
@@ -2737,57 +2731,89 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 		}
 	}
 
-	for (i = 0; i < GP_2D; i++)
+	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
 		// J, B, BG の作成
 		double para[MAX_DIMENSION] = {0.0};
 		double G_Gxi[MAX_DIMENSION] = {0.0};
 
-		if (GP_2D == POW_NG)
+		if (GP_1D == NG)
 		{
-			J = info->Jac[El_No_loc * GP_2D + i];
+			J = info->Jac[El_No_loc * GP_ON_ELEMENT + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
-			para[0] = info->Loc_parameter_on_Glo[El_No_loc * GP_2D * info->DIMENSION + i * info->DIMENSION + 0];
-			para[1] = info->Loc_parameter_on_Glo[El_No_loc * GP_2D * info->DIMENSION + i * info->DIMENSION + 1];
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				para[j] = info->Loc_parameter_on_Glo[El_No_loc * GP_ON_ELEMENT * info->DIMENSION + i * info->DIMENSION + j];
+			}
 		}
-		else if (GP_2D == POW_NG_EXTEND)
+		else if (GP_1D == NG_EXTEND)
 		{
-			J = info->Jac_ex[El_No_loc * GP_2D + i];
+			J = info->Jac_ex[El_No_loc * GP_ON_ELEMENT + i];
 			for (j = 0; j < D_MATRIX_SIZE; j++)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[El_No_loc * GP_2D * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
-			para[0] = info->Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * info->DIMENSION + i * info->DIMENSION + 0];
-			para[1] = info->Loc_parameter_on_Glo_ex[El_No_loc * GP_2D * info->DIMENSION + i * info->DIMENSION + 1];
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				para[j] = info->Loc_parameter_on_Glo[El_No_loc * GP_ON_ELEMENT * info->DIMENSION + i * info->DIMENSION + j];
+			}
 		}
 
 		// 要素内外判定
-		if (para[0] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]] &&
-			para[0] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0] + 1] &&
-			para[1] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]] &&
-			para[1] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1] + 1])
+		if (info->DIMENSION == 2)
 		{
-			BDBJ_flag = 1;
+			if (para[0] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]] &&
+				para[0] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0] + 1] &&
+				para[1] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]] &&
+				para[1] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1] + 1])
+			{
+				BDBJ_flag = 1;
 
-			// 親要素座標の算出
-			G_Gxi[0] = -1.0 + 2.0 * (para[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]])
-						/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]]);
-			G_Gxi[1] = -1.0 + 2.0 * (para[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]])
-						/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]]);
+				// 親要素座標の算出
+				G_Gxi[0] = - 1.0 + 2.0 * (para[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]])
+						 / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]]);
+				G_Gxi[1] = - 1.0 + 2.0 * (para[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]])
+						 / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]]);
+			}
+			else
+			{
+				BDBJ_flag = 0;
+			}
 		}
-		else
+		else if (info->DIMENSION == 3)
 		{
-			BDBJ_flag = 0;
+			if (para[0] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]] &&
+				para[0] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0] + 1] &&
+				para[1] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]] &&
+				para[1] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1] + 1] &&
+				para[2] >= info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[El_No_glo * info->DIMENSION + 2]] &&
+				para[2] <  info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[El_No_glo * info->DIMENSION + 2] + 1])
+			{
+				BDBJ_flag = 1;
+
+				// 親要素座標の算出
+				G_Gxi[0] = - 1.0 + 2.0 * (para[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]])
+						 / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[El_No_glo * info->DIMENSION + 0]]);
+				G_Gxi[1] = - 1.0 + 2.0 * (para[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]])
+						 / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[El_No_glo * info->DIMENSION + 1]]);
+				G_Gxi[2] = - 1.0 + 2.0 * (para[2] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[El_No_glo * info->DIMENSION + 2]])
+						 / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[El_No_glo * info->DIMENSION + 2] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[El_No_glo * info->DIMENSION + 2]]);
+			}
+			else
+			{
+				BDBJ_flag = 0;
+			}
 		}
+		
 
 		// 要素内であるとき, 結合要素剛性マトリックス計算
 		if (BDBJ_flag)
@@ -2846,14 +2872,15 @@ void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *inf
 			}
 		}
 
-		// 2次元
 		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 		{
-			BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[0 * MAX_KIEL_SIZE + 2 * i]     = b[0 * MAX_NO_CP_ON_ELEMENT + i];
 			BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
-			BG[1 * MAX_KIEL_SIZE + 2 * i] = 0.0;
+
+			BG[1 * MAX_KIEL_SIZE + 2 * i]     = 0.0;
 			BG[1 * MAX_KIEL_SIZE + 2 * i + 1] = b[1 * MAX_NO_CP_ON_ELEMENT + i];
-			BG[2 * MAX_KIEL_SIZE + 2 * i] = b[1 * MAX_NO_CP_ON_ELEMENT + i];
+
+			BG[2 * MAX_KIEL_SIZE + 2 * i]     = b[1 * MAX_NO_CP_ON_ELEMENT + i];
 			BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
 		}
 	}
@@ -2885,16 +2912,32 @@ void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *inf
 			}
 		}
 
-		// 3次元
-		// for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
-		// {
-		// 	BG[0 * MAX_KIEL_SIZE + 2 * i] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
-		// 	BG[0 * MAX_KIEL_SIZE + 2 * i + 1] = 0.0;
-		// 	BG[1 * MAX_KIEL_SIZE + 2 * i] = 0.0;
-		// 	BG[1 * MAX_KIEL_SIZE + 2 * i + 1] = b[1 * MAX_NO_CP_ON_ELEMENT + i];
-		// 	BG[2 * MAX_KIEL_SIZE + 2 * i] = b[1 * MAX_NO_CP_ON_ELEMENT + i];
-		// 	BG[2 * MAX_KIEL_SIZE + 2 * i + 1] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
-		// }
+		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
+		{
+			BG[0 * MAX_KIEL_SIZE + 3 * i]     = b[0 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[0 * MAX_KIEL_SIZE + 3 * i + 1] = 0.0;
+			BG[0 * MAX_KIEL_SIZE + 3 * i + 2] = 0.0;
+
+			BG[1 * MAX_KIEL_SIZE + 3 * i]     = 0.0;
+			BG[1 * MAX_KIEL_SIZE + 3 * i + 1] = b[1 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[1 * MAX_KIEL_SIZE + 3 * i + 2] = 0.0;
+
+			BG[2 * MAX_KIEL_SIZE + 3 * i]     = 0.0;
+			BG[2 * MAX_KIEL_SIZE + 3 * i + 1] = 0.0;
+			BG[2 * MAX_KIEL_SIZE + 3 * i + 2] = b[2 * MAX_NO_CP_ON_ELEMENT + i];
+
+			BG[3 * MAX_KIEL_SIZE + 3 * i]     = b[1 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[3 * MAX_KIEL_SIZE + 3 * i + 1] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[3 * MAX_KIEL_SIZE + 3 * i + 2] = 0.0;
+
+			BG[4 * MAX_KIEL_SIZE + 3 * i]     = 0.0;
+			BG[4 * MAX_KIEL_SIZE + 3 * i + 1] = b[2 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[4 * MAX_KIEL_SIZE + 3 * i + 2] = b[1 * MAX_NO_CP_ON_ELEMENT + i];
+
+			BG[5 * MAX_KIEL_SIZE + 3 * i] =     b[2 * MAX_NO_CP_ON_ELEMENT + i];
+			BG[5 * MAX_KIEL_SIZE + 3 * i + 1] = 0.0;
+			BG[5 * MAX_KIEL_SIZE + 3 * i + 2] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
+		}
 	}
 
 	free(b);
@@ -2907,7 +2950,7 @@ void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info)
 	int i, j, k;
 	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
 
-	// [B]T[info->D][B]Jの計算
+	// [B]T[D][B]Jの計算
 	for (i = 0; i < KIEL_SIZE; i++)
 	{
 		for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -3421,145 +3464,6 @@ int RowCol_to_icount(int row, int col, information *info)
 		}
 	}
 	return -1;
-}
-
-
-// GMRES solver
-void GMRES_Solver(int max_itetarion, double eps, information *info)
-{
-	// int i, j, k;
-	// int ndof = K_Whole_Size;
-
-	// double *r = (double *)malloc(sizeof(double) * ndof);
-	// double *v = (double *)calloc(ndof, sizeof(double));
-	// double *e = (double *)calloc(ndof, sizeof(double));
-	// double *w = (double *)calloc(ndof, sizeof(double));
-	// double *y = (double *)malloc(sizeof(double) * ndof);
-	// double *r2 = (double *)calloc(ndof, sizeof(double));
-	// double *temp_array_K = (double *)malloc(sizeof(double) * ndof);
-
-	// double *gg = (double *)malloc(sizeof(double) * ndof);
-	// double *dd = (double *)malloc(sizeof(double) * ndof);
-	// double *pp = (double *)malloc(sizeof(double) * ndof);
-
-	// double *temp_r = (double *)malloc(sizeof(double) * ndof);
-
-	// // 初期化
-	// for (i = 0; i < ndof; i++)
-	// 	info->sol_vec[i] = 0.0;
-
-	// // 前処理行列作成
-	// double *M = (double *)malloc(sizeof(double) * info->K_Whole_Ptr[ndof]);
-	// int *M_Ptr = (int *)malloc(sizeof(int) * ndof + 1);
-	// int *M_Col = (int *)malloc(sizeof(int) * info->K_Whole_Ptr[ndof]);
-	// double *M_diag = (double *)malloc(sizeof(double) * ndof);
-	// Make_M(M, M_Ptr, M_Col, M_diag, ndof, info);
-
-	// // 第0近似解に対する残差の計算
-	// for (i = 0; i < ndof; i++)
-	// {
-	// 	r[i] = info->rhs_vec[i];
-	// }
-
-	// for (k = 1; k < max_itetarion; k++)
-	// {
-	// 	w = CG(ndof, r2, M, M_Ptr, M_Col, M_diag, r, gg, dd, pp, temp_r);
-
-	// 	// y = AP の計算
-	// 	for (i = 0; i < ndof; i++)
-	// 	{
-	// 		for (j = 0; j < ndof; j++)
-	// 		{
-	// 			temp_array_K[j] = 0.0;
-	// 		}
-			
-	// 		for (j = 0; j < ndof; j++)
-	// 		{
-	// 			int temp1;
-	// 			if (i <= j)
-	// 			{
-	// 				temp1 = RowCol_to_icount(i, j, info); // temp_array_K[i][j]
-	// 			}
-	// 			else if (i > j)
-	// 			{
-	// 				temp1 = RowCol_to_icount(j, i, info); // temp_array_K[i][j] = temp_array_K[j][i]
-	// 			}
-
-	// 			if (temp1 != -1)
-	// 			{
-	// 				temp_array_K[j] = info->K_Whole_Val[temp1];
-	// 			}
-	// 		}
-	// 		y[i] = inner_product(ndof, temp_array_K, p);
-	// 	}
-
-	// 	rr0 = inner_product(ndof, r, p);
-
-	// 	// alpha = r*r/(P*AP)の計算
-	// 	double temp_scaler = inner_product(ndof, p, y);
-	// 	alpha = rr0 / temp_scaler;
-
-	// 	// 解x, 残差rの更新
-	// 	for (i = 0; i < ndof; i++)
-	// 	{
-	// 		info->sol_vec[i] += alpha * p[i];
-	// 		r[i] -= alpha * y[i];
-	// 	}
-
-	// 	// (r*r)_(k+1)の計算
-	// 	CG(ndof, r2, M, M_Ptr, M_Col, M_diag, r, gg, dd, pp, temp_r);
-
-	// 	// 収束判定 (||r|| <= eps)
-	// 	// double rr1 = inner_product(ndof, y, r2);
-	// 	// e = sqrt(fabs(rr1));
-	// 	// if (e < eps)
-	// 	// {
-	// 	//     k++;
-	// 	//     break;
-	// 	// }
-
-	// 	// 収束判定 (CG法と同じ)
-	// 	double e1 = 0.0, e2 = 0.0;
-	// 	for (i = 0; i < ndof; i++)
-	// 	{
-	// 		e1 += p[i] * p[i];
-	// 		e2 += info->sol_vec[i] * info->sol_vec[i];
-	// 	}
-	// 	e = fabs(alpha) * sqrt(e1 / e2);
-	// 	if (e < eps)
-	// 	{
-	// 		k++;
-	// 		break;
-	// 	}
-
-	// 	// βの計算とPの更新
-	// 	// beta = rr1 / rr0; //旧
-	// 	// beta = - rr1 / temp_scaler; // 新
-	// 	beta = - inner_product(ndof, y, r2) / temp_scaler;
-
-	// 	for (i = 0; i < ndof; i++)
-	// 	{
-	// 		// p[i] = r2[i] - beta * p[i];
-	// 		p[i] = r2[i] + beta * p[i];
-	// 	}
-
-	// 	// (r*r)_(k+1)を次のステップのために確保しておく
-	// 	// rr0 = rr1;
-
-	// 	printf("PCG itr %d\t", k);
-	// 	printf("eps %le", e);
-	// }
-
-	// int max_itr_result = k;
-	// double eps_result = e;
-
-	// printf("\nndof = %d\n", ndof);
-	// printf("itr_result = %d\n", max_itr_result);
-	// printf("eps_result = %.15e\n", eps_result);
-
-	// free(r), free(p), free(y), free(r2), free(temp_array_K);
-	// free(M), free(M_Ptr), free(M_Col), free(M_diag);
-	// free(gg), free(dd), free(pp), free(temp_r);
 }
 
 
