@@ -64,7 +64,6 @@ extern int MAX_ORDER;          // 基底関数の次数の最大値 + 1
 extern int D_MATRIX_SIZE;
 extern int MAX_K_WHOLE_SIZE;
 extern int K_Whole_Size;
-extern int MAX_NON_ZERO;
 extern int DIVISION_ELEMENT;
 
 // file pointer

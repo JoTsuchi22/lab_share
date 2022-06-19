@@ -14,10 +14,10 @@
  ****************************************************************/
 
 #include <iostream>
+#include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 
 // header
 #include "S_IGA_header.h"
@@ -28,11 +28,16 @@ using namespace std;
 int main(int argc, char **argv)
 {
 	int i, tm;
-	clock_t start, end;
 	information info, *info_ptr;
 	info_ptr = &info;
 
 	Total_mesh = argc - 1;
+
+	// 処理時間計測
+	double time;
+	chrono::system_clock::time_point start[2], end[2];
+	start[0] = chrono::system_clock::now();
+	start[1] = chrono::system_clock::now();
 
 	// check arguments
 	if (argc <= 1)
@@ -47,8 +52,6 @@ int main(int argc, char **argv)
 	{
 		printf("S-IGA carried out.(%d local meshes)\n", argc - 2);
 	}
-
-	start = clock();
 
 	// memory allocation
 	info_ptr->Total_Knot_to_mesh = (int *)calloc((Total_mesh + 1), sizeof(int));
@@ -188,15 +191,12 @@ int main(int argc, char **argv)
 
 	// memory allocation
 	MAX_K_WHOLE_SIZE = info.Total_Control_Point_to_mesh[Total_mesh] * info.DIMENSION;
-	MAX_NON_ZERO = MAX_K_WHOLE_SIZE * (MAX_K_WHOLE_SIZE / 2) + MAX_K_WHOLE_SIZE;
 	info_ptr->D = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * D_MATRIX_SIZE);
 	info_ptr->Node_To_Node = (int *)malloc(sizeof(int) * K_DIVISION_LENGE * info.Total_Control_Point_to_mesh[Total_mesh]);	// Node_To_Node[K_DIVISION_LENGE][10000]
 	info_ptr->Total_Control_Point_To_Node = (int *)malloc(sizeof(int) * K_DIVISION_LENGE);									// Total_Control_Point_To_Node[K_DIVISION_LENGE] ある節点に関係する節点番号
 	info_ptr->Index_Dof = (int *)calloc(MAX_K_WHOLE_SIZE, sizeof(int));			// Index_Dof[MAX_K_WHOLE_SIZE];
 	info_ptr->K_Whole_Ptr = (int *)calloc(MAX_K_WHOLE_SIZE + 1, sizeof(int));	// K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1]
-	info_ptr->K_Whole_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);			// K_Whole_Col[MAX_NON_ZERO]
-	info_ptr->K_Whole_Val = (double *)calloc(MAX_NON_ZERO, sizeof(double));		// K_Whole_Val[MAX_NON_ZERO]
-	if (info.D == NULL || info.Node_To_Node == NULL || info.Total_Control_Point_To_Node == NULL || info.Index_Dof == NULL || info.K_Whole_Ptr == NULL || info.K_Whole_Col == NULL || info.K_Whole_Val == NULL)
+	if (info.D == NULL || info.Node_To_Node == NULL || info.Total_Control_Point_To_Node == NULL || info.Index_Dof == NULL || info.K_Whole_Ptr == NULL)
 	{
         printf("Cannot allocate memory\n"); exit(1);
     }
@@ -204,7 +204,18 @@ int main(int argc, char **argv)
     // 全体剛性マトリックスの制作
 	Make_D_Matrix(&info);
 	Make_Index_Dof(&info);
-	Make_K_Whole_Ptr_Col(&info);
+	Make_K_Whole_Ptr_Col(&info, 0);
+
+	// memory allocation
+	info_ptr->K_Whole_Col = (int *)malloc(sizeof(int) * info.K_Whole_Ptr[K_Whole_Size]);			// K_Whole_Col[MAX_NON_ZERO]
+	info_ptr->K_Whole_Val = (double *)calloc(info.K_Whole_Ptr[K_Whole_Size], sizeof(double));		// K_Whole_Val[MAX_NON_ZERO]
+	if (info.K_Whole_Col == NULL || info.K_Whole_Val == NULL)
+	{
+        printf("Cannot allocate memory\n"); exit(1);
+    }
+
+	// 全体剛性マトリックスの制作
+	Make_K_Whole_Ptr_Col(&info, 1);
     Make_K_Whole_Val(&info);
     printf("\nFinish Make_K_Whole\n\n");
 
@@ -225,16 +236,43 @@ int main(int argc, char **argv)
 	Add_Equivalent_Nodal_Force_to_F_Vec(&info);
     printf("\nFinish Make_F_Vec\n\n");
 
+	end[1] = chrono::system_clock::now();
+	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+	printf("\nPreprocess time: %.3f[s]\n\n", time);
+
 	// memory free
 	free(info.Equivalent_Nodal_Force);
 
-	printf("\nStart PCG solver\n\n");
-	int max_itr = K_Whole_Size;
-	PCG_Solver(max_itr, EPS, &info);
-	printf("\nFinish PCG solver\n\n");
-
+	// solve Kd = f
+	int sover_select = 0;
+	if (sover_select == 0)
+	{
+		printf("\nStart PCG solver\n\n");
+		start[1] = chrono::system_clock::now();
+		int max_itr = K_Whole_Size;
+		PCG_Solver(max_itr, EPS, &info);
+		end[1] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+		printf("\nSolver time: %.3f[s]\n\n", time);
+		printf("\nFinish PCG solver\n\n");
+	}
+	else if(sover_select == 1)
+	{
+		printf("\nStart GMRES solver\n\n");
+		start[1] = chrono::system_clock::now();
+		int max_itr = K_Whole_Size;
+		GMRES_Solver(max_itr, EPS, &info);
+		end[1] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+		printf("\nSolver time: %.3f[s]\n\n", time);
+		printf("\nFinish GMRES solver\n\n");
+	}
 
 	// memory free
+
+
+
+	start[1] = chrono::system_clock::now();
 
 	// memory allocation
     info_ptr->Displacement = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);	// Displacement[MAX_K_WHOLE_SIZE]
@@ -246,9 +284,6 @@ int main(int argc, char **argv)
 	// Make Displacement
 	Make_Displacement(&info);
 	printf("\nFinish Make_Displacement\n\n");
-
-	end = clock();
-	printf("\nAnalysis time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
 
 	// Postprocessing
 	// Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
@@ -274,8 +309,15 @@ int main(int argc, char **argv)
 	output_for_viewer(&info);
 	printf("\nFinish output_for_viewer\n\n");
 
+	end[1] = chrono::system_clock::now();
+	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+	printf("\nPostprocess time: %.3f[s]\n\n", time);
+
 	if (info.DIMENSION == 3)
 	{
+		end[0] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[0] - start[0]).count()) / 1000.0;
+		printf("\nAll analysis time: %.3f[s]\n\n", time);
 		exit(0);
 	}
 
@@ -296,10 +338,11 @@ int main(int argc, char **argv)
 	if(Total_mesh == 1)
 	{
 		printf("\nStart IGA Postprocessing\n\n");
-		start = clock();
+		start[1] = chrono::system_clock::now();
 		IGA_view(&info);
-		end = clock();
-		printf("\nIGA Postprocessing time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
+		end[1] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+		printf("\nIGA Postprocessing time: %.3f[s]\n\n", time);
 		printf("\nFinish IGA Postprocessing\n\n");
 		exit(0);
 	}
@@ -308,20 +351,24 @@ int main(int argc, char **argv)
 	if (SKIP_S_IGA != 1)
 	{
 		printf("\nStart S_IGA overlay\n\n");
-		start = clock();
+		start[1] = chrono::system_clock::now();
 		S_IGA_overlay(&info);
-		end = clock();
-		printf("\nS-IGA overlay time:%.2f[s]\n\n", (double)(end - start) / CLOCKS_PER_SEC);
+		end[1] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
+		printf("\nS-IGA overlay time: %.3f[s]\n\n", time);
 		printf("\nFinish S_IGA overlay\n\n");
 	}
 	else if (SKIP_S_IGA == 1)
 	{
-		printf("SKIP_S_IGA = 1, skip S-IGA\n");
+		printf("\nSKIP_S_IGA = 1, skip S-IGA\n\n");
 	}
 
 	if (SKIP_S_IGA == 2)
 	{
-		printf("SKIP_S_IGA = 2, exit before J integration\n");
+		printf("\nSKIP_S_IGA = 2, exit before J integration\n\n");
+		end[0] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[0] - start[0]).count()) / 1000.0;
+		printf("\nAll analysis time: %.3f[s]\n\n", time);
 		exit(0);
 	}
 
@@ -329,6 +376,11 @@ int main(int argc, char **argv)
 	printf("Start J Integration Mixed Mode\n\n");
 
 	// For the J-integral Evaluation
+
+
+	end[0] = chrono::system_clock::now();
+	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[0] - start[0]).count()) / 1000.0;
+	printf("\nAll analysis time: %.3f[s]\n\n", time);
 
 	// memory free
 	free(info.INC), free(info.Position_Knots), free(info.Total_Knot_to_patch_dim);

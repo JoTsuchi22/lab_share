@@ -140,7 +140,7 @@ void Make_gauss_array(int select_GP, information *info);
 // K matrix
 void Make_D_Matrix(information *info);
 void Make_Index_Dof(information *info);
-void Make_K_Whole_Ptr_Col(information *info);
+void Make_K_Whole_Ptr_Col(information *info, int mode_select);
 void Make_K_Whole_Val(information *info);
 void Make_K_EL(int El_No, double *K_EL, information *info);
 void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, information *info);
@@ -158,6 +158,8 @@ void CG(int ndof, double *solution_vec, double *M, int *M_Ptr, int *M_Col, doubl
 void M_mat_vec_crs(double *M, int *M_Ptr, int *M_Col, double *vec_result, double *vec, const int ndof);
 double inner_product(int ndof, double *vec1, double *vec2);
 int RowCol_to_icount(int row, int col, information *info);
+// GMRES solver
+void GMRES_Solver(int max_itetarion, double eps, information *info);
 // tool
 double InverseMatrix_2x2(double M[2][2]);
 double InverseMatrix_3x3(double M[3][3]);

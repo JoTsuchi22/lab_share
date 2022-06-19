@@ -63,7 +63,6 @@ int MAX_KIEL_SIZE;              // new
 int D_MATRIX_SIZE;
 int MAX_K_WHOLE_SIZE;
 int K_Whole_Size;
-int MAX_NON_ZERO;
 int DIVISION_ELEMENT;
 
 // file pointer

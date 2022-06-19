@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 
 // header
 #include "S_IGA_header.h"
@@ -2258,141 +2257,281 @@ void Make_Index_Dof(information *info)
 }
 
 
-void Make_K_Whole_Ptr_Col(information *info)
+void Make_K_Whole_Ptr_Col(information *info, int mode_select)
 {
 	int i, j, k, ii, jj;
 	int N, NE, i_index, j_index;
 
-	// 初期化
-	for (i = 0; i < K_Whole_Size + 1; i++)
-		info->K_Whole_Ptr[i] = 0;
+	// mode_select == 0: Ptr を作成
+	// mode_select == 1: Col を作成
 
-	// 大きく分割するためのループ
-	for (N = 0; N < info->Total_Control_Point_to_mesh[Total_mesh]; N += K_DIVISION_LENGE)
+	if (mode_select == 0)
 	{
-		// 各節点に接する節点を取得
-		for (i = 0; i < K_DIVISION_LENGE; i++)
+		// 初期化
+		for (i = 0; i < K_Whole_Size + 1; i++)
+			info->K_Whole_Ptr[i] = 0;
+
+		// 大きく分割するためのループ
+		for (N = 0; N < info->Total_Control_Point_to_mesh[Total_mesh]; N += K_DIVISION_LENGE)
 		{
-			info->Total_Control_Point_To_Node[i] = 0;
-		}
-		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
-		{
-			for (ii = 0; ii < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; ii++)
+			// 各節点に接する節点を取得
+			for (i = 0; i < K_DIVISION_LENGE; i++)
 			{
-				NE = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ii] - N;
-				if (0 <= NE && NE < K_DIVISION_LENGE)
+				info->Total_Control_Point_To_Node[i] = 0;
+			}
+			for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+			{
+				for (ii = 0; ii < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; ii++)
 				{
-					// ローカル要素
-					for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
+					NE = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ii] - N;
+					if (0 <= NE && NE < K_DIVISION_LENGE)
 					{
-						// 数字がない時
-						if (info->Total_Control_Point_To_Node[NE] == 0)
+						// ローカル要素
+						for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
 						{
-							// 節点番号を取得
-							info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + 0] = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j];
-							info->Total_Control_Point_To_Node[NE]++;
-						}
-						// 同じものがあったら, k > 0 以降の取得, kのカウント
-						for (k = 0; k < info->Total_Control_Point_To_Node[NE]; k++)
-						{
-							if (info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] == info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j])
+							// 数字がない時
+							if (info->Total_Control_Point_To_Node[NE] == 0)
 							{
-								break;
+								// 節点番号を取得
+								info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + 0] = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j];
+								info->Total_Control_Point_To_Node[NE]++;
+							}
+							// 同じものがあったら, k > 0 以降の取得, kのカウント
+							for (k = 0; k < info->Total_Control_Point_To_Node[NE]; k++)
+							{
+								if (info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] == info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j])
+								{
+									break;
+								}
+							}
+							// 未設定のNode_To_Node取得
+							if (k == info->Total_Control_Point_To_Node[NE])
+							{
+								info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j];
+								info->Total_Control_Point_To_Node[NE]++;
 							}
 						}
-						// 未設定のNode_To_Node取得
-						if (k == info->Total_Control_Point_To_Node[NE])
+						// 別メッシュとの重なりを考慮
+						if (info->NNLOVER[i] > 0)
 						{
-							info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j];
-							info->Total_Control_Point_To_Node[NE]++;
-						}
-					}
-					// 別メッシュとの重なりを考慮
-					if (info->NNLOVER[i] > 0)
-					{
-						for (jj = 0; jj < info->NNLOVER[i]; jj++)
-						{
-							// ローカル要素
-							for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++)
+							for (jj = 0; jj < info->NNLOVER[i]; jj++)
 							{
-								// 数字がない時
-								if (info->Total_Control_Point_To_Node[NE] == 0)
+								// ローカル要素
+								for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++)
 								{
-									// 節点番号を取得
-									info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + 0] = info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j];
-									info->Total_Control_Point_To_Node[NE]++;
-								}
-
-								// 同じものがあったら, k > 0 以降の取得, kのカウント
-								for (k = 0; k < info->Total_Control_Point_To_Node[NE]; k++)
-								{
-									if (info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] == info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j])
+									// 数字がない時
+									if (info->Total_Control_Point_To_Node[NE] == 0)
 									{
-										break;
+										// 節点番号を取得
+										info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + 0] = info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j];
+										info->Total_Control_Point_To_Node[NE]++;
+									}
+
+									// 同じものがあったら, k > 0 以降の取得, kのカウント
+									for (k = 0; k < info->Total_Control_Point_To_Node[NE]; k++)
+									{
+										if (info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] == info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j])
+										{
+											break;
+										}
+									}
+									// 未設定のNode_To_Node取得
+									if (k == info->Total_Control_Point_To_Node[NE])
+									{
+										info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j];
+										info->Total_Control_Point_To_Node[NE]++;
 									}
 								}
-								// 未設定のNode_To_Node取得
-								if (k == info->Total_Control_Point_To_Node[NE])
-								{
-									info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j];
-									info->Total_Control_Point_To_Node[NE]++;
-								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		// 順番に並び替える
-		for (i = 0; i < K_DIVISION_LENGE; i++)
-		{
-			if (N + i < info->Total_Control_Point_to_mesh[Total_mesh])
-			{
-				for (j = 0; j < info->Total_Control_Point_To_Node[i]; j++)
-				{
-					int Min = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j], No = j;
-					for (k = j; k < info->Total_Control_Point_To_Node[i]; k++)
-					{
-						if (Min > info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k])
-						{
-							Min = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k];
-							No = k;
-						}
-					}
-					for (k = No; k > j; k--)
-					{
-						info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k - 1];
-					}
-					info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j] = Min;
-				}
-			}
-		}
-
-		// 節点からcol ptrを求める
-		ii = 0;
-		k = 0;
-		for (i = 0; i < K_DIVISION_LENGE; i++)
-		{
-			for (ii = 0; ii < info->DIMENSION; ii++)
+			// 順番に並び替える
+			for (i = 0; i < K_DIVISION_LENGE; i++)
 			{
 				if (N + i < info->Total_Control_Point_to_mesh[Total_mesh])
 				{
-					i_index = info->Index_Dof[(N + i) * info->DIMENSION + ii];
-					k = 0;
-					if (i_index >= 0)
+					for (j = 0; j < info->Total_Control_Point_To_Node[i]; j++)
 					{
-						info->K_Whole_Ptr[i_index + 1] = info->K_Whole_Ptr[i_index];
-						for (j = 0; j < info->Total_Control_Point_To_Node[i]; j++)
+						int Min = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j], No = j;
+						for (k = j; k < info->Total_Control_Point_To_Node[i]; k++)
 						{
-							for (jj = 0; jj < info->DIMENSION; jj++)
+							if (Min > info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k])
 							{
-								j_index = info->Index_Dof[info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j] * info->DIMENSION + jj];
-								if (j_index >= 0 && j_index >= i_index)
+								Min = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k];
+								No = k;
+							}
+						}
+						for (k = No; k > j; k--)
+						{
+							info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k - 1];
+						}
+						info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j] = Min;
+					}
+				}
+			}
+
+			// 節点からcol ptrを求める
+			ii = 0;
+			k = 0;
+			for (i = 0; i < K_DIVISION_LENGE; i++)
+			{
+				for (ii = 0; ii < info->DIMENSION; ii++)
+				{
+					if (N + i < info->Total_Control_Point_to_mesh[Total_mesh])
+					{
+						i_index = info->Index_Dof[(N + i) * info->DIMENSION + ii];
+						k = 0;
+						if (i_index >= 0)
+						{
+							info->K_Whole_Ptr[i_index + 1] = info->K_Whole_Ptr[i_index];
+							for (j = 0; j < info->Total_Control_Point_To_Node[i]; j++)
+							{
+								for (jj = 0; jj < info->DIMENSION; jj++)
 								{
-									info->K_Whole_Ptr[i_index + 1]++;
-									info->K_Whole_Col[info->K_Whole_Ptr[i_index] + k] = j_index;
-									k++;
+									j_index = info->Index_Dof[info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j] * info->DIMENSION + jj];
+									if (j_index >= 0 && j_index >= i_index)
+									{
+										info->K_Whole_Ptr[i_index + 1]++;
+										k++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (mode_select == 1)
+	{
+		// 大きく分割するためのループ
+		for (N = 0; N < info->Total_Control_Point_to_mesh[Total_mesh]; N += K_DIVISION_LENGE)
+		{
+			// 各節点に接する節点を取得
+			for (i = 0; i < K_DIVISION_LENGE; i++)
+			{
+				info->Total_Control_Point_To_Node[i] = 0;
+			}
+			for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+			{
+				for (ii = 0; ii < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; ii++)
+				{
+					NE = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ii] - N;
+					if (0 <= NE && NE < K_DIVISION_LENGE)
+					{
+						// ローカル要素
+						for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
+						{
+							// 数字がない時
+							if (info->Total_Control_Point_To_Node[NE] == 0)
+							{
+								// 節点番号を取得
+								info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + 0] = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j];
+								info->Total_Control_Point_To_Node[NE]++;
+							}
+							// 同じものがあったら, k > 0 以降の取得, kのカウント
+							for (k = 0; k < info->Total_Control_Point_To_Node[NE]; k++)
+							{
+								if (info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] == info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j])
+								{
+									break;
+								}
+							}
+							// 未設定のNode_To_Node取得
+							if (k == info->Total_Control_Point_To_Node[NE])
+							{
+								info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j];
+								info->Total_Control_Point_To_Node[NE]++;
+							}
+						}
+						// 別メッシュとの重なりを考慮
+						if (info->NNLOVER[i] > 0)
+						{
+							for (jj = 0; jj < info->NNLOVER[i]; jj++)
+							{
+								// ローカル要素
+								for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj]]]; j++)
+								{
+									// 数字がない時
+									if (info->Total_Control_Point_To_Node[NE] == 0)
+									{
+										// 節点番号を取得
+										info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + 0] = info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j];
+										info->Total_Control_Point_To_Node[NE]++;
+									}
+
+									// 同じものがあったら, k > 0 以降の取得, kのカウント
+									for (k = 0; k < info->Total_Control_Point_To_Node[NE]; k++)
+									{
+										if (info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] == info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j])
+										{
+											break;
+										}
+									}
+									// 未設定のNode_To_Node取得
+									if (k == info->Total_Control_Point_To_Node[NE])
+									{
+										info->Node_To_Node[NE * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Controlpoint_of_Element[info->NELOVER[i * MAX_N_ELEMENT_OVER + jj] * MAX_NO_CP_ON_ELEMENT + j];
+										info->Total_Control_Point_To_Node[NE]++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// 順番に並び替える
+			for (i = 0; i < K_DIVISION_LENGE; i++)
+			{
+				if (N + i < info->Total_Control_Point_to_mesh[Total_mesh])
+				{
+					for (j = 0; j < info->Total_Control_Point_To_Node[i]; j++)
+					{
+						int Min = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j], No = j;
+						for (k = j; k < info->Total_Control_Point_To_Node[i]; k++)
+						{
+							if (Min > info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k])
+							{
+								Min = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k];
+								No = k;
+							}
+						}
+						for (k = No; k > j; k--)
+						{
+							info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k] = info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + k - 1];
+						}
+						info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j] = Min;
+					}
+				}
+			}
+
+			// 節点からcol ptrを求める
+			ii = 0;
+			k = 0;
+			for (i = 0; i < K_DIVISION_LENGE; i++)
+			{
+				for (ii = 0; ii < info->DIMENSION; ii++)
+				{
+					if (N + i < info->Total_Control_Point_to_mesh[Total_mesh])
+					{
+						i_index = info->Index_Dof[(N + i) * info->DIMENSION + ii];
+						k = 0;
+						if (i_index >= 0)
+						{
+							for (j = 0; j < info->Total_Control_Point_To_Node[i]; j++)
+							{
+								for (jj = 0; jj < info->DIMENSION; jj++)
+								{
+									j_index = info->Index_Dof[info->Node_To_Node[i * info->Total_Control_Point_to_mesh[Total_mesh] + j] * info->DIMENSION + jj];
+									if (j_index >= 0 && j_index >= i_index)
+									{
+										info->K_Whole_Col[info->K_Whole_Ptr[i_index] + k] = j_index;
+										k++;
+									}
 								}
 							}
 						}
@@ -2955,36 +3094,36 @@ void PCG_Solver(int max_itetarion, double eps, information *info)
 		info->sol_vec[i] = 0.0;
 
 	// 前処理行列作成
-	double *M = (double *)malloc(sizeof(double) * MAX_NON_ZERO);
-	int *M_Ptr = (int *)malloc(sizeof(int) * ndof + 1);
-	int *M_Col = (int *)malloc(sizeof(int) * MAX_NON_ZERO);
+	double *M = (double *)malloc(sizeof(double) * info->K_Whole_Ptr[ndof]);
+	int *M_Ptr = (int *)malloc(sizeof(int) * (ndof + 1));
+	int *M_Col = (int *)malloc(sizeof(int) * info->K_Whole_Ptr[ndof]);
 	double *M_diag = (double *)malloc(sizeof(double) * ndof);
 	Make_M(M, M_Ptr, M_Col, M_diag, ndof, info);
 
 	// 第0近似解に対する残差の計算
-	double *ax = (double *)calloc(ndof, sizeof(double));
-	for (i = 0; i < ndof; i++)
-	{
-		for (j = info->K_Whole_Ptr[i]; j < info->K_Whole_Ptr[i + 1]; j++)
-		{
-			ax[i] += info->K_Whole_Val[j] * info->sol_vec[info->K_Whole_Col[j]];
-			if (i != info->K_Whole_Col[j])
-			{
-				ax[info->K_Whole_Col[j]] += info->K_Whole_Val[j] * info->sol_vec[i];
-			}
-		}
-	}
-	for (i = 0; i < ndof; i++)
-	{
-		r[i] = info->rhs_vec[i] - ax[i];
-	}
-	free(ax);
-
-	// 第0近似解に対する残差の計算
+	// double *ax = (double *)calloc(ndof, sizeof(double));
 	// for (i = 0; i < ndof; i++)
 	// {
-	// 	r[i] = info->rhs_vec[i];
+	// 	for (j = info->K_Whole_Ptr[i]; j < info->K_Whole_Ptr[i + 1]; j++)
+	// 	{
+	// 		ax[i] += info->K_Whole_Val[j] * info->sol_vec[info->K_Whole_Col[j]];
+	// 		if (i != info->K_Whole_Col[j])
+	// 		{
+	// 			ax[info->K_Whole_Col[j]] += info->K_Whole_Val[j] * info->sol_vec[i];
+	// 		}
+	// 	}
 	// }
+	// for (i = 0; i < ndof; i++)
+	// {
+	// 	r[i] = info->rhs_vec[i] - ax[i];
+	// }
+	// free(ax);
+
+	// 第0近似解に対する残差の計算
+	for (i = 0; i < ndof; i++)
+	{
+		r[i] = info->rhs_vec[i];
+	}
 
 	// p_0 = (LDL^T)^-1 r_0 の計算 <- CG法で M = [[K^G, 0], [0, K^L]] とし, p_0 = (LDL^T)^-1 r_0 = M^-1 r_0
 	CG(ndof, p, M, M_Ptr, M_Col, M_diag, r, gg, dd, pp, temp_r);
@@ -3282,6 +3421,145 @@ int RowCol_to_icount(int row, int col, information *info)
 		}
 	}
 	return -1;
+}
+
+
+// GMRES solver
+void GMRES_Solver(int max_itetarion, double eps, information *info)
+{
+	// int i, j, k;
+	// int ndof = K_Whole_Size;
+
+	// double *r = (double *)malloc(sizeof(double) * ndof);
+	// double *v = (double *)calloc(ndof, sizeof(double));
+	// double *e = (double *)calloc(ndof, sizeof(double));
+	// double *w = (double *)calloc(ndof, sizeof(double));
+	// double *y = (double *)malloc(sizeof(double) * ndof);
+	// double *r2 = (double *)calloc(ndof, sizeof(double));
+	// double *temp_array_K = (double *)malloc(sizeof(double) * ndof);
+
+	// double *gg = (double *)malloc(sizeof(double) * ndof);
+	// double *dd = (double *)malloc(sizeof(double) * ndof);
+	// double *pp = (double *)malloc(sizeof(double) * ndof);
+
+	// double *temp_r = (double *)malloc(sizeof(double) * ndof);
+
+	// // 初期化
+	// for (i = 0; i < ndof; i++)
+	// 	info->sol_vec[i] = 0.0;
+
+	// // 前処理行列作成
+	// double *M = (double *)malloc(sizeof(double) * info->K_Whole_Ptr[ndof]);
+	// int *M_Ptr = (int *)malloc(sizeof(int) * ndof + 1);
+	// int *M_Col = (int *)malloc(sizeof(int) * info->K_Whole_Ptr[ndof]);
+	// double *M_diag = (double *)malloc(sizeof(double) * ndof);
+	// Make_M(M, M_Ptr, M_Col, M_diag, ndof, info);
+
+	// // 第0近似解に対する残差の計算
+	// for (i = 0; i < ndof; i++)
+	// {
+	// 	r[i] = info->rhs_vec[i];
+	// }
+
+	// for (k = 1; k < max_itetarion; k++)
+	// {
+	// 	w = CG(ndof, r2, M, M_Ptr, M_Col, M_diag, r, gg, dd, pp, temp_r);
+
+	// 	// y = AP の計算
+	// 	for (i = 0; i < ndof; i++)
+	// 	{
+	// 		for (j = 0; j < ndof; j++)
+	// 		{
+	// 			temp_array_K[j] = 0.0;
+	// 		}
+			
+	// 		for (j = 0; j < ndof; j++)
+	// 		{
+	// 			int temp1;
+	// 			if (i <= j)
+	// 			{
+	// 				temp1 = RowCol_to_icount(i, j, info); // temp_array_K[i][j]
+	// 			}
+	// 			else if (i > j)
+	// 			{
+	// 				temp1 = RowCol_to_icount(j, i, info); // temp_array_K[i][j] = temp_array_K[j][i]
+	// 			}
+
+	// 			if (temp1 != -1)
+	// 			{
+	// 				temp_array_K[j] = info->K_Whole_Val[temp1];
+	// 			}
+	// 		}
+	// 		y[i] = inner_product(ndof, temp_array_K, p);
+	// 	}
+
+	// 	rr0 = inner_product(ndof, r, p);
+
+	// 	// alpha = r*r/(P*AP)の計算
+	// 	double temp_scaler = inner_product(ndof, p, y);
+	// 	alpha = rr0 / temp_scaler;
+
+	// 	// 解x, 残差rの更新
+	// 	for (i = 0; i < ndof; i++)
+	// 	{
+	// 		info->sol_vec[i] += alpha * p[i];
+	// 		r[i] -= alpha * y[i];
+	// 	}
+
+	// 	// (r*r)_(k+1)の計算
+	// 	CG(ndof, r2, M, M_Ptr, M_Col, M_diag, r, gg, dd, pp, temp_r);
+
+	// 	// 収束判定 (||r|| <= eps)
+	// 	// double rr1 = inner_product(ndof, y, r2);
+	// 	// e = sqrt(fabs(rr1));
+	// 	// if (e < eps)
+	// 	// {
+	// 	//     k++;
+	// 	//     break;
+	// 	// }
+
+	// 	// 収束判定 (CG法と同じ)
+	// 	double e1 = 0.0, e2 = 0.0;
+	// 	for (i = 0; i < ndof; i++)
+	// 	{
+	// 		e1 += p[i] * p[i];
+	// 		e2 += info->sol_vec[i] * info->sol_vec[i];
+	// 	}
+	// 	e = fabs(alpha) * sqrt(e1 / e2);
+	// 	if (e < eps)
+	// 	{
+	// 		k++;
+	// 		break;
+	// 	}
+
+	// 	// βの計算とPの更新
+	// 	// beta = rr1 / rr0; //旧
+	// 	// beta = - rr1 / temp_scaler; // 新
+	// 	beta = - inner_product(ndof, y, r2) / temp_scaler;
+
+	// 	for (i = 0; i < ndof; i++)
+	// 	{
+	// 		// p[i] = r2[i] - beta * p[i];
+	// 		p[i] = r2[i] + beta * p[i];
+	// 	}
+
+	// 	// (r*r)_(k+1)を次のステップのために確保しておく
+	// 	// rr0 = rr1;
+
+	// 	printf("PCG itr %d\t", k);
+	// 	printf("eps %le", e);
+	// }
+
+	// int max_itr_result = k;
+	// double eps_result = e;
+
+	// printf("\nndof = %d\n", ndof);
+	// printf("itr_result = %d\n", max_itr_result);
+	// printf("eps_result = %.15e\n", eps_result);
+
+	// free(r), free(p), free(y), free(r2), free(temp_array_K);
+	// free(M), free(M_Ptr), free(M_Col), free(M_diag);
+	// free(gg), free(dd), free(pp), free(temp_r);
 }
 
 
