@@ -9,7 +9,7 @@
 
 using namespace std;
 
-// ファイル読み込み1回目
+// Read file 1st time
 void Get_Input_1(int tm, char **argv, information *info)
 {
 	char s[256];
@@ -118,7 +118,7 @@ void Get_Input_1(int tm, char **argv, information *info)
 }
 
 
-// ファイル読み込み2回目
+// Read file 2nd time
 void Get_Input_2(int tm, char **argv, information *info)
 {
 	char s[256];
@@ -1581,7 +1581,7 @@ int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad
 }
 
 
-//昇順ソート
+// 昇順ソート
 void sort(int total, int *element_n_point)
 {
 	int i, j;
@@ -1602,7 +1602,7 @@ void sort(int total, int *element_n_point)
 }
 
 
-//重複削除
+// 重複削除
 int duplicate_delete(int total, int element_n, int *element_n_point, information *info)
 {
 	int i, j;
@@ -2180,7 +2180,6 @@ void Make_gauss_array(int select_GP, information *info)
 
 
 // K matrix
-// D Matrix
 void Make_D_Matrix(information *info)
 {
 	int i, j;
@@ -2537,7 +2536,7 @@ void Make_K_Whole_Ptr_Col(information *info, int mode_select)
 }
 
 
-// valを求める
+// K matrix の値を求める
 void Make_K_Whole_Val(information *info)
 {
 	int i, j, j1, j2, k1, k2, l;
@@ -2764,7 +2763,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			}
 			for (j = 0; j < info->DIMENSION; j++)
 			{
-				para[j] = info->Loc_parameter_on_Glo[El_No_loc * GP_ON_ELEMENT * info->DIMENSION + i * info->DIMENSION + j];
+				para[j] = info->Loc_parameter_on_Glo_ex[El_No_loc * GP_ON_ELEMENT * info->DIMENSION + i * info->DIMENSION + j];
 			}
 		}
 
@@ -2836,7 +2835,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 }
 
 
-// BGマトリックスを求める関数
+// BGマトリックスを求める
 void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *info)
 {
 	double a_2x2[2][2], a_3x3[3][3];
@@ -2944,7 +2943,6 @@ void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *inf
 }
 
 
-// ガウスの数値積分
 void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info)
 {
 	int i, j, k;
@@ -2979,7 +2977,6 @@ void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info)
 }
 
 
-// 結合ガウスの数値積分
 void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, information *info)
 {
 	int i, j, k;
@@ -3019,12 +3016,16 @@ void Make_F_Vec(information *info)
 {
 	int i, index;
 	for (i = 0; i < K_Whole_Size; i++)
+	{
 		info->rhs_vec[i] = 0.0;
+	}
 	for (i = 0; i < info->Total_Load_to_mesh[Total_mesh]; i++)
 	{
 		index = info->Index_Dof[info->Load_Node_Dir[i * 2 + 0] * info->DIMENSION + info->Load_Node_Dir[i * 2 + 1]];
 		if (index >= 0)
+		{
 			info->rhs_vec[index] += info->Value_of_Load[i];
+		}
 	}
 }
 
@@ -3468,7 +3469,6 @@ int RowCol_to_icount(int row, int col, information *info)
 
 
 // tool
-// 逆行列を元の行列に代入
 double InverseMatrix_2x2(double Matrix[2][2])
 {
 	int i, j;

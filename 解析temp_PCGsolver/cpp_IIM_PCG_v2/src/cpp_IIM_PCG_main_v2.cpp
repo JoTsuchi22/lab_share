@@ -71,7 +71,7 @@ int main(int argc, char **argv)
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-	// ファイル読み込み 1 回目
+	// Read file 1st time
     for (tm = 0; tm < Total_mesh; tm++)
     {
 		Get_Input_1(tm, argv, &info);
@@ -101,14 +101,14 @@ int main(int argc, char **argv)
 	info_ptr->jCoord_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);					// jCoord_array[MAX_N_DISTRIBUTE_FORCE]
 	info_ptr->type_load_array = (int *)malloc(sizeof(int) * info.Total_DistributeForce_to_mesh[Total_mesh]);				// type_load_array[MAX_N_DISTRIBUTE_FORCE]
 	info_ptr->val_Coord_array = (double *)calloc(info.Total_DistributeForce_to_mesh[Total_mesh], sizeof(double));			// val_Coord_array[MAX_N_DISTRIBUTE_FORCE]
-	info_ptr->Range_Coord_array = (double *)calloc((info.Total_DistributeForce_to_mesh[Total_mesh] * 2 * 2), sizeof(double));	// Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2] (DIM = 3 のとき 2 -> 4)
-	info_ptr->Coeff_Dist_Load_array = (double *)calloc((info.Total_DistributeForce_to_mesh[Total_mesh] * 3 * 2), sizeof(double));	// Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3] (DIM = 3 のとき 3 -> 6)
+	info_ptr->Range_Coord_array = (double *)calloc((info.Total_DistributeForce_to_mesh[Total_mesh] * 2 * 2), sizeof(double));	// Range_Coord_array[MAX_N_DISTRIBUTE_FORCE][2 * 2] (info.DIMENSION == 3 のとき 2 -> 4)
+	info_ptr->Coeff_Dist_Load_array = (double *)calloc((info.Total_DistributeForce_to_mesh[Total_mesh] * 3 * 2), sizeof(double));	// Coeff_Dist_Load_array[MAX_N_DISTRIBUTE_FORCE][3 * 2] (info.DIMENSION == 3 のとき 3 -> 6)
 	if (info.Order == NULL || info.No_knot == NULL || info.Total_Control_Point_to_patch == NULL || info.Total_Knot_to_patch_dim == NULL || info.Position_Knots == NULL || info.No_Control_point == NULL || info.No_Control_point_in_patch == NULL || info.Patch_Control_point == NULL || info.No_Control_point_ON_ELEMENT == NULL || info.Node_Coordinate == NULL || info.Control_Coord_x == NULL || info.Control_Coord_y == NULL || info.Control_Weight == NULL || info.Constraint_Node_Dir == NULL || info.Value_of_Constraint == NULL || info.Load_Node_Dir == NULL || info.Value_of_Load == NULL || info.iPatch_array == NULL || info.iCoord_array == NULL || info.jCoord_array == NULL || info.type_load_array == NULL || info.val_Coord_array == NULL || info.Range_Coord_array == NULL || info.Coeff_Dist_Load_array == NULL)
 	{
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-	// ファイル読み込み 2 回目
+	// Read file 2nd time
 	for (tm = 0; tm < Total_mesh; tm++)
     {
 		Get_Input_2(tm, argv, &info);
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 
 	printf("\n\nFinish Get Input data\n\n");
 
-	// 各最大値
+	// MAX value
 	MAX_ORDER += 1; // 次数の最大値 + 1
 	MAX_NO_CP_ON_ELEMENT = pow(MAX_ORDER, info.DIMENSION);
 	MAX_KIEL_SIZE = MAX_NO_CP_ON_ELEMENT * info.DIMENSION;
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-    // 全体剛性マトリックスの制作
+    // make K matrix
 	Make_D_Matrix(&info);
 	Make_Index_Dof(&info);
 	Make_K_Whole_Ptr_Col(&info, 0);
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-	// 全体剛性マトリックスの制作
+	// make K matrix
 	Make_K_Whole_Ptr_Col(&info, 1);
     Make_K_Whole_Val(&info);
     printf("\nFinish Make_K_Whole\n\n");
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 		printf("Cannot allocate memory\n"); exit(1);
 	}
 
-	// 荷重ベクトルの制作
+	// make f vector
 	Make_F_Vec(&info);
 	Make_F_Vec_disp_const(&info);
 	Add_Equivalent_Nodal_Force_to_F_Vec(&info);
@@ -327,7 +327,9 @@ int main(int argc, char **argv)
 	{
 		printf("\nStart IGA Postprocessing\n\n");
 		start[1] = chrono::system_clock::now();
+
 		IGA_view(&info);
+
 		end[1] = chrono::system_clock::now();
 		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
 		printf("\nIGA Postprocessing time: %.3f[s]\n\n", time);
@@ -340,7 +342,9 @@ int main(int argc, char **argv)
 	{
 		printf("\nStart S_IGA overlay\n\n");
 		start[1] = chrono::system_clock::now();
+
 		S_IGA_overlay(&info);
+
 		end[1] = chrono::system_clock::now();
 		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
 		printf("\nS-IGA overlay time: %.3f[s]\n\n", time);

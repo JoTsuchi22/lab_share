@@ -43,6 +43,7 @@ double w[MAX_POW_NG_EXTEND];                  // ガウス点での重み
 // double Disp_grad_aux_mode2[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
 // double ReactionForce[MAX_K_WHOLE_SIZE];
 
+// for viewer
 int division_ele_xi;  // ξ方向の一要素あたりの分割数
 int division_ele_eta; // η方向の一要素あたりの分割数
 int division_n_xi;    // ξ方向の表示する点の数
@@ -51,14 +52,14 @@ int element_n_xi;     // ξ方向要素数
 int element_n_eta;    // η方向要素数
 
 // for s-IGA
-double E;                      // ヤング率(GPa)
-double nu;                     // ポアソン比(-)
+double E;             // ヤング率
+double nu;            // ポアソン比
 int Total_mesh;
 
-int MAX_ORDER = 0;          // 基底関数の次数の最大値 + 1
+int MAX_ORDER = 0; // 基底関数の次数の最大値 + 1
 int MAX_CP = 0;
-int MAX_NO_CP_ON_ELEMENT;  // new
-int MAX_KIEL_SIZE;              // new
+int MAX_NO_CP_ON_ELEMENT;
+int MAX_KIEL_SIZE;
 
 int D_MATRIX_SIZE;
 int MAX_K_WHOLE_SIZE;

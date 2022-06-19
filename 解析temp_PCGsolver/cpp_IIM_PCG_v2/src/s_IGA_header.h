@@ -18,7 +18,6 @@
 #define DIVISION_ELE 5                                      // 一要素あたりの分割数
 #define DBL_MAX 1.7976931348623158e+308                     // max value
 #define ERROR -999
-#define ERR 0.0000000000001
 
 struct information {
     int DIMENSION;
@@ -323,12 +322,7 @@ int CalcXiEtaByNR(double px, double py,
 void output_for_viewer(information *info);
 void IGA_view(information *info);
 void K_output_svg(information *info);
-
-
-
-
 // J integral
-
 
 
 // 各種値
