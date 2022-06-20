@@ -8722,7 +8722,7 @@ void output_for_paraview(information *info)
 	int i, j;
 	char str[256] = "global_mesh.xmf";
 
-	int num = info->Total_Element_to_mesh[1];
+	int num = info->Total_Control_Point_to_mesh[1];
 	int digit = 0;
 	while(num != 0)
 	{
@@ -8732,11 +8732,12 @@ void output_for_paraview(information *info)
 
 	fp = fopen(str, "w");
 
-	fprintf(fp, "<?xml version=\"1.0\" ?>");
-	fprintf(fp, "<Xdmf Version=\"2.0\">");
+	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
 	fprintf(fp, "  <Domain>\n");
 	fprintf(fp, "    <Grid Name=\"ien\">\n");
-	fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
+	// fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
+	fprintf(fp, "      <Topology TopologyType=\"Quadrilateral\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
 	fprintf(fp, "      </Topology>\n");
 	if (info->DIMENSION == 2)
@@ -8747,7 +8748,6 @@ void output_for_paraview(information *info)
 	{
 		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
 	}
-	fprintf(fp, "      </Topology>\n");
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
 	fprintf(fp, "      </Geometry>\n");
 	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[1], info->DIMENSION);
@@ -8765,18 +8765,36 @@ void output_for_paraview(information *info)
 			fprintf(fp, "\t\t\t\t%1le %1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1], info->Node_Coordinate[i * (info->DIMENSION + 1) + 2]);
 		}
 	}
-	fprintf(fp, "            </DataItem>\n");
+	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1], info->No_Control_point_ON_ELEMENT[info->Element_patch[0]]);
-	fprintf(fp, "\t\t\t\t>\n");
+	// fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 4\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1]);
 	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
 	{
-		for (j = 0; j < info->No_Control_point_ON_ELEMENT[i]; j++)
-		{
-			fprintf(fp, "%*d ", digit, info->Patch_Control_point[info->Total_Control_Point_to_patch[i + info->Total_Patch_to_mesh[tm]] + j]);
-		}
+		fprintf(fp, "\t\t\t\t");
+		// for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
+		// {
+		// 	fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
+		// }
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 15]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 12]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 0]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 3]);
+
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 1]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 2]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 4]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 5]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 6]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 7]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 8]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 9]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 10]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 11]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 13]);
+		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 14]);
 		fprintf(fp, "\n");
 	}
-	fprintf(fp, "            </DataItem>\n");
+	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "    </Grid>\n");
 	fprintf(fp, "  </Domain>\n");
 	fprintf(fp, "</Xdmf>\n");	

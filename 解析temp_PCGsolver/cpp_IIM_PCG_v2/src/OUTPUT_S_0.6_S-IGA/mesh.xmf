@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<Xdmf Version="2.0">
+  <Domain>
+    <Grid Name="OUTPUT_S_0.6_S-IGA/ien">
+      <Topology TopologyType="Hexahedron_27" NumberOfElements="1176">
+        <DataItem Reference="XML">/Xdmf/Domain/Grid/DataItem[@Name=&quot;OUTPUT_S_0.6_S-IGA/ien&quot;]</DataItem>
+      </Topology>
+      <Geometry GeometryType="XYZ">
+        <DataItem Reference="XML">/Xdmf/Domain/Grid/DataItem[@Name=&quot;OUTPUT_S_0.6_S-IGA/xyz&quot;]</DataItem>
+      </Geometry>
+      <DataItem Name="OUTPUT_S_0.6_S-IGA/xyz" Dimensions="31752 3" NumberType="Float" Precision="8" Format="Binary" Endian="Big">xyz</DataItem>
+      <DataItem Name="OUTPUT_S_0.6_S-IGA/ien" Dimensions="1176 27" NumberType="Int" Format="Binary" Endian="Big">ien</DataItem>
+      <DataItem Name="OUTPUT_S_0.6_S-IGA/mises.bin" Dimensions="31752 1" NumberType="Float" Precision="8" Format="Binary" Endian="Big">mises.bin</DataItem>
+      <Attribute Name="mises" Dimensions="31752 1">
+        <DataItem Reference="XML">/Xdmf/Domain/Grid/DataItem[@Name=&quot;OUTPUT_S_0.6_S-IGA/mises.bin&quot;]</DataItem>
+      </Attribute>
+      <DataItem Name="OUTPUT_S_0.6_S-IGA/stress.bin" Dimensions="31752 3" NumberType="Float" Precision="8" Format="Binary" Endian="Big">stress.bin</DataItem>
+      <Attribute Name="stress" AttributeType="Vector" Dimensions="31752 3">
+        <DataItem Reference="XML">/Xdmf/Domain/Grid/DataItem[@Name=&quot;OUTPUT_S_0.6_S-IGA/stress.bin&quot;]</DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>
