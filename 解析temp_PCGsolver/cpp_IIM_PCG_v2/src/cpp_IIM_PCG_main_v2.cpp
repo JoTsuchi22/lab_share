@@ -304,6 +304,7 @@ int main(int argc, char **argv)
 	}
 
 	// viewer のための出力
+	output_for_paraview(&info);
 	output_for_viewer(&info);
 	printf("\nFinish output_for_viewer\n\n");
 

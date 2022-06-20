@@ -327,6 +327,7 @@ int CalcXiEtaByNR(double px, double py,
 void output_for_viewer(information *info);
 void IGA_view(information *info);
 void K_output_svg(information *info);
+void output_for_paraview(information *info);
 // J integral
 
 

@@ -8717,173 +8717,69 @@ void K_output_svg(information *info)
 }
 
 
-
-
-
-/*
-
-// 各種値 
-void Make_Strain(int Total_Element)
+void output_for_paraview(information *info)
 {
-	static double U[MAX_KIEL_SIZE];
-	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], X[MAX_NO_CP_ON_ELEMENT][info->DIMENSION], J;
+	int i, j;
+	char str[256] = "global_mesh.xmf";
 
-	int N, e, i, j;
-	// printf("Strain\n");
-
-	Make_gauss_array(0, info);
-
-	for (e = 0; e < Total_Element; e++)
+	int num = info->Total_Element_to_mesh[1];
+	int digit = 0;
+	while(num != 0)
 	{
-		// printf("\nElementNo.:%d\n",e);
-		for (N = 0; N < GP_2D; N++)
-			for (i = 0; i < N_STRAIN; i++)
-				Strain[e][N][i] = 0.0;
-		// Bマトリックスと各要素の変位を取得
-		// printf("El_No:%d,info->No_Control_point_ON_ELEMENT[%d]:%d\n", El_No,info->Element_patch[El_No],info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]);
-		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; i++)
+		num = num / 10;
+		digit++;
+  	}
+
+	fp = fopen(str, "w");
+
+	fprintf(fp, "<?xml version=\"1.0\" ?>");
+	fprintf(fp, "<Xdmf Version=\"2.0\">");
+	fprintf(fp, "  <Domain>\n");
+	fprintf(fp, "    <Grid Name=\"ien\">\n");
+	fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+	fprintf(fp, "      </Topology>\n");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+	}
+	fprintf(fp, "      </Topology>\n");
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+	fprintf(fp, "      </Geometry>\n");
+	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[1], info->DIMENSION);
+	if (info->DIMENSION == 2)
+	{
+		for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
 		{
-			for (j = 0; j < info->DIMENSION; j++)
-			{
-				U[i * info->DIMENSION + j] = info->Displacement[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + j];
-				X[i][j] = info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + j];
-			}
-		}
-		//歪
-		for (N = 0; N < GP_2D; N++)
-		{
-			// printf("N:%d\n",N);
-			Make_B_Matrix(e, B, Gxi[N], X, &J);
-			for (i = 0; i < D_MATRIX_SIZE; i++)
-				for (j = 0; j < KIEL_SIZE; j++)
-				{
-					Strain[e][N][i] += B[i][j] * U[j];
-					// printf("B[%d][%d]_in_strain:%le * ",i,j,B[i][j]);
-					// if (e==1)
-					// {
-					// printf("U[%d]=%le = %le\n",j,U[j],B[i][j]*U[j]);
-					// }
-				}
+			fprintf(fp, "\t\t\t\t%1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1]);
 		}
 	}
-}
-
-
-void Make_Stress_2D(double E, double nu, int Total_Element, int DM)
-{
-	static double info->D[D_MATRIX_SIZE][D_MATRIX_SIZE];
-	int e, i, j, k;
-	Make_gauss_array(0, info);
-	Make_D_Matrix_2D(info->D, E, nu, DM);
-
-	for (e = 0; e < Total_Element; e++)
+	else if (info->DIMENSION == 3)
 	{
-		for (k = 0; k < GP_2D; k++)
-			for (i = 0; i < N_STRESS; i++)
-				Stress[e][k][i] = 0.0;
-		for (k = 0; k < GP_2D; k++)
-			for (i = 0; i < D_MATRIX_SIZE; i++)
-				for (j = 0; j < D_MATRIX_SIZE; j++)
-					Stress[e][k][i] += info->D[i][j] * Strain[e][k][j];
-	}
-}
-
-
-void Make_ReactionForce(int Total_Control_Point)
-{
-	int e, i, j, k, l, re;
-	double B[D_MATRIX_SIZE][MAX_KIEL_SIZE], X[MAX_NO_CP_ON_ELEMENT][MAX_DIMENSION], J;
-
-	Make_gauss_array(0, info);
-
-	for (i = 0; i < Total_Control_Point * info->DIMENSION; i++)
-		ReactionForce[i] = 0.0;
-	// printf("ReactionForce\n");
-	for (re = 0; re < info->real_Total_Element_to_mesh[Total_mesh]; re++)
-	{
-		e = info->real_element[re];
-		// printf("%d,info->No_Control_point_ON_ELEMENT[%d]:%d\n",e,info->Element_patch[e], info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]);
-		// Bマトリックスを取得
-		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; i++)
+		for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
 		{
-			for (j = 0; j < info->DIMENSION; j++)
-			{
-				X[i][j] = info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + j];
-			}
-		}
-		for (k = 0; k < GP_2D; k++)
-		{
-			Make_B_Matrix(e, B, Gxi[k], X, &J);
-			for (j = 0; j < D_MATRIX_SIZE; j++)
-				for (l = 0; l < info->DIMENSION; l++)
-					for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; i++)
-						ReactionForce[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + l] += B[j][i * info->DIMENSION + l] * Stress[e][k][j] * w[k] * J;
-			// printf("J:%le\n", J);
+			fprintf(fp, "\t\t\t\t%1le %1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1], info->Node_Coordinate[i * (info->DIMENSION + 1) + 2]);
 		}
 	}
+	fprintf(fp, "            </DataItem>\n");
+	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1], info->No_Control_point_ON_ELEMENT[info->Element_patch[0]]);
+	fprintf(fp, "\t\t\t\t>\n");
+	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
+	{
+		for (j = 0; j < info->No_Control_point_ON_ELEMENT[i]; j++)
+		{
+			fprintf(fp, "%*d ", digit, info->Patch_Control_point[info->Total_Control_Point_to_patch[i + info->Total_Patch_to_mesh[tm]] + j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "            </DataItem>\n");
+	fprintf(fp, "    </Grid>\n");
+	fprintf(fp, "  </Domain>\n");
+	fprintf(fp, "</Xdmf>\n");	
+
+	fclose(fp);
 }
-
-
-void Make_Parameter_z(int Total_Element, double E, double nu, int DM)
-{
-	int e, k;
-	Make_gauss_array(0, info);
-
-	if (DM == 0)
-	{
-		// Make_strain_z
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Strain[e][k][3] = 0.0;
-
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Strain[e][k][3] = -1.0 * nu / E * (Stress[e][k][0] + Stress[e][k][1]);
-	}
-
-	if (DM == 1)
-	{
-		// Make_stree_z
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Stress[e][k][3] = 0.0;
-
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Stress[e][k][3] = E * nu / (1.0 + nu) / (1 - 2.0 * nu) * (Strain[e][k][0] + Strain[e][k][1]);
-	}
-}
-
-
-void Make_Parameter_z_overlay(int Total_Element, double E, double nu, int DM)
-{
-	int e, k;
-
-	Make_gauss_array(0, info);
-
-	if (DM == 0)
-	{
-		// Make_strain_z
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Strain_overlay[e][k][3] = 0.0;
-
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Strain_overlay[e][k][3] = -1.0 * nu / E * (Stress_overlay[e][k][0] + Stress_overlay[e][k][1]);
-	}
-
-	if (DM == 1)
-	{
-		// Make_stree_z
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Stress_overlay[e][k][3] = 0.0;
-
-		for (e = 0; e < Total_Element; e++)
-			for (k = 0; k < GP_2D; k++)
-				Stress_overlay[e][k][3] = E * nu / (1.0 + nu) / (1 - 2.0 * nu) * (Strain_overlay[e][k][0] + Strain_overlay[e][k][1]);
-	}
-}
-
-*/
