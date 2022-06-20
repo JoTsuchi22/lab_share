@@ -3,7 +3,7 @@
 
 #define MAX_DIMENSION 3
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
-#define OUTPUT_SVG 1    // SVG 出力を行わない 0, 行う 1
+#define OUTPUT_SVG 0    // SVG 出力を行わない 0, 行う 1
 #define DM 1            // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 #define NG 4												// Gauss-Legendreの積分点数
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
@@ -11,8 +11,6 @@
 #define MAX_POW_NG_EXTEND NG_EXTEND * NG_EXTEND	* NG_EXTEND // NGのDIMENSION乗の最大値の計算
 #define K_DIVISION_LENGE 10 	                            // 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
 #define EPS 1.0e-10				                            // 連立1次方程式の残差
-#define N_STRAIN 4
-#define N_STRESS 4
 #define MAX_N_ELEMENT_OVER 100  				            // グローバルメッシュ内の1要素に重なる最大要素数
 #define MAX_N_ELEMENT_OVER_POINT 5				            // ローカル要素内の1点に重なるグローバル要素
 #define DIVISION_ELE 5                                      // 一要素あたりの分割数
@@ -101,6 +99,9 @@ struct information {
     double *rhs_vec;
 
     double *Displacement;
+    double *Strain_at_GP;
+    double *Stress_at_GP;
+    double *ReactionForce;
 
 	double *coord_x;
 	double *coord_y;
@@ -293,6 +294,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 				     double *output_xi, double *output_eta, double *output_zeta, information *info);
 // Postprocessing
 void Make_Displacement(information *info);
+void Make_Strain(information *info);
+void Make_Stress(information *info);
+void Make_Parameter_z(information *ifno);
+void Make_ReactionForce(information *info);
 // for S_IGA overlay
 void S_IGA_overlay(information *info);
 void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int cntl_p_n_xi, int cntl_p_n_eta,
@@ -323,14 +328,6 @@ void output_for_viewer(information *info);
 void IGA_view(information *info);
 void K_output_svg(information *info);
 // J integral
-
-
-// 各種値
-// void Make_Strain(int Total_Element);
-// void Make_Stress_2D(double E, double nu, int Total_Element, int DM);
-// void Make_ReactionForce(int Total_Control_Point);
-// void Make_Parameter_z(int Total_Element, double E, double nu, int DM);
-// void Make_Parameter_z_overlay(int Total_Element, double E, double nu, int DM);
 
 
 #endif

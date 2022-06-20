@@ -11,38 +11,6 @@ double w_1D[MAX_POW_NG];                      // 1次元のガウス点での重
 double Gxi[MAX_POW_NG_EXTEND][MAX_DIMENSION]; // ガウス点
 double w[MAX_POW_NG_EXTEND];                  // ガウス点での重み
 
-// double Strain[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Strain_glo[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Strain_overlay[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Strain_overlay_loc[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Strain_aux_mode1[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Strain_aux_mode2[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Strain_aux_mode1_local[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN];
-// double Stress[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_glo[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_overlay[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_overlay_loc[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_aux_mode1_local[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_aux_mode1[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_aux_mode2_local[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double Stress_aux_mode2[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS];
-// double StrainEnergyDensity[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_overlay[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_aux_mode1[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_aux_mode2[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_aux_mode1_loc[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_aux_only_mode1[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_aux_only_mode2[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double StrainEnergyDensity_aux_only_mode1_local[MAX_N_ELEMENT][POW_NG_EXTEND];
-// double Disp_grad[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION]; // Disp_grad[MAX_N_ELEMENT][POW_NG_EXTEND][0] = 𝜕u1/𝜕x1  Disp_grad[MAX_N_ELEMENT][POW_NG_EXTEND][1] = 𝜕u1/𝜕x2  Disp_grad[MAX_N_ELEMENT][POW_NG_EXTEND][2] = 𝜕u2/𝜕x1 Disp_grad[MAX_N_ELEMENT][POW_NG_EXTEND][3] = 𝜕u2/𝜕x2
-// double Disp_grad_glo[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
-// double Disp_grad_overlay[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
-// double Disp_grad_aux_mode1_local[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
-// double Disp_grad_aux_mode1[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
-// double Disp_grad_aux_mode2_local[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
-// double Disp_grad_aux_mode2[MAX_N_ELEMENT][POW_NG_EXTEND][DIMENSION * DIMENSION];
-// double ReactionForce[MAX_K_WHOLE_SIZE];
-
 // for viewer
 int division_ele_xi;  // ξ方向の一要素あたりの分割数
 int division_ele_eta; // η方向の一要素あたりの分割数
@@ -62,6 +30,8 @@ int MAX_NO_CP_ON_ELEMENT;
 int MAX_KIEL_SIZE;
 
 int D_MATRIX_SIZE;
+int N_STRAIN;
+int N_STRESS;
 int MAX_K_WHOLE_SIZE;
 int K_Whole_Size;
 int DIVISION_ELEMENT;

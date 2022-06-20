@@ -2189,7 +2189,7 @@ void Make_D_Matrix(information *info)
 		if (DM == 0) // 平面応力状態
 		{
 			double Eone = E / (1.0 - nu * nu);
-			double D1[3][3] = {{Eone, nu * Eone, 0}, {nu * Eone, Eone, 0}, {0, 0, (1 - nu) / 2 * Eone}};
+			double D1[3][3] = {{Eone, nu * Eone, 0}, {nu * Eone, Eone, 0}, {0, 0, (1 - nu) * Eone / 2.0}};
 
 			for (i = 0; i < D_MATRIX_SIZE; i++)
 				for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -2198,7 +2198,7 @@ void Make_D_Matrix(information *info)
 		else if (DM == 1) // 平面ひずみ状態
 		{
 			double Eone = E * (1.0 - nu) / (1.0 + nu) / (1.0 - 2.0 * nu);
-			double D1[3][3] = {{Eone, nu / (1.0 - nu) * Eone, 0}, {nu / (1.0 - nu) * Eone, Eone, 0}, {0, 0, (1 - 2 * nu) / 2 / (1.0 - nu) * Eone}};
+			double D1[3][3] = {{Eone, nu / (1.0 - nu) * Eone, 0}, {nu / (1.0 - nu) * Eone, Eone, 0}, {0, 0, (1 - 2 * nu) / 2.0 / (1.0 - nu) * Eone}};
 
 			for (i = 0; i < D_MATRIX_SIZE; i++)
 				for (j = 0; j < D_MATRIX_SIZE; j++)
@@ -6808,6 +6808,113 @@ void Make_Displacement(information *info)
 		}
 	}
 }
+
+
+void Make_Strain(information *info)
+{
+	int i, j, k, l;
+	int KIEL_SIZE;
+	double *temp_disp = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+
+	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+	{
+		KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] * info->DIMENSION;
+
+		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
+		{
+			for (k = 0; k < info->DIMENSION; k++)
+			{
+				temp_disp[j * info->DIMENSION + k] = info->Displacement[info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
+			}
+		}
+
+		for (j = 0; j < GP_ON_ELEMENT; j++)
+		{
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				for (l = 0; l < KIEL_SIZE; l++)
+				{
+					info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + k] += info->B_Matrix[i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + l] * temp_disp[l];
+				}
+			}
+		}
+	}
+
+	free(temp_disp);
+}
+
+
+void Make_Stress(information *info)
+{
+	int i, j, k, l;
+
+	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+	{
+		for (j = 0; j < GP_ON_ELEMENT; j++)
+		{
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				for (l = 0; l < D_MATRIX_SIZE; l++)
+				{
+					info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + k] += info->D[k * D_MATRIX_SIZE + l] * info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + l];
+				}
+			}
+		}
+	}
+}
+
+
+void Make_Parameter_z(information *info)
+{
+	int i, j;
+
+	if (DM == 0)
+	{
+		// 平面応力状態
+		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+		{
+			for (j = 0; j < GP_ON_ELEMENT; j++)
+			{
+				info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 3] = - 1.0 * nu / i * (info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 0] + info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 1]);
+			}
+		}
+	}
+	else if (DM == 1)
+	{
+		// 平面ひずみ状態
+		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+		{
+			for (j = 0; j < GP_ON_ELEMENT; j++)
+			{
+				info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 3] = i * nu / (1.0 + nu) / (1 - 2.0 * nu) * (info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 0] + info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 1]);
+			}
+		}
+	}
+}
+
+
+void Make_ReactionForce(information *info)
+{
+	int i, j, k, l, m;
+
+	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+	{
+		for (j = 0; j < GP_ON_ELEMENT; j++)
+		{
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				for (l = 0; l < info->DIMENSION; l++)
+				{
+					for (m = 0; m < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; m++)
+					{
+						info->ReactionForce[info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + m] * info->DIMENSION + l] += info->B_Matrix[i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + m * info->DIMENSION + l] * info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + k] * w[j] * info->Jac[i * MAX_POW_NG + j];
+					}
+				}
+			}
+		}
+	}
+}
+
 
 
 // for S-IGA overlay

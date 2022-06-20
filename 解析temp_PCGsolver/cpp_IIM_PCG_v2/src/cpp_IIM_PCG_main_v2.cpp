@@ -152,10 +152,18 @@ int main(int argc, char **argv)
 	if (info.DIMENSION == 2)
 	{
 		D_MATRIX_SIZE = 3;
+
+		// 0: xx, 1: yy, 2: xy, 3: zz
+		N_STRAIN = 4;
+		N_STRESS = 4;
 	}
 	else if (info.DIMENSION == 3)
 	{
 		D_MATRIX_SIZE = 6;
+
+		// 0: xx, 1: yy, 2: zz, 3: xy, 4: yz, 5: xz
+		N_STRAIN = 6;
+		N_STRESS = 6;
 	}
 	info_ptr->NNLOVER = (int *)calloc(info.real_Total_Element_to_mesh[Total_mesh], sizeof(int));
 	info_ptr->NELOVER = (int *)calloc(info.real_Total_Element_to_mesh[Total_mesh] * MAX_N_ELEMENT_OVER, sizeof(int));
@@ -263,28 +271,30 @@ int main(int argc, char **argv)
 	start[1] = chrono::system_clock::now();
 
 	// memory allocation
+	Make_gauss_array(0, &info);
     info_ptr->Displacement = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);	// Displacement[MAX_K_WHOLE_SIZE]
+    info_ptr->Strain_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRAIN, sizeof(double));	// Strain[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN]
+    info_ptr->Stress_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRESS, sizeof(double));	// Stress[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS]
+    info_ptr->ReactionForce = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// ReactionForce[MAX_K_WHOLE_SIZE]
 	if (info.Displacement == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
 	}
 
-	// Make Displacement
+	// Postprocessing
 	Make_Displacement(&info);
 	printf("\nFinish Make_Displacement\n\n");
-
-	// Postprocessing
-	// Make_Strain(real_Total_Element_to_mesh[Total_mesh]);
+	Make_Strain(&info);
 	printf("\nFinish Make_Strain\n\n");
-	// Make_Stress_2D(E, nu, real_Total_Element_to_mesh[Total_mesh], DM);
+	Make_Stress(&info);
 	printf("\nFinish Make_Stress\n\n");
-	// Make_ReactionForce(Total_Control_Point_to_mesh[Total_mesh]);
-	printf("\nFinish Make_ReactionForce\n\n");
 	if (info.DIMENSION == 2)
 	{
-		// Make_Parameter_z(real_Total_Element_to_mesh[Total_mesh], E, nu, DM);
+		Make_Parameter_z(&info);
 		printf("\nFinish Make_Parameter_z\n\n");
 	}
+	Make_ReactionForce(&info);
+	printf("\nFinish Make_ReactionForce\n\n");
 
 	// Kマトリックスのsvg出力
 	if (OUTPUT_SVG == 1)
@@ -334,6 +344,9 @@ int main(int argc, char **argv)
 		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
 		printf("\nIGA Postprocessing time: %.3f[s]\n\n", time);
 		printf("\nFinish IGA Postprocessing\n\n");
+		end[0] = chrono::system_clock::now();
+		time = (double)(chrono::duration_cast<chrono::milliseconds>(end[0] - start[0]).count()) / 1000.0;
+		printf("\nAll analysis time: %.3f[s]\n\n", time);
 		exit(0);
 	}
 
