@@ -8719,10 +8719,9 @@ void K_output_svg(information *info)
 
 void output_for_paraview(information *info)
 {
-	int i, j;
-	char str[256] = "global_mesh.xmf";
+	int i, j, k;
 
-	int num = info->Total_Control_Point_to_mesh[1];
+	int num = info->Total_Control_Point_to_mesh[Total_mesh];
 	int digit = 0;
 	while(num != 0)
 	{
@@ -8730,14 +8729,79 @@ void output_for_paraview(information *info)
 		digit++;
   	}
 
+	int point_on_element = 0;
+	int counter = 0;
+	double *point_array;
+	double temp_point[MAX_DIMENSION];
+	if (info->DIMENSION == 2) 
+	{
+		point_on_element = 9;
+		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
+
+		// point 0
+		point_array[] = ;
+		point_array[] = ;
+		// point 1
+		point_array[] = ;
+		point_array[] = ;
+		// point 2
+		point_array[] = ;
+		point_array[] = ;
+		// point 3
+		point_array[] = ;
+		point_array[] = ;
+		// point 4
+		point_array[] = ;
+		point_array[] = ;
+		// point 5
+		point_array[] = ;
+		point_array[] = ;
+		// point 6
+		point_array[] = ;
+		point_array[] = ;
+		// point 7
+		point_array[] = ;
+		point_array[] = ;
+		// point 8
+		point_array[] = ;
+		point_array[] = ;
+		// point 9
+		point_array[] = ;
+		point_array[] = ;
+	}
+	else if (info->DIMENSION == 3)
+	{
+		point_on_element = 27;
+		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
+	}
+
+	// global mesh
+	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
+	{
+		for (j = 0; j < point_on_element; j++)
+		{
+			for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; k++)
+			{
+				point
+			}
+		}
+	}
+
+	char str[256] = "global_mesh.xmf";
 	fp = fopen(str, "w");
 
 	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
 	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
 	fprintf(fp, "  <Domain>\n");
 	fprintf(fp, "    <Grid Name=\"ien\">\n");
-	// fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
-	fprintf(fp, "      <Topology TopologyType=\"Quadrilateral\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp, "      <Topology TopologyType=\"HEXAHEDRON_27\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
+	}
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
 	fprintf(fp, "      </Topology>\n");
 	if (info->DIMENSION == 2)
@@ -8766,32 +8830,24 @@ void output_for_paraview(information *info)
 		}
 	}
 	fprintf(fp, "      </DataItem>\n");
-	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1], info->No_Control_point_ON_ELEMENT[info->Element_patch[0]]);
-	// fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 4\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1]);
+	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 9\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1]);
 	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
 	{
 		fprintf(fp, "\t\t\t\t");
-		// for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
-		// {
-		// 	fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
-		// }
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 15]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 12]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 0]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 3]);
-
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 1]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 2]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 4]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 5]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 6]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 7]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 8]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 9]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 10]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 11]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 13]);
-		fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + 14]);
+		if (info->DIMENSION == 2)
+		{
+			for (j = 0; j < point_on_element; j++)
+			{
+				fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			for (j = 0; j < point_on_element; j++)
+			{
+				fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
+			}
+		}
 		fprintf(fp, "\n");
 	}
 	fprintf(fp, "      </DataItem>\n");

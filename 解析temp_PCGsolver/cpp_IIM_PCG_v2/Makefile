@@ -33,6 +33,9 @@ run_3D:	mkdir_output
 run_crack:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_crack/input_glo.txt ../input_crack/input_loc.txt
 
+run_2nd_order: mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_2_10x10.txt
+
 # NURBS viewer, 0: local, 1: global
 view0:
 	cd ./analysis/output && ../../src/NURBS_viewer/NURBS_view.exe ./input_local.txt ./overlay_view.dat ./Displacement_loc.dat > temp.dat
@@ -55,3 +58,5 @@ testrun_2D: compile_so_fast run_2D view1
 testrun_3D: compile_so_fast run_3D
 
 testrun_crack: compile_so_fast run_crack view0
+
+testrun_2nd_order: compile_fast run_2nd_order
