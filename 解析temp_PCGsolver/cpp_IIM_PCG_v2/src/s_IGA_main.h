@@ -34,6 +34,9 @@ int N_STRAIN;
 int N_STRESS;
 int MAX_K_WHOLE_SIZE;
 int K_Whole_Size;
+
+int Total_connectivity;
+int Total_connectivity_glo;
 int DIVISION_ELEMENT;
 
 // file pointer
