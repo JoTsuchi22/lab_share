@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 	printf("\nFinish Make INC\n\n");
 
 	// memory free
-	free(info.real_element_line), free(info.Total_element_all_ID), free(info.difference);
+	free(info.Total_element_all_ID), free(info.difference);
 
 	// memory allocation
 	if (info.DIMENSION == 2)
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
     printf("\nFinish Make_K_Whole\n\n");
 
 	// memory free
-	free(info.ENC), free(info.Node_To_Node), free(info.Total_Control_Point_To_Node);
+	free(info.Node_To_Node), free(info.Total_Control_Point_To_Node);
 
 	// memory allocation
 	info_ptr->sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// sol_vec[MAX_K_WHOLE_SIZE]
@@ -284,17 +284,22 @@ int main(int argc, char **argv)
 	// Postprocessing
 	Make_Displacement(&info);
 	printf("\nFinish Make_Displacement\n\n");
-	Make_Strain(&info);
-	printf("\nFinish Make_Strain\n\n");
-	Make_Stress(&info);
-	printf("\nFinish Make_Stress\n\n");
-	if (info.DIMENSION == 2)
+
+	// ガウス点での値
+	if (CALC_ON_GP == 1)
 	{
-		Make_Parameter_z(&info);
-		printf("\nFinish Make_Parameter_z\n\n");
+		Make_Strain(&info);
+		printf("\nFinish Make_Strain\n\n");
+		Make_Stress(&info);
+		printf("\nFinish Make_Stress\n\n");
+		if (info.DIMENSION == 2)
+		{
+			Make_Parameter_z(&info);
+			printf("\nFinish Make_Parameter_z\n\n");
+		}
+		Make_ReactionForce(&info);
+		printf("\nFinish Make_ReactionForce\n\n");
 	}
-	Make_ReactionForce(&info);
-	printf("\nFinish Make_ReactionForce\n\n");
 
 	// Kマトリックスのsvg出力
 	if (OUTPUT_SVG == 1)
@@ -303,8 +308,55 @@ int main(int argc, char **argv)
 		printf("\nFinish K_output_svg\n\n");
 	}
 
-	// viewer のための出力
+	// memory allocation
+	int total_array = 0, check_n = 0, FE_n = 0, opp_n = 0, point_on_element = pow(3, info.DIMENSION);
+	if (info.DIMENSION == 2)
+	{
+		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+		{
+			int x = info->line_No_Total_element[i * info->DIMENSION] * 3 - (info->line_No_Total_element[i * info->DIMENSION] - 1), y = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
+			total_array += 2 * (x + y);
+		}
+		check_n = 16;
+		FE_n = 32;
+		opp_n = 4;
+	}
+	else if (info.DIMENSION == 3)
+	{
+		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+		{
+			int x = info->line_No_Total_element[i * info->DIMENSION] * 3 - (info->line_No_Total_element[i * info->DIMENSION] - 1), y = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1), z = info->line_No_Total_element[i * info->DIMENSION + 2] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 2] - 1);
+			total_array += 2 * (x * y + y * z + x * z);
+		}
+		check_n = 24;
+		FE_n = 36;
+		opp_n = 6;
+	}
+	info_ptr->Connectivity = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
+	info_ptr->Connectivity_ele = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
+	info_ptr->Connectivity_point = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
+	info_ptr->Connectivity_coord = (double *)malloc(sizeof(double) * info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION);
+	info_ptr->Patch_check = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * check_n);
+	info_ptr->Patch_array = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * total_array);
+	info_ptr->Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * FE_n);
+	info_ptr->Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * opp_n);
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh] * FE_n; i++)
+	{
+		info.Face_Edge_info[i] = -1;
+	}
+	if (info.Connectivity == NULL || info.Connectivity_ele == NULL || info.Connectivity_point == NULL || info.Connectivity_coord == NULL || info.Patch_check == NULL || info.Patch_array == NULL)
+	{
+		printf("Cannot allocate memory\n"); exit(1);
+	}
+
+	// paraview のための出力
 	output_for_paraview(&info);
+
+	// memory free
+	free(info.Connectivity), free(info.Connectivity_ele), free(info.Connectivity_point), free(info.Connectivity_coord), free(info.Patch_check), free(info.Patch_array);
+
+	
+	// NURBS viewer のための出力
 	output_for_viewer(&info);
 	printf("\nFinish output_for_viewer\n\n");
 
@@ -333,8 +385,8 @@ int main(int argc, char **argv)
 		printf("Cannot allocate memory\n"); exit(1);
 	}
 
-	// IGA のポスト処理
-	if(Total_mesh == 1)
+	// IGA のポスト処理 (for NURBS viewer)
+	if(info.DIMENSION == 2 && Total_mesh == 1)
 	{
 		printf("\nStart IGA Postprocessing\n\n");
 		start[1] = chrono::system_clock::now();
@@ -351,8 +403,8 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	// 重ね合わせをスキップしてJ積分を行う
-	if (SKIP_S_IGA != 1)
+	// S-IGA のポスト処理 (for NURBS viewer)
+	if (info.DIMENSION == 2 && SKIP_S_IGA != 1)
 	{
 		printf("\nStart S_IGA overlay\n\n");
 		start[1] = chrono::system_clock::now();
@@ -364,7 +416,7 @@ int main(int argc, char **argv)
 		printf("\nS-IGA overlay time: %.3f[s]\n\n", time);
 		printf("\nFinish S_IGA overlay\n\n");
 	}
-	else if (SKIP_S_IGA == 1)
+	else if (info.DIMENSION == 2 && SKIP_S_IGA == 1)
 	{
 		printf("\nSKIP_S_IGA = 1, skip S-IGA\n\n");
 	}

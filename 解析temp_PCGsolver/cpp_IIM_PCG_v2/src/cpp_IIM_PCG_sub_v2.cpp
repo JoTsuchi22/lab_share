@@ -24,6 +24,11 @@ void Get_Input_1(int tm, char **argv, information *info)
 	info->DIMENSION = temp_i;
 	fgets(s, 256, fp);
 	printf("DIMENSION: %d\n", info->DIMENSION);
+	if (info->DIMENSION != 2 || info->DIMENSION != 3)
+	{
+		printf("Error, wrong DIMENSION in input data\n");
+		exit(1);
+	}
 
 	// 材料定数
 	fscanf(fp, "%lf %lf", &E, &nu);
@@ -8717,6 +8722,7 @@ void K_output_svg(information *info)
 }
 
 
+// paraview
 void output_for_paraview(information *info)
 {
 	int i, j, k;
@@ -8729,64 +8735,10 @@ void output_for_paraview(information *info)
 		digit++;
   	}
 
-	int point_on_element = 0;
-	int counter = 0;
-	double *point_array;
-	double temp_point[MAX_DIMENSION];
-	if (info->DIMENSION == 2) 
-	{
-		point_on_element = 9;
-		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
-
-		// point 0
-		point_array[] = ;
-		point_array[] = ;
-		// point 1
-		point_array[] = ;
-		point_array[] = ;
-		// point 2
-		point_array[] = ;
-		point_array[] = ;
-		// point 3
-		point_array[] = ;
-		point_array[] = ;
-		// point 4
-		point_array[] = ;
-		point_array[] = ;
-		// point 5
-		point_array[] = ;
-		point_array[] = ;
-		// point 6
-		point_array[] = ;
-		point_array[] = ;
-		// point 7
-		point_array[] = ;
-		point_array[] = ;
-		// point 8
-		point_array[] = ;
-		point_array[] = ;
-		// point 9
-		point_array[] = ;
-		point_array[] = ;
-	}
-	else if (info->DIMENSION == 3)
-	{
-		point_on_element = 27;
-		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
-	}
+	Make_connectivity(info);
+	Make_info_for_viewer(info);
 
 	// global mesh
-	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
-	{
-		for (j = 0; j < point_on_element; j++)
-		{
-			for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; k++)
-			{
-				point
-			}
-		}
-	}
-
 	char str[256] = "global_mesh.xmf";
 	fp = fopen(str, "w");
 
@@ -8853,7 +8805,738 @@ void output_for_paraview(information *info)
 	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "    </Grid>\n");
 	fprintf(fp, "  </Domain>\n");
-	fprintf(fp, "</Xdmf>\n");	
+	fprintf(fp, "</Xdmf>\n");
 
 	fclose(fp);
+
+	// local mesh (overlay)
+}
+
+
+void Make_connectivity(information *info)
+{
+	int i, j, k, l, m;
+
+	// Make Patch_check
+	int Patch_check_counter = 0;
+	if (info->DIMENSION == 2)
+    {
+		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
+		{
+			int CP_counter = info->Total_Control_Point_to_patch[i];
+
+			// 辺0 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter];
+			Patch_check_counter++;
+			// 辺0 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] - 1)];
+			Patch_check_counter++;
+			// 辺1 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] - 1)];
+			Patch_check_counter++;
+			// 辺1 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter];
+			Patch_check_counter++;
+			// 辺2 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] - 1)];
+			Patch_check_counter++;
+			// 辺2 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] - 1)];
+			Patch_check_counter++;
+			// 辺3 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] - 1)];
+			Patch_check_counter++;
+			// 辺3 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] - 1)];
+			Patch_check_counter++;
+			// 辺4 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * (info->No_Control_point[i * info->DIMENSION + 1] - 1))];
+			Patch_check_counter++;
+			// 辺4 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] - 1)];
+			Patch_check_counter++;
+			// 辺5 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] - 1)];
+			Patch_check_counter++;
+			// 辺5 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * (info->No_Control_point[i * info->DIMENSION + 1] - 1))];
+			Patch_check_counter++;
+			// 辺6 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter];
+			Patch_check_counter++;
+			// 辺6 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * (info->No_Control_point[i * info->DIMENSION + 1] - 1))];
+			Patch_check_counter++;
+			// 辺7 点0
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * (info->No_Control_point[i * info->DIMENSION + 1] - 1))];
+			Patch_check_counter++;
+			// 辺7 点1
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter];
+			Patch_check_counter++;
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
+		{
+			int CP_counter = info->Total_Control_Point_to_patch[i];
+			int temp = info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] * (info->No_Control_point[i * info->DIMENSION + 2] - 1);
+			int temp_Patch_check_counter;
+			int temp_Patch_check[8];
+
+			// 面0 点0
+			temp_Patch_check[0] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter];
+			Patch_check_counter++;
+			// 面0 点1
+			temp_Patch_check[1] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] - 1)];
+			Patch_check_counter++;
+			// 面0 点2
+			temp_Patch_check[2] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] - 1)];
+			Patch_check_counter++;
+			// 面0 点3
+			temp_Patch_check[3] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + (info->No_Control_point[i * info->DIMENSION] * (info->No_Control_point[i * info->DIMENSION + 1] - 1))];
+			Patch_check_counter++;
+			// 面1 点0
+			temp_Patch_check[4] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + temp];
+			Patch_check_counter++;
+			// 面1 点1
+			temp_Patch_check[5] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + temp + (info->No_Control_point[i * info->DIMENSION] - 1)];
+			Patch_check_counter++;
+			// 面1 点2
+			temp_Patch_check[6] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + temp + (info->No_Control_point[i * info->DIMENSION] * info->No_Control_point[i * info->DIMENSION + 1] - 1)];
+			Patch_check_counter++;
+			// 面1 点3
+			temp_Patch_check[7] = Patch_check_counter;
+			info->Patch_check[Patch_check_counter] = info->Patch_Control_point[CP_counter + temp + (info->No_Control_point[i * info->DIMENSION] * (info->No_Control_point[i * info->DIMENSION + 1] - 1))];
+			Patch_check_counter++;
+			// 面2 点0
+			temp_Patch_check_counter = temp_Patch_check[0];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面2 点1
+			temp_Patch_check_counter = temp_Patch_check[3];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面2 点2
+			temp_Patch_check_counter = temp_Patch_check[7];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面2 点3
+			temp_Patch_check_counter = temp_Patch_check[4];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面3 点0
+			temp_Patch_check_counter = temp_Patch_check[0];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面3 点1
+			temp_Patch_check_counter = temp_Patch_check[1];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面3 点2
+			temp_Patch_check_counter = temp_Patch_check[5];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面3 点3
+			temp_Patch_check_counter = temp_Patch_check[4];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面4 点0
+			temp_Patch_check_counter = temp_Patch_check[1];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面4 点1
+			temp_Patch_check_counter = temp_Patch_check[2];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面4 点2
+			temp_Patch_check_counter = temp_Patch_check[6];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面4 点3
+			temp_Patch_check_counter = temp_Patch_check[5];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面5 点0
+			temp_Patch_check_counter = temp_Patch_check[3];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面5 点1
+			temp_Patch_check_counter = temp_Patch_check[2];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面5 点2
+			temp_Patch_check_counter = temp_Patch_check[6];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+			// 面5 点3
+			temp_Patch_check_counter = temp_Patch_check[7];
+			info->Patch_check[Patch_check_counter] = info->Patch_check[temp_Patch_check_counter];
+			Patch_check_counter++;
+		}
+	}
+
+	// Check
+	int patch_start = 0;
+	if (info->DIMENSION == 2)
+	{
+		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
+		{
+			if (i == info->Total_Patch_to_mesh[1])
+			{
+				patch_start = i;
+			}
+
+			for (j = patch_start; j < i; j++)
+			{
+				int own = i * 16;
+				int opp = j * 16;
+				for (k = 0; k < 4; k++)
+				{
+					int kk = 2 * k;
+					for (l = 0; l < 8; l++)
+					{
+						// 辺が一致している場合 Face_Edge_info を True
+						if (info->Patch_check[own + kk * 2] == info->Patch_check[opp + l * 2] && info->Patch_check[own + kk * 2 + 1] == info->Patch_check[opp + l * 2 + 1])
+						{
+							info->Face_Edge_info[i * 32 + k * 8 + l] = 1;
+							info->Opponent_patch_num[i * 4 + k] = j;
+							printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d\n", i, j, k, l);
+							goto end_loop_a;
+						}
+					}
+				}
+				end_loop_a:
+			}
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		int check_a[4], check_b[4];
+		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
+		{
+			if (i == info->Total_Patch_to_mesh[1])
+			{
+				patch_start = i;
+			}
+
+			for (j = patch_start; j < i; j++)
+			{
+				int own = i * 24;
+				int opp = j * 24;
+				for (k = 0; k < 6; k++)
+				{
+					int kk = k * 4;
+					for (m = 0; m < 4; m++)
+					{
+						check_a[m] = info->Patch_check[own + kk + m];
+					}
+					sort(4, check_a);
+
+					for (l = 0; l < 6; l++)
+					{
+						int ll = l * 4;
+						for (m = 0; m < 4; m++)
+						{
+							check_b[m] = info->Patch_check[opp + ll + m];
+						}
+						sort(4, check_b);
+
+						// 面が一致している場合 Face_Edge_info を Mode 番号 (m) に
+						if (check_a[0] == check_b[0] && check_a[1] == check_b[1] && check_a[2] == check_b[2] && check_a[3] == check_b[3])
+						{
+							for (m = 0; m < 4; m++)
+							{	
+								if (info->Patch_check[own + kk] == info->Patch_check[opp + ll + m])
+								{
+									info->Face_Edge_info[i * 36 + k * 6 + l] = m;
+									info->Opponent_patch_num[i * 6 + k] = j;
+									printf("own_patch:%d opp_patch:%d own_face:%d opp_face:%d mode:%d\n", i, j, k, l, m);
+									goto end_loop_b;
+								}
+							}
+						}
+					}
+				}
+				end_loop_b:
+			}
+		}
+	}
+
+	// Make connectivity
+	int counter = 0;
+	int point_counter = 0;
+	int ele_counter = 0;
+	for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		if (info->DIMENSION == 2)
+		{
+			int ii, jj;
+			ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 0] - 1);
+			jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
+
+			int own = 0;
+			for (j = 0; j < i; j++)
+			{
+				int temp_ii, temp_jj;
+				temp_ii = info->line_No_Total_element[j * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 0] - 1);
+				temp_jj = info->line_No_Total_element[j * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 1] - 1);
+				own += 2 * (temp_ii + temp_jj);
+			}
+
+			int Edge[4] = {0};
+    		int Edge_counter = i * 32;
+			int temp_n = 0;
+
+			// 重なっている辺の Patch_array を作成
+			for (j = 0; j < 4; j++)
+			{
+				// j == 0 ではなにもしない
+				if (j == 1)
+				{
+					own += ii;
+				}
+				else if (j == 2)
+				{
+					own += jj;
+				}
+				else if (j == 3)
+				{
+					own += ii;
+				}
+
+				for (k = 0; k < 8; k++)
+				{
+					if (info->Face_Edge_info[Edge_counter + j * 8 + k] == 1)
+					{
+						int opp = 0;
+						for (l = 0; l < info->Opponent_patch_num[i * 4 + j]; l++)
+						{
+							int temp_ii, temp_jj;
+							temp_ii = info->line_No_Total_element[l * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[l * info->DIMENSION + 0] - 1);
+							temp_jj = info->line_No_Total_element[l * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[l * info->DIMENSION + 1] - 1);
+							opp += 2 * (temp_ii + temp_jj);
+						}
+
+						printf("Patch num = %d\n", i);
+						printf("Edge num = %d\n", k);
+						printf("Opponent patch num = %d\n", info->Opponent_patch_num[i * 4 + j]);
+
+						Edge[j] = 1;
+
+						int p = k / 2;
+						int q = k % 2;
+						printf("p = %d\n", p);
+						printf("q = %d\n", q);
+
+						if (p == 0)
+						{
+							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1);
+						}
+						else if (p == 1)
+						{
+							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
+							opp += info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1);
+						}
+						else if (p == 2)
+						{
+							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1);
+							opp += info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1) + info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
+						}
+						else if (p == 3)
+						{
+							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
+							opp += 2 * info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1) + info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
+						}
+
+						if (q == 0)
+						{
+							for (k = 0; k < temp_n; k++)
+							{
+								info->Patch_array[own + k] = info->Patch_array[opp + k];
+							}
+							break;
+						}
+						else if (q == 1)
+						{
+							for (k = 0; k < temp_n; k++)
+							{
+								info->Patch_array[own + k] = info->Patch_array[opp + (temp_n - 1) - k];
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			// コネクティビティを作成
+			int x, y;
+			int point;
+
+			own = 0;
+			for (j = 0; j < i; j++)
+			{
+				int temp_ii, temp_jj;
+				temp_ii = info->line_No_Total_element[j * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 0] - 1);
+				temp_jj = info->line_No_Total_element[j * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 1] - 1);
+				own += 2 * (temp_ii + temp_jj);
+			}
+
+			int temp_line_x = info->line_No_Total_element[j * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 0] - 1);
+			int temp_line_y = info->line_No_Total_element[j * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 0] - 1);
+			for (y = 0; y < info->line_No_Total_element[i * info->DIMENSION + 1]; y++)
+			{
+				for (x = 0; x < info->line_No_Total_element[i * info->DIMENSION + 0]; x++)
+				{
+					for (point = 0; point < 9; point++)
+					{
+						// point 0
+						if (point == 0)
+						{
+							int p_x = 0, p_y = 0;
+							if (x == 0 && Edge[3] == 1)
+							{
+								int eta = (y - 1) * 3 - (y - 2) + p_y;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + 2 * temp_line_x + temp_line_y + eta];
+							}
+							else if (y == 0 && Edge[0] == 1)
+							{
+								int xi = (x - 1) * 3 - (x - 2) + p_x;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + xi];
+							}
+							else if (x > 0)
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Connectivity[point_counter + y * temp_line_x * 9 + (x - 1) * 9 + 1];
+							}
+							else if (y > 0)
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * temp_line_x * 9 + x * 9 + 3];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 1
+						else if (point == 1)
+						{
+							int p_x = 2, p_y = 0;
+							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
+							{
+								int eta = (y - 1) * 3 - (y - 2) + p_y;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + temp_line_x + eta];
+							}
+							else if (y == 0 && Edge[0] == 1)
+							{
+								int xi = (x - 1) * 3 - (x - 2) + p_x;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + xi];
+							}
+							else if (y > 0)
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * temp_line_x * 9 + x * 9 + 2];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 2
+						else if (point == 2)
+						{
+							int p_x = 2, p_y = 2;
+							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
+							{
+								int eta = (y - 1) * 3 - (y - 2) + p_y;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + temp_line_x + eta];
+							}
+							else if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+							{
+								int xi = (x - 1) * 3 - (x - 2) + p_x;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + temp_line_x + temp_line_y + xi];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 3
+						else if (point == 3)
+						{
+							int p_x = 0, p_y = 2;
+							if (x == 0 && Edge[3] == 1)
+							{
+								int eta = (y - 1) * 3 - (y - 2) + p_y;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + 2 * temp_line_x + temp_line_y + eta];
+							}
+							else if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+							{
+								int xi = (x - 1) * 3 - (x - 2) + p_x;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + temp_line_x + temp_line_y + xi];
+							}
+							else if (x > 0)
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Connectivity[point_counter + y * temp_line_x * 9 + (x - 1) * 9 + 2];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 4
+						else if (point == 4)
+						{
+							int p_x = 1, p_y = 0;
+							if (y == 0 && Edge[0] == 1)
+							{
+								int xi = (x - 1) * 3 - (x - 2) + p_x;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + xi];
+							}
+							else if (y > 0)
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * temp_line_x * 9 + x * 9 + 6];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 5
+						else if (point == 5)
+						{
+							int p_x = 2, p_y = 1;
+							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
+							{
+								int eta = (y - 1) * 3 - (y - 2) + p_y;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + temp_line_x + eta];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 6
+						else if (point == 6)
+						{
+							int p_x = 1, p_y = 2;
+							if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+							{
+								int xi = (x - 1) * 3 - (x - 2) + p_x;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + temp_line_x + temp_line_y + xi];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 7
+						else if (point == 7)
+						{
+							int p_x = 0, p_y = 1;
+							if (x == 0 && Edge[3] == 1)
+							{
+								int eta = (y - 1) * 3 - (y - 2) + p_y;
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Patch_array[own + 2 * temp_line_x + temp_line_y + eta];
+							}
+							else if (x > 0)
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = info->Connectivity[point_counter + y * temp_line_x * 9 + (x - 1) * 9 + 5];
+							}
+							else
+							{
+								info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+						// point 8
+						else if (point == 8)
+						{
+							info->Connectivity[point_counter + y * temp_line_x * 9 + x * 9 + point] = counter;
+							info->Connectivity_ele[counter] = ele_counter + y * temp_line_x + x;
+							info->Connectivity_point[counter] = point;
+							counter++;
+						}
+					}
+				}
+			}
+
+			// Patch_array の作ってない分を作成
+			for (eta = 0; eta < info->CP_info[num * info->DIMENSION + 1]; eta++)
+			{
+				for (xi = 0; xi < info->CP_info[num * info->DIMENSION]; xi++)
+				{
+					if (eta == 0 && Edge[0] == 0)
+					{
+						info->A[A_to_own + xi] = info->Connectivity[point_counter + eta * info->CP_info[num * info->DIMENSION] + xi];
+					}
+					if (eta == info->CP_info[num * info->DIMENSION + 1] - 1 && Edge[2] == 0)
+					{
+						info->A[A_to_own + info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + xi] = info->Connectivity[point_counter + eta * info->CP_info[num * info->DIMENSION] + xi];
+					}
+					if (xi == 0 && Edge[3] == 0)
+					{
+						info->A[A_to_own + 2 * info->CP_info[num * info->DIMENSION] + info->CP_info[num * info->DIMENSION + 1] + eta] = info->Connectivity[point_counter + eta * info->CP_info[num * info->DIMENSION] + xi];
+					}
+					if (xi == info->CP_info[num * info->DIMENSION] - 1 && Edge[1] == 0)
+					{
+						info->A[A_to_own + info->CP_info[num * info->DIMENSION] + eta] = info->Connectivity[point_counter + eta * info->CP_info[num * info->DIMENSION] + xi];
+					}
+				}
+			}
+			point_counter += info->line_No_Total_element[i * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 0] - 1) * info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
+			ele_counter += info->line_No_Total_element[i * info->DIMENSION + 0] * info->line_No_Total_element[i * info->DIMENSION + 1];
+		}
+		else if (info->DIMENSION == 3)
+		{
+			int ii, jj, kk;
+			ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 0] - 1);
+			jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
+			kk = info->line_No_Total_element[i * info->DIMENSION + 2] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 2] - 1);
+
+			int x, y, z;
+			for (z = 0; z < info->line_No_Total_element[i * info->DIMENSION + 2]; z++)
+			{
+				for (y = 0; y < info->line_No_Total_element[i * info->DIMENSION + 1]; y++)
+				{
+					for (x = 0; x < info->line_No_Total_element[i * info->DIMENSION + 0]; x++)
+					{
+					}
+				}
+			}
+		}
+	}
+	
+
+}
+
+
+void Make_info_for_viewer(information *info)
+{
+	int i, j, k;
+	int point_on_element = pow(3, info->DIMENSION);
+	double *point_array;
+	double temp_point[MAX_DIMENSION];
+
+	// Make point in element
+	int counter = 0;
+	if (info->DIMENSION == 2)
+	{
+		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
+
+		// 0,2,8,6,1,5,7,3,4
+
+		// point 0
+		point_array[counter] = -1.0;		point_array[counter + 1] = -1.0;		counter += 2;
+		// point 1
+		point_array[counter] =  1.0;		point_array[counter + 1] = -1.0;		counter += 2;
+		// point 2
+		point_array[counter] =  1.0;		point_array[counter + 1] =  1.0;		counter += 2;
+		// point 3
+		point_array[counter] = -1.0;		point_array[counter + 1] =  1.0;		counter += 2;
+		// point 4
+		point_array[counter] =  0.0;		point_array[counter + 1] = -1.0;		counter += 2;
+		// point 5
+		point_array[counter] =  1.0;		point_array[counter + 1] =  0.0;		counter += 2;
+		// point 6
+		point_array[counter] =  0.0;		point_array[counter + 1] =  1.0;		counter += 2;
+		// point 7
+		point_array[counter] = -1.0;		point_array[counter + 1] =  0.0;		counter += 2;
+		// point 8
+		point_array[counter] =  0.0;		point_array[counter + 1] =  0.0;
+	}
+	else if (info->DIMENSION == 3)
+	{
+		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
+
+		// 0,2,8,6,18,20,26,24,1,5,7,3,19,23,25,21,9,11,17,15,12,14,10,16,4,22,13
+
+		// point 0
+		point_array[counter] = -1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 1
+		point_array[counter] =  1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 2
+		point_array[counter] =  1.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 3
+		point_array[counter] = -1.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 4
+		point_array[counter] = -1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 5
+		point_array[counter] =  1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 6
+		point_array[counter] =  1.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 7
+		point_array[counter] = -1.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 8
+		point_array[counter] =  0.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 9
+		point_array[counter] =  1.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 10
+		point_array[counter] =  0.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 11
+		point_array[counter] = -1.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 12
+		point_array[counter] =  0.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 13
+		point_array[counter] =  1.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 14
+		point_array[counter] =  0.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 15
+		point_array[counter] = -1.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 16
+		point_array[counter] = -1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 17
+		point_array[counter] =  1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 18
+		point_array[counter] =  1.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 19
+		point_array[counter] = -1.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 20
+		point_array[counter] = -1.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 21
+		point_array[counter] =  1.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 22
+		point_array[counter] =  0.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 23
+		point_array[counter] =  0.0;		point_array[counter + 1] =  1.0;		point_array[counter + 2] =  0.0;		counter += 3;
+		// point 24
+		point_array[counter] =  0.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] = -1.0;		counter += 3;
+		// point 25
+		point_array[counter] =  0.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  1.0;		counter += 3;
+		// point 26
+		point_array[counter] =  0.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  0.0;
+	}
+
+	// コネクティビティ の配列から 要素番号 と ポイント番号(0 ~ 8 or 0 ~ 26) と 座標
+	Connectivity_ele[] = e;
+	Connectivity_point[] = i;
+	Connectivity_coord[() * DIM + j] = ;
 }

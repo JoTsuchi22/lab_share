@@ -3,6 +3,7 @@
 
 #define MAX_DIMENSION 3
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define CALC_ON_GP 0    // ガウス点での応力等の計算を行わない 0, 行う 1
 #define OUTPUT_SVG 0    // SVG 出力を行わない 0, 行う 1
 #define DM 1            // 平面応力状態:DM=0	平面ひずみ状態:DM=1
 #define NG 4												// Gauss-Legendreの積分点数
@@ -102,6 +103,15 @@ struct information {
     double *Strain_at_GP;
     double *Stress_at_GP;
     double *ReactionForce;
+
+    int *Connectivity;
+    int *Connectivity_ele;
+    int *Connectivity_point;
+    double *Connectivity_coord;
+    int *Patch_check;
+    int *Patch_array;
+    int *Face_Edge_info;
+    int *Opponent_patch_num;
 
 	double *coord_x;
 	double *coord_y;
@@ -327,7 +337,10 @@ int CalcXiEtaByNR(double px, double py,
 void output_for_viewer(information *info);
 void IGA_view(information *info);
 void K_output_svg(information *info);
+// paraview
 void output_for_paraview(information *info);
+void Make_connectivity(information *info);
+void Make_info_for_viewer(information *info);
 // J integral
 
 
