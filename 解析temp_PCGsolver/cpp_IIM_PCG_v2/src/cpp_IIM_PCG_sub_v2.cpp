@@ -24,7 +24,7 @@ void Get_Input_1(int tm, char **argv, information *info)
 	info->DIMENSION = temp_i;
 	fgets(s, 256, fp);
 	printf("DIMENSION: %d\n", info->DIMENSION);
-	if (info->DIMENSION != 2 || info->DIMENSION != 3)
+	if (info->DIMENSION != 2 && info->DIMENSION != 3)
 	{
 		printf("Error, wrong DIMENSION in input data\n");
 		exit(1);
@@ -8725,7 +8725,7 @@ void K_output_svg(information *info)
 // paraview
 void output_for_paraview(information *info)
 {
-	int i, j, k;
+	int i, j;
 	int point_on_element;
 
 	int num = info->Total_Control_Point_to_mesh[Total_mesh];
@@ -8769,20 +8769,20 @@ void output_for_paraview(information *info)
 	}
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
 	fprintf(fp, "      </Geometry>\n");
-	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[1], info->DIMENSION);
+	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo, info->DIMENSION);
 	if (info->DIMENSION == 2)
 	{
-		for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
+		for (i = 0; i < Total_connectivity_glo; i++)
 		{
-			fprintf(fp, "\t\t\t\t%1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1]);
+			fprintf(fp, "\t\t\t\t%1le %1le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1]);
 		}
 	}
 	else if (info->DIMENSION == 3)
 	{
-		for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
-		{
-			fprintf(fp, "\t\t\t\t%1le %1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1], info->Node_Coordinate[i * (info->DIMENSION + 1) + 2]);
-		}
+		// for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
+		// {
+		// 	fprintf(fp, "\t\t\t\t%1le %1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1], info->Node_Coordinate[i * (info->DIMENSION + 1) + 2]);
+		// }
 	}
 	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 9\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1]);
@@ -8793,15 +8793,15 @@ void output_for_paraview(information *info)
 		{
 			for (j = 0; j < point_on_element; j++)
 			{
-				fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
+				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j]);
 			}
 		}
 		else if (info->DIMENSION == 3)
 		{
-			for (j = 0; j < point_on_element; j++)
-			{
-				fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
-			}
+			// for (j = 0; j < point_on_element; j++)
+			// {
+			// 	fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
+			// }
 		}
 		fprintf(fp, "\n");
 	}
@@ -9016,7 +9016,7 @@ void Make_connectivity(information *info)
 						}
 					}
 				}
-				end_loop_a:
+				end_loop_a:;
 			}
 		}
 	}
@@ -9068,7 +9068,7 @@ void Make_connectivity(information *info)
 						}
 					}
 				}
-				end_loop_b:
+				end_loop_b:;
 			}
 		}
 	}
@@ -9083,23 +9083,21 @@ void Make_connectivity(information *info)
 		int p_y[9] = {0, 0, 2, 2, 0, 1, 2, 1, 1};
 		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
 		{
-			if (i == info->Total_Patch_to_mesh[1])
-			{
-				Total_connectivity_glo = counter;
-			}
-
 			int own = 0;
 			for (j = 0; j < i; j++)
 			{
-				int temp_ii, temp_jj;
-				temp_ii = info->line_No_Total_element[j * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 0] - 1);
-				temp_jj = info->line_No_Total_element[j * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 1] - 1);
-				own += 2 * (temp_ii + temp_jj);
+				int a, b;
+				a = info->line_No_Total_element[j * info->DIMENSION + 0] * 2 + 1;
+				b = info->line_No_Total_element[j * info->DIMENSION + 1] * 2 + 1;
+				own += 2 * (a + b);
 			}
 
 			int Edge[4] = {0};
     		int Edge_counter = i * 32;
 			int temp_n = 0;
+
+			int ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 2 + 1;
+			int jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 2 + 1;
 
 			// 重なっている辺の Patch_array を作成
 			for (j = 0; j < 4; j++)
@@ -9125,10 +9123,10 @@ void Make_connectivity(information *info)
 						int opp = 0;
 						for (l = 0; l < info->Opponent_patch_num[i * 4 + j]; l++)
 						{
-							int temp_ii, temp_jj;
-							temp_ii = info->line_No_Total_element[l * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[l * info->DIMENSION + 0] - 1);
-							temp_jj = info->line_No_Total_element[l * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[l * info->DIMENSION + 1] - 1);
-							opp += 2 * (temp_ii + temp_jj);
+							int a, b;
+							a = info->line_No_Total_element[l * info->DIMENSION + 0] * 2 + 1;
+							b = info->line_No_Total_element[l * info->DIMENSION + 1] * 2 + 1;
+							opp += 2 * (a + b);
 						}
 
 						printf("Patch num = %d\n", i);
@@ -9142,39 +9140,42 @@ void Make_connectivity(information *info)
 						printf("p = %d\n", p);
 						printf("q = %d\n", q);
 
+						int temp_ii = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 2 + 1;
+						int temp_jj = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 2 + 1;
+
 						if (p == 0)
 						{
-							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1);
+							temp_n = temp_ii;
 						}
 						else if (p == 1)
 						{
-							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
-							opp += info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1);
+							temp_n = temp_jj;
+							opp += temp_ii;
 						}
 						else if (p == 2)
 						{
-							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1);
-							opp += info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1) + info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
+							temp_n = temp_ii;
+							opp += temp_ii + temp_jj;
 						}
 						else if (p == 3)
 						{
-							temp_n = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
-							opp += 2 * info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] - 1) + info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] - 1);
+							temp_n = temp_jj;
+							opp += 2 * temp_ii + temp_jj;
 						}
 
 						if (q == 0)
 						{
-							for (k = 0; k < temp_n; k++)
+							for (l = 0; l < temp_n; l++)
 							{
-								info->Patch_array[own + k] = info->Patch_array[opp + k];
+								info->Patch_array[own + l] = info->Patch_array[opp + l];
 							}
 							break;
 						}
 						else if (q == 1)
 						{
-							for (k = 0; k < temp_n; k++)
+							for (l = 0; l < temp_n; l++)
 							{
-								info->Patch_array[own + k] = info->Patch_array[opp + (temp_n - 1) - k];
+								info->Patch_array[own + l] = info->Patch_array[opp + (temp_n - 1) - l];
 							}
 							break;
 						}
@@ -9189,17 +9190,17 @@ void Make_connectivity(information *info)
 			own = 0;
 			for (j = 0; j < i; j++)
 			{
-				int temp_ii, temp_jj;
-				temp_ii = info->line_No_Total_element[j * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 0] - 1);
-				temp_jj = info->line_No_Total_element[j * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[j * info->DIMENSION + 1] - 1);
-				own += 2 * (temp_ii + temp_jj);
+				int a, b;
+				a = info->line_No_Total_element[j * info->DIMENSION + 0] * 2 + 1;
+				b = info->line_No_Total_element[j * info->DIMENSION + 1] * 2 + 1;
+				own += 2 * (a + b);
 			}
 
-			int ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 0] - 1);
-			int jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
-			for (y = 0; y < info->line_No_Total_element[i * info->DIMENSION + 1]; y++)
+			int e_x_max = info->line_No_Total_element[i * info->DIMENSION + 0];
+			int e_y_max = info->line_No_Total_element[i * info->DIMENSION + 1];
+			for (y = 0; y < e_y_max; y++)
 			{
-				for (x = 0; x < info->line_No_Total_element[i * info->DIMENSION + 0]; x++)
+				for (x = 0; x < e_x_max; x++)
 				{
 					for (point = 0; point < 9; point++)
 					{
@@ -9208,26 +9209,26 @@ void Make_connectivity(information *info)
 						{
 							if (x == 0 && Edge[3] == 1)
 							{
-								int eta = (y - 1) * 3 - (y - 2) + p_y[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
+								int eta = 2 * y + p_y[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
 							}
 							else if (y == 0 && Edge[0] == 1)
 							{
-								int xi = (x - 1) * 3 - (x - 2) + p_x[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + xi];
+								int xi = 2 * x + p_x[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + xi];
 							}
 							else if (x > 0)
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Connectivity[point_counter + y * ii * 9 + (x - 1) * 9 + 1];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Connectivity[point_counter + y * e_x_max * 9 + (x - 1) * 9 + 1];
 							}
 							else if (y > 0)
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * ii * 9 + x * 9 + 3];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * e_x_max * 9 + x * 9 + 3];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9237,22 +9238,22 @@ void Make_connectivity(information *info)
 						{
 							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
 							{
-								int eta = (y - 1) * 3 - (y - 2) + p_y[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
+								int eta = 2 * y + p_y[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
 							}
 							else if (y == 0 && Edge[0] == 1)
 							{
-								int xi = (x - 1) * 3 - (x - 2) + p_x[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + xi];
+								int xi = 2 * x + p_x[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + xi];
 							}
 							else if (y > 0)
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * ii * 9 + x * 9 + 2];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * e_x_max * 9 + x * 9 + 2];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9262,18 +9263,18 @@ void Make_connectivity(information *info)
 						{
 							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
 							{
-								int eta = (y - 1) * 3 - (y - 2) + p_y[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
+								int eta = 2 * y + p_y[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
 							}
 							else if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
 							{
-								int xi = (x - 1) * 3 - (x - 2) + p_x[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
+								int xi = 2 * x + p_x[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9283,22 +9284,22 @@ void Make_connectivity(information *info)
 						{
 							if (x == 0 && Edge[3] == 1)
 							{
-								int eta = (y - 1) * 3 - (y - 2) + p_y[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
+								int eta = 2 * y + p_y[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
 							}
 							else if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
 							{
-								int xi = (x - 1) * 3 - (x - 2) + p_x[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
+								int xi = 2 * x + p_x[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
 							}
 							else if (x > 0)
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Connectivity[point_counter + y * ii * 9 + (x - 1) * 9 + 2];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Connectivity[point_counter + y * e_x_max * 9 + (x - 1) * 9 + 2];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9308,17 +9309,17 @@ void Make_connectivity(information *info)
 						{
 							if (y == 0 && Edge[0] == 1)
 							{
-								int xi = (x - 1) * 3 - (x - 2) + p_x[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + xi];
+								int xi = 2 * x + p_x[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + xi];
 							}
 							else if (y > 0)
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * ii * 9 + x * 9 + 6];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Connectivity[point_counter + (y - 1) * e_x_max * 9 + x * 9 + 6];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9328,13 +9329,13 @@ void Make_connectivity(information *info)
 						{
 							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
 							{
-								int eta = (y - 1) * 3 - (y - 2) + p_y[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
+								int eta = 2 * y + p_y[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9344,13 +9345,13 @@ void Make_connectivity(information *info)
 						{
 							if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
 							{
-								int xi = (x - 1) * 3 - (x - 2) + p_x[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
+								int xi = 2 * x + p_x[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9360,17 +9361,17 @@ void Make_connectivity(information *info)
 						{
 							if (x == 0 && Edge[3] == 1)
 							{
-								int eta = (y - 1) * 3 - (y - 2) + p_y[point];
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
+								int eta = 2 * y + p_y[point];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
 							}
 							else if (x > 0)
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = info->Connectivity[point_counter + y * ii * 9 + (x - 1) * 9 + 5];
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Connectivity[point_counter + y * e_x_max * 9 + (x - 1) * 9 + 5];
 							}
 							else
 							{
-								info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-								info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+								info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 								info->Connectivity_point[counter] = point;
 								counter++;
 							}
@@ -9378,8 +9379,8 @@ void Make_connectivity(information *info)
 						// point 8
 						else if (point == 8)
 						{
-							info->Connectivity[point_counter + y * ii * 9 + x * 9 + point] = counter;
-							info->Connectivity_ele[counter] = ele_counter + y * ii + x;
+							info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = counter;
+							info->Connectivity_ele[counter] = ele_counter + y * e_x_max + x;
 							info->Connectivity_point[counter] = point;
 							counter++;
 						}
@@ -9389,8 +9390,6 @@ void Make_connectivity(information *info)
 
 			// Patch_array の作ってない分を作成
 			int xi, eta;
-			int e_x_max = info->line_No_Total_element[i * info->DIMENSION + 0];
-			int e_y_max = info->line_No_Total_element[i * info->DIMENSION + 1];
 			for (eta = 0; eta < jj; eta++)
 			{
 				for (xi = 0; xi < ii; xi++)
@@ -9419,8 +9418,35 @@ void Make_connectivity(information *info)
 					}
 				}
 			}
-			point_counter += ii * jj;
-			ele_counter += info->line_No_Total_element[i * info->DIMENSION + 0] * info->line_No_Total_element[i * info->DIMENSION + 1];
+			point_counter += e_x_max * e_y_max * 9;
+			ele_counter += e_x_max * e_y_max;
+
+			if (i == info->Total_Patch_to_mesh[1] - 1)
+			{
+				Total_connectivity_glo = counter;
+			}
+
+			// for debag
+			own = 0;
+			for (j = 0; j < i; j++)
+			{
+				int a, b;
+				a = info->line_No_Total_element[j * info->DIMENSION + 0] * 2 + 1;
+				b = info->line_No_Total_element[j * info->DIMENSION + 1] * 2 + 1;
+				own += 2 * (a + b);
+			}
+			for (j = 0; j < 2 * (ii + jj); j++)
+			{
+				printf("%d\t", info->Patch_array[own + j]);
+				if (j == ii - 1 || j == ii + jj - 1|| j == 2 * ii + jj - 1)
+				{
+					printf("\n");
+				}
+			}
+			printf("\n");
+
+			printf("\n");
+
 		}
 		Total_connectivity = counter;
 	}
@@ -9429,9 +9455,9 @@ void Make_connectivity(information *info)
 		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
 		{
 			int ii, jj, kk;
-			ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 0] - 1);
-			jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
-			kk = info->line_No_Total_element[i * info->DIMENSION + 2] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 2] - 1);
+			ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 2 + 1;
+			jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 2 + 1;
+			kk = info->line_No_Total_element[i * info->DIMENSION + 2] * 2 + 1;
 
 			int x, y, z;
 			for (z = 0; z < info->line_No_Total_element[i * info->DIMENSION + 2]; z++)
@@ -9460,14 +9486,14 @@ void Search_ele_point_2D(int xi, int eta, int e_x_max, int e_y_max, int *p_x, in
 	int p_num_y = eta % 2;
 
 	// 例外
-	if (*e_x > e_x_max)
+	if (*e_x == e_x_max)
 	{
-		(*e_x)--;
+		(*e_x) -= 1;
 		p_num_x = 2;
 	}
-	if (*e_y > e_y_max)
+	if (*e_y == e_y_max)
 	{
-		(*e_y)--;
+		(*e_y) -= 1;
 		p_num_y = 2;
 	}
 
@@ -9586,7 +9612,21 @@ void Make_info_for_viewer(information *info)
 	}
 
 	// コネクティビティ の配列から 要素番号 と ポイント番号(0 ~ 8 or 0 ~ 26) と 座標
-	Connectivity_ele[] = e;
-	Connectivity_point[] = i;
-	Connectivity_coord[() * DIM + j] = ;
+	for (i = 0; i < Total_connectivity_glo; i++)
+	{
+		for (j = 0; j < info->DIMENSION; j++)
+		{
+			temp_point[j] = point_array[info->Connectivity_point[i] * info->DIMENSION + j];
+		}
+
+		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[info->Connectivity_ele[i]]]; j++)
+		{
+			double R = Shape_func(j, temp_point, info->Connectivity_ele[i], info);
+
+			for (k = 0; k < info->DIMENSION; k++)
+			{
+				info->Connectivity_coord[i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[info->Connectivity_ele[i] * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
+			}
+		}
+	}
 }

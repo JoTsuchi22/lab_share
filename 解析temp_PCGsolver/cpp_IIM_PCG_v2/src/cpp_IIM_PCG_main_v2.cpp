@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
 		{
-			int x = info->line_No_Total_element[i * info->DIMENSION] * 3 - (info->line_No_Total_element[i * info->DIMENSION] - 1), y = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1);
+			int x = info.line_No_Total_element[i * info.DIMENSION] * 3 - (info.line_No_Total_element[i * info.DIMENSION] - 1), y = info.line_No_Total_element[i * info.DIMENSION + 1] * 3 - (info.line_No_Total_element[i * info.DIMENSION + 1] - 1);
 			total_array += 2 * (x + y);
 		}
 		check_n = 16;
@@ -325,14 +325,18 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
 		{
-			int x = info->line_No_Total_element[i * info->DIMENSION] * 3 - (info->line_No_Total_element[i * info->DIMENSION] - 1), y = info->line_No_Total_element[i * info->DIMENSION + 1] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 1] - 1), z = info->line_No_Total_element[i * info->DIMENSION + 2] * 3 - (info->line_No_Total_element[i * info->DIMENSION + 2] - 1);
+			int x = info.line_No_Total_element[i * info.DIMENSION] * 3 - (info.line_No_Total_element[i * info.DIMENSION] - 1), y = info.line_No_Total_element[i * info.DIMENSION + 1] * 3 - (info.line_No_Total_element[i * info.DIMENSION + 1] - 1), z = info.line_No_Total_element[i * info.DIMENSION + 2] * 3 - (info.line_No_Total_element[i * info.DIMENSION + 2] - 1);
 			total_array += 2 * (x * y + y * z + x * z);
 		}
 		check_n = 24;
 		FE_n = 36;
 		opp_n = 6;
 	}
-	info_ptr->Connectivity = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
+	info_ptr->Connectivity = (int *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element, sizeof(int));
+	for (i = 0; i < info.Total_Element_to_mesh[Total_mesh] * point_on_element; i++)
+	{
+		info.Connectivity[i] = -1;
+	}
 	info_ptr->Connectivity_ele = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_point = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_coord = (double *)malloc(sizeof(double) * info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION);
