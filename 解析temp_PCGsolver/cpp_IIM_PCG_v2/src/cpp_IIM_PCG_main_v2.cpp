@@ -354,7 +354,6 @@ int main(int argc, char **argv)
 
 	// memory free
 	free(info.Connectivity), free(info.Connectivity_ele), free(info.Connectivity_point), free(info.Connectivity_coord), free(info.Patch_check), free(info.Patch_array);
-
 	
 	// NURBS viewer のための出力
 	output_for_viewer(&info);

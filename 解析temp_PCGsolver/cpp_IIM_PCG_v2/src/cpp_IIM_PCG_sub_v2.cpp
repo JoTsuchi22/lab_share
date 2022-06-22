@@ -8726,6 +8726,7 @@ void K_output_svg(information *info)
 void output_for_paraview(information *info)
 {
 	int i, j, k;
+	int point_on_element;
 
 	int num = info->Total_Control_Point_to_mesh[Total_mesh];
 	int digit = 0;
@@ -8748,10 +8749,12 @@ void output_for_paraview(information *info)
 	fprintf(fp, "    <Grid Name=\"ien\">\n");
 	if (info->DIMENSION == 2)
 	{
+		point_on_element = 9;
 		fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
 	}
 	else if (info->DIMENSION == 3)
 	{
+		point_on_element = 16;
 		fprintf(fp, "      <Topology TopologyType=\"HEXAHEDRON_27\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
 	}
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
