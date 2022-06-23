@@ -2843,8 +2843,8 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 
 
 
-	int number = 838; // 2_3
-	// int number = 788; // 3_2
+	// int number = 838; // 2_3
+	int number = 788; // 3_2
 	int patch = info->Element_patch[number];
 	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[patch * info->DIMENSION + 0]);
 	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[patch * info->DIMENSION + 1]);
@@ -2940,7 +2940,14 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 				// }
 
 				fp = fopen("BG.dat", "a");
-				fprintf(fp, "%2le, %2le, %2le,\n", loc_para[0], loc_para[1], BG[0]);
+				double temp_BG = 0;
+				for (int BG_i = 0; BG_i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No_glo]]; BG_i++)
+				{
+					double R = Shape_func(BG_i, para, El_No_glo, info); 
+					temp_BG += R * BG[0 * MAX_KIEL_SIZE + 2 * BG_i + 0];
+				}
+				fprintf(fp, "%2le, %2le, %2le,\n", loc_para[0], loc_para[1], temp_BG);
+				// fprintf(fp, "%2le, %2le, %2le,\n", loc_para[0], loc_para[1], BG[0]);
 				fclose(fp);
 
 				fp = fopen("KGL.dat", "a");
