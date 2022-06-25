@@ -37,7 +37,7 @@ run_2nd_order:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_2_10x10.txt
 
 run_gomimesh:	mkdir_output
-	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_10x10.txt
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_5x5.txt
 
 # NURBS viewer, 0: local, 1: global
 view0:
