@@ -339,7 +339,7 @@ int main(int argc, char **argv)
 	}
 	info_ptr->Connectivity_ele = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_point = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
-	info_ptr->Connectivity_coord = (double *)malloc(sizeof(double) * info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION);
+	info_ptr->Connectivity_coord = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION, sizeof(double));
 	info_ptr->Patch_check = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * check_n);
 	info_ptr->Patch_array = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * total_array);
 	info_ptr->Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * FE_n);

@@ -8736,8 +8736,8 @@ void output_for_paraview(information *info)
 	Make_connectivity(info);
 	Make_info_for_viewer(info);
 
-	// global mesh
-	char str[256] = "global_mesh.xmf";
+	// global patch
+	char str[256] = "global_patch.xmf";
 	fp = fopen(str, "w");
 
 	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
@@ -8751,7 +8751,7 @@ void output_for_paraview(information *info)
 	}
 	else if (info->DIMENSION == 3)
 	{
-		point_on_element = 16;
+		point_on_element = 27;
 		fprintf(fp, "      <Topology TopologyType=\"HEXAHEDRON_27\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[1]);
 	}
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
@@ -8771,18 +8771,18 @@ void output_for_paraview(information *info)
 	{
 		for (i = 0; i < Total_connectivity_glo; i++)
 		{
-			fprintf(fp, "\t\t\t\t%1le %1le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1]);
+			fprintf(fp, "\t\t\t\t%le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1]);
 		}
 	}
 	else if (info->DIMENSION == 3)
 	{
-		// for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
-		// {
-		// 	fprintf(fp, "\t\t\t\t%1le %1le %1le\n", info->Node_Coordinate[i * (info->DIMENSION + 1) + 0], info->Node_Coordinate[i * (info->DIMENSION + 1) + 1], info->Node_Coordinate[i * (info->DIMENSION + 1) + 2]);
-		// }
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1], info->Connectivity_coord[i * info->DIMENSION + 2]);
+		}
 	}
 	fprintf(fp, "      </DataItem>\n");
-	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 9\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1]);
+	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1], point_on_element);
 	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
 	{
 		fprintf(fp, "\t\t\t\t");
@@ -8795,10 +8795,10 @@ void output_for_paraview(information *info)
 		}
 		else if (info->DIMENSION == 3)
 		{
-			// for (j = 0; j < point_on_element; j++)
-			// {
-			// 	fprintf(fp, "%*d ", -digit, info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + ((info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] - 1) - j)]);
-			// }
+			for (j = 0; j < point_on_element; j++)
+			{
+				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j]);
+			}
 		}
 		fprintf(fp, "\n");
 	}
@@ -8809,7 +8809,7 @@ void output_for_paraview(information *info)
 
 	fclose(fp);
 
-	// local mesh (overlay)
+	// local patch (overlay)
 }
 
 
@@ -9053,7 +9053,7 @@ void Make_connectivity(information *info)
 						if (check_a[0] == check_b[0] && check_a[1] == check_b[1] && check_a[2] == check_b[2] && check_a[3] == check_b[3])
 						{
 							for (m = 0; m < 4; m++)
-							{	
+							{
 								if (info->Patch_check[own + kk] == info->Patch_check[opp + ll + m])
 								{
 									info->Face_Edge_info[i * 36 + k * 6 + l] = m;
@@ -9233,7 +9233,7 @@ void Make_connectivity(information *info)
 						// point 1
 						else if (point == 1)
 						{
-							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
+							if (x == e_x_max - 1 && Edge[1] == 1)
 							{
 								int eta = 2 * y + p_y[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
@@ -9258,12 +9258,12 @@ void Make_connectivity(information *info)
 						// point 2
 						else if (point == 2)
 						{
-							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
+							if (x == e_x_max - 1 && Edge[1] == 1)
 							{
 								int eta = 2 * y + p_y[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
 							}
-							else if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+							else if (y == e_y_max - 1 && Edge[2] == 1)
 							{
 								int xi = 2 * x + p_x[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
@@ -9284,7 +9284,7 @@ void Make_connectivity(information *info)
 								int eta = 2 * y + p_y[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + 2 * ii + jj + eta];
 							}
-							else if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+							else if (y == e_y_max - 1 && Edge[2] == 1)
 							{
 								int xi = 2 * x + p_x[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
@@ -9324,7 +9324,7 @@ void Make_connectivity(information *info)
 						// point 5
 						else if (point == 5)
 						{
-							if (x == info->line_No_Total_element[i * info->DIMENSION + 0] - 1 && Edge[1] == 1)
+							if (x == e_x_max - 1 && Edge[1] == 1)
 							{
 								int eta = 2 * y + p_y[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + eta];
@@ -9340,7 +9340,7 @@ void Make_connectivity(information *info)
 						// point 6
 						else if (point == 6)
 						{
-							if (y == info->line_No_Total_element[i * info->DIMENSION + 1] - 1 && Edge[2] == 1)
+							if (y == e_y_max - 1 && Edge[2] == 1)
 							{
 								int xi = 2 * x + p_x[point];
 								info->Connectivity[point_counter + y * e_x_max * 9 + x * 9 + point] = info->Patch_array[own + ii + jj + xi];
@@ -9422,54 +9422,987 @@ void Make_connectivity(information *info)
 			{
 				Total_connectivity_glo = counter;
 			}
-
-			// for debag
-			own = 0;
-			for (j = 0; j < i; j++)
-			{
-				int a, b;
-				a = info->line_No_Total_element[j * info->DIMENSION + 0] * 2 + 1;
-				b = info->line_No_Total_element[j * info->DIMENSION + 1] * 2 + 1;
-				own += 2 * (a + b);
-			}
-			for (j = 0; j < 2 * (ii + jj); j++)
-			{
-				printf("%d\t", info->Patch_array[own + j]);
-				if (j == ii - 1 || j == ii + jj - 1|| j == 2 * ii + jj - 1)
-				{
-					printf("\n");
-				}
-			}
-			printf("\n");
-
-			printf("\n");
-
 		}
 		Total_connectivity = counter;
 	}
 	else if (info->DIMENSION == 3)
 	{
+		int p_x[27] = {0, 2, 2, 0, 0, 2, 2, 0, 1, 2, 1, 0, 1, 2, 1, 0, 0, 2, 2, 0, 0, 2, 1, 1, 1, 1, 1};
+		int p_y[27] = {0, 0, 2, 2, 0, 0, 2, 2, 0, 1, 2, 1, 0, 1, 2, 1, 0, 0, 2, 2, 1, 1, 0, 2, 1, 1, 1};
+		int p_z[27] = {0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 1};
 		for (i = 0; i < info->Total_Patch_to_mesh[Total_mesh]; i++)
 		{
-			int ii, jj, kk;
-			ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 2 + 1;
-			jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 2 + 1;
-			kk = info->line_No_Total_element[i * info->DIMENSION + 2] * 2 + 1;
-
-			int x, y, z;
-			for (z = 0; z < info->line_No_Total_element[i * info->DIMENSION + 2]; z++)
+			int own = 0;
+			for (j = 0; j < i; j++)
 			{
-				for (y = 0; y < info->line_No_Total_element[i * info->DIMENSION + 1]; y++)
+				int a, b, c;
+				a = info->line_No_Total_element[j * info->DIMENSION + 0] * 2 + 1;
+				b = info->line_No_Total_element[j * info->DIMENSION + 1] * 2 + 1;
+				c = info->line_No_Total_element[j * info->DIMENSION + 2] * 2 + 1;
+				own += 2 * (a * b + b * c + a * c);
+			}
+
+			int Face[6] = {0};
+			int Face_counter = i * 36;
+			int own_a = 0, own_b = 0;
+
+			int ii = info->line_No_Total_element[i * info->DIMENSION + 0] * 2 + 1;
+			int jj = info->line_No_Total_element[i * info->DIMENSION + 1] * 2 + 1;
+			int kk = info->line_No_Total_element[i * info->DIMENSION + 2] * 2 + 1;
+
+			// 重なっている面の Patch_array 配列を作成
+			for (j = 0; j < 6; j++)
+			{
+				if (j == 0)
 				{
-					for (x = 0; x < info->line_No_Total_element[i * info->DIMENSION + 0]; x++)
+					own_a = ii;
+					own_b = jj;
+				}
+				else if (j == 1)
+				{
+					own += ii * jj;
+					own_a = ii;
+					own_b = jj;
+				}
+				else if (j == 2)
+				{
+					own += ii * jj;
+					own_a = jj;
+					own_b = kk;
+				}
+				else if (j == 3)
+				{
+					own += jj * kk;
+					own_a = ii;
+					own_b = kk;
+				}
+				else if (j == 4)
+				{
+					own += ii * kk;
+					own_a = jj;
+					own_b = kk;
+				}
+				else if (j == 5)
+				{
+					own += jj * kk;
+					own_a = ii;
+					own_b = kk;
+				}
+
+				for (k = 0; k < 6; k++)
+				{
+					if (info->Face_Edge_info[Face_counter + j * 6 + k] >= 0)
 					{
+						int opp = 0;
+						for (l = 0; l < info->Opponent_patch_num[i * 6 + j]; l++)
+						{
+							int a, b, c;
+							a = info->line_No_Total_element[l * info->DIMENSION + 0] * 2 + 1;
+							b = info->line_No_Total_element[l * info->DIMENSION + 1] * 2 + 1;
+							c = info->line_No_Total_element[l * info->DIMENSION + 2] * 2 + 1;
+							opp += 2 * (a * b + b * c + a * c);
+						}
+
+						printf("Patch i = %d\n", i);
+						printf("Face i = %d\n", k);
+						printf("Opponent patch i = %d\n", info->Opponent_patch_num[i * 6 + j]);
+
+						Face[j] = 1;
+
+						int temp_ii = info->line_No_Total_element[info->Opponent_patch_num[i * 6 + j] * info->DIMENSION + 0] * 2 + 1;
+						int temp_jj = info->line_No_Total_element[info->Opponent_patch_num[i * 6 + j] * info->DIMENSION + 1] * 2 + 1;
+						int temp_kk = info->line_No_Total_element[info->Opponent_patch_num[i * 6 + j] * info->DIMENSION + 2] * 2 + 1;
+
+						for (l = 1; l <= k; l++)
+						{
+							if (l == 1)
+							{
+								opp += temp_ii * temp_jj;
+							}
+							else if (l == 2)
+							{
+								opp += temp_ii * temp_jj;
+							}
+							else if (l == 3)
+							{
+								opp += temp_jj * temp_kk;
+							}
+							else if (l == 4)
+							{
+								opp += temp_ii * temp_kk;
+							}
+							else if (l == 5)
+							{
+								opp += temp_jj * temp_kk;
+							}
+						}
+						
+						if (info->Face_Edge_info[Face_counter + j * 6 + k] == 0)
+						{
+							for (l = 0; l < own_b; l++)
+							{
+								for (m = 0; m < own_a; m++)
+								{
+									info->Patch_array[own + l * own_a + m] = info->Patch_array[opp + l * own_a + m];
+								}
+							}
+							break;
+						}
+						else if (info->Face_Edge_info[Face_counter + j * 6 + k]  == 1)
+						{
+							for (l = 0; l < own_b; l++)
+							{
+								for (m = 0; m < own_a; m++)
+								{
+									info->Patch_array[own + l * own_a + m] = info->Patch_array[opp + l * own_a + ((own_a - 1) - m)];
+								}
+							}
+							break;
+						}
+						else if (info->Face_Edge_info[Face_counter + j * 6 + k]  == 2)
+						{
+							for (l = 0; l < own_b; l++)
+							{
+								for (m = 0; m < own_a; m++)
+								{
+									info->Patch_array[own + l * own_a + m] = info->Patch_array[opp + ((own_b - 1) - l) * own_a + ((own_a - 1) - m)];
+								}
+							}
+							break;
+						}
+						else if (info->Face_Edge_info[Face_counter + j * 6 + k]  == 3)
+						{
+							for (l = 0; l < own_b; l++)
+							{
+								for (m = 0; m < own_a; m++)
+								{
+									info->Patch_array[own + l * own_a + m] = info->Patch_array[opp + ((own_b - 1) - l) * own_a + m];
+								}
+							}
+							break;
+						}
 					}
 				}
 			}
-		}
-	}
-	
 
+			// コネクティビティを作成
+			int x, y, z;
+			int point;
+
+			own = 0;
+			for (j = 0; j < i; j++)
+			{
+				int a, b, c;
+				a = info->line_No_Total_element[j * info->DIMENSION + 0] * 2 + 1;
+				b = info->line_No_Total_element[j * info->DIMENSION + 1] * 2 + 1;
+				c = info->line_No_Total_element[j * info->DIMENSION + 2] * 2 + 1;
+				own += 2 * (a * b + b * c + a * c);
+			}
+
+			int temp1, temp2, temp3, temp4, temp5;
+			temp1 = ii * jj;
+			temp2 = temp1 + ii * jj;
+			temp3 = temp2 + jj * kk;
+			temp4 = temp3 + ii * kk;
+			temp5 = temp4 + jj * kk;
+
+			int e_x_max = info->line_No_Total_element[i * info->DIMENSION + 0];
+			int e_y_max = info->line_No_Total_element[i * info->DIMENSION + 1];
+			int e_z_max = info->line_No_Total_element[i * info->DIMENSION + 2];
+			for (z = 0; z < e_z_max; z++)
+			{
+				for (y = 0; y < e_y_max; y++)
+				{
+					for (x = 0; x < e_x_max; x++)
+					{
+						for (point = 0; point < 27; point++)
+						{
+							int temp = point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + point;
+
+							// point 0
+							if (point == 0)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 1];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 3];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 4];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 1
+							else if (point == 1)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 2];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 5];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 2
+							else if (point == 2)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 6];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 3
+							else if (point == 3)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 2];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 7];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 4
+							else if (point == 4)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 5];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 7];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 5
+							else if (point == 5)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 6];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 6
+							else if (point == 6)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 7
+							else if (point == 7)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 6];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 8
+							else if (point == 8)
+							{
+								if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 10];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 12];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 9
+							else if (point == 9)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 13];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 10
+							else if (point == 10)
+							{
+								if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 14];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 11
+							else if (point == 11)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 9];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 15];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 12
+							else if (point == 12)
+							{
+								if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 14];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 13
+							else if (point == 13)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 14
+							else if (point == 14)
+							{
+								if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 15
+							else if (point == 15)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 13];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 16
+							else if (point == 16)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 17];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 19];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 17
+							else if (point == 17)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 18];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 18
+							else if (point == 18)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 19
+							else if (point == 19)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 18];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 20
+							else if (point == 20)
+							{
+								if (x == 0 && Face[2] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp2 + zeta * jj + eta];
+								}
+								else if (x > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + y * e_x_max * 27 + (x - 1) * 27 + 21];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 21
+							else if (point == 21)
+							{
+								if (x == e_x_max - 1 && Face[4] == 1)
+								{
+									int eta = 2 * y + p_y[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp4 + zeta * jj + eta];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 22
+							else if (point == 22)
+							{
+								if (y == 0 && Face[3] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp3 + zeta * ii + xi];
+								}
+								else if (y > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + z * e_y_max * e_x_max * 27 + (y - 1) * e_x_max * 27 + x * 27 + 23];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 23
+							else if (point == 23)
+							{
+								if (y == e_y_max - 1 && Face[5] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int zeta = 2 * z + p_z[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp5 + zeta * ii + xi];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 24
+							else if (point == 24)
+							{
+								if (z == 0 && Face[0] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + eta * ii + xi];
+								}
+								else if (z > 0)
+								{
+									info->Connectivity[temp] = info->Connectivity[point_counter + (z - 1) * e_y_max * e_x_max * 27 + y * e_x_max * 27 + x * 27 + 25];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 25
+							else if (point == 25)
+							{
+								if (z == e_z_max - 1 && Face[1] == 1)
+								{
+									int xi = 2 * x + p_x[point];
+									int eta = 2 * y + p_y[point];
+									info->Connectivity[temp] = info->Patch_array[own + temp1 + eta * ii + xi];
+								}
+								else
+								{
+									info->Connectivity[temp] = counter;
+									info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+									info->Connectivity_point[counter] = point;
+									counter++;
+								}
+							}
+							// point 26
+							else if (point == 26)
+							{
+								info->Connectivity[temp] = counter;
+								info->Connectivity_ele[counter] = ele_counter + z * e_y_max * e_x_max + y * e_x_max + x;
+								info->Connectivity_point[counter] = point;
+								counter++;
+							}
+						}
+					}
+				}
+			}
+
+			// Patch_array の作ってない分を作成
+			int xi, eta, zeta;
+			for (zeta = 0; zeta < kk; zeta++)
+			{
+				for (eta = 0; eta < jj; eta++)
+				{
+					for (xi = 0; xi < ii; xi++)
+					{
+						int e_x, e_y, e_z;
+
+						if (zeta == 0 && Face[0] == 0)
+						{
+							Search_ele_point_3D(xi, eta, zeta, e_x_max, e_y_max, e_z_max, p_x, p_y, p_z, &e_x, &e_y, &e_z, &point);
+							info->Patch_array[own + eta * ii + xi] = info->Connectivity[point_counter + e_z * e_y_max * e_x_max * 27 + e_y * e_x_max * 27 + e_x * 27 + point];
+						}
+						if (zeta == kk - 1 && Face[1] == 0)
+						{
+							Search_ele_point_3D(xi, eta, zeta, e_x_max, e_y_max, e_z_max, p_x, p_y, p_z, &e_x, &e_y, &e_z, &point);
+							info->Patch_array[own + temp1 + eta * ii + xi] = info->Connectivity[point_counter + e_z * e_y_max * e_x_max * 27 + e_y * e_x_max * 27 + e_x * 27 + point];
+						}
+						if (eta == 0 && Face[3] == 0)
+						{
+							Search_ele_point_3D(xi, eta, zeta, e_x_max, e_y_max, e_z_max, p_x, p_y, p_z, &e_x, &e_y, &e_z, &point);
+							info->Patch_array[own + temp3 + zeta * ii + xi] = info->Connectivity[point_counter + e_z * e_y_max * e_x_max * 27 + e_y * e_x_max * 27 + e_x * 27 + point];
+						}
+						if (eta == jj - 1 && Face[5] == 0)
+						{
+							Search_ele_point_3D(xi, eta, zeta, e_x_max, e_y_max, e_z_max, p_x, p_y, p_z, &e_x, &e_y, &e_z, &point);
+							info->Patch_array[own + temp5 + zeta * ii + xi] = info->Connectivity[point_counter + e_z * e_y_max * e_x_max * 27 + e_y * e_x_max * 27 + e_x * 27 + point];
+						}
+						if (xi == 0 && Face[2] == 0)
+						{
+							Search_ele_point_3D(xi, eta, zeta, e_x_max, e_y_max, e_z_max, p_x, p_y, p_z, &e_x, &e_y, &e_z, &point);
+							info->Patch_array[own + temp2 + zeta * jj + eta] = info->Connectivity[point_counter + e_z * e_y_max * e_x_max * 27 + e_y * e_x_max * 27 + e_x * 27 + point];
+						}
+						if (xi == ii - 1 && Face[4] == 0)
+						{
+							Search_ele_point_3D(xi, eta, zeta, e_x_max, e_y_max, e_z_max, p_x, p_y, p_z, &e_x, &e_y, &e_z, &point);
+							info->Patch_array[own + temp4 + zeta * jj + eta] = info->Connectivity[point_counter + e_z * e_y_max * e_x_max * 27 + e_y * e_x_max * 27 + e_x * 27 + point];
+						}
+					}
+				}
+			}
+			point_counter += e_x_max * e_y_max * e_z_max * 27;
+			ele_counter += e_x_max * e_y_max * e_z_max;
+
+			if (i == info->Total_Patch_to_mesh[1] - 1)
+			{
+				Total_connectivity_glo = counter;
+			}
+		}
+		Total_connectivity = counter;
+	}
 }
 
 
@@ -9506,26 +10439,58 @@ void Search_ele_point_2D(int xi, int eta, int e_x_max, int e_y_max, int *p_x, in
 }
 
 
-// void Search_ele_point_3D(int xi, int eta, int e_x_max, int e_y_max, int *p_x, int *p_y, int *e_x, int *e_y, int *point)
-// {
-	
-// }
+void Search_ele_point_3D(int xi, int eta, int zeta, int e_x_max, int e_y_max, int e_z_max, int *p_x, int *p_y, int *p_z, int *e_x, int *e_y, int *e_z, int *point)
+{
+	int i;
+
+	*e_x = xi / 2;
+	*e_y = eta / 2;
+	*e_z = zeta / 2;
+	int p_num_x = xi % 2;
+	int p_num_y = eta % 2;
+	int p_num_z = zeta % 2;
+
+	// 例外
+	if (*e_x == e_x_max)
+	{
+		(*e_x) -= 1;
+		p_num_x = 2;
+	}
+	if (*e_y == e_y_max)
+	{
+		(*e_y) -= 1;
+		p_num_y = 2;
+	}
+	if (*e_z == e_z_max)
+	{
+		(*e_z) -= 1;
+		p_num_z = 2;
+	}
+
+	// ポイント番号を探索
+	for (i = 0; i < 27 ; i++)
+	{
+		if (p_x[i] == p_num_x && p_y[i] == p_num_y && p_z[i] == p_num_z)
+		{
+			*point = i;
+			return;
+		}
+	}
+}
 
 
 void Make_info_for_viewer(information *info)
 {
 	int i, j, k;
 	int point_on_element = pow(3, info->DIMENSION);
-	double *point_array;
+	double *point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
 	double temp_point[MAX_DIMENSION];
 
 	// Make point in element
 	int counter = 0;
 	if (info->DIMENSION == 2)
 	{
-		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
-
-		// 0,2,8,6,1,5,7,3,4
+		// 0, 2, 8, 6, 1, 5, 7, 3, 4
 
 		// point 0
 		point_array[counter] = -1.0;		point_array[counter + 1] = -1.0;		counter += 2;
@@ -9548,9 +10513,7 @@ void Make_info_for_viewer(information *info)
 	}
 	else if (info->DIMENSION == 3)
 	{
-		point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
-
-		// 0,2,8,6,18,20,26,24,1,5,7,3,19,23,25,21,9,11,17,15,12,14,10,16,4,22,13
+		// 0, 2, 8, 6, 18, 20, 26, 24, 1, 5, 7, 3, 19, 23, 25, 21, 9, 11, 17, 15, 12, 14, 10, 16, 4, 22, 13
 
 		// point 0
 		point_array[counter] = -1.0;		point_array[counter + 1] = -1.0;		point_array[counter + 2] = -1.0;		counter += 3;
