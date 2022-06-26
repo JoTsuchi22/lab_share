@@ -5,7 +5,7 @@
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
 #define CALC_ON_GP 0    // ガウス点での応力等の計算を行わない 0, 行う 1
 #define OUTPUT_SVG 0    // SVG 出力を行わない 0, 行う 1
-#define DM 1            // 平面応力状態:DM=0	平面ひずみ状態:DM=1
+#define DM 1            // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
 #define NG 4												// Gauss-Legendreの積分点数
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
 #define MAX_POW_NG NG * NG * NG 							// NGのDIMENSION乗の最大値の計算
@@ -113,6 +113,11 @@ struct information {
     int *Face_Edge_info;
     int *Opponent_patch_num;
 
+    double *disp_at_connectivity;
+    double *strain_at_connectivity;
+    double *stress_at_connectivity;
+    double *vm_at_connectivity;
+
 	double *coord_x;
 	double *coord_y;
 	double *disp_x;
@@ -152,7 +157,7 @@ void Make_K_Whole_Ptr_Col(information *info, int mode_select);
 void Make_K_Whole_Val(information *info);
 void Make_K_EL(int El_No, double *K_EL, information *info);
 void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, information *info);
-void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *info);
+void Make_B_Matrix_anypoint(int El_No, double *BG, double *Local_coord, information *info);
 void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info);
 void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, information *info);
 // F vector

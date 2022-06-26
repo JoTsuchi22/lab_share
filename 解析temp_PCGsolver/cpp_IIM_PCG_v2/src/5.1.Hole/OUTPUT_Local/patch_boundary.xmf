@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<Xdmf Version="2.0">
+  <Domain>
+    <Grid Name="OUTPUT/patch_boundary.xmf" GridType="Collection">
+      <DataItem Name="OUTPUT/BOUNDARY/mxyz" Dimensions="41472 3" NumberType="Float" Precision="8" Format="Binary" Endian="Big">BOUNDARY/mxyz</DataItem>
+      <DataItem Name="OUTPUT/BOUNDARY/RNGS/mien01" Dimensions="5248 4" NumberType="Int" Format="Binary" Endian="Big">BOUNDARY/RNGS/mien01</DataItem>
+      <Grid Name="OUTPUT/BOUNDARY/RNGS/mien01">
+        <Topology TopologyType="Quadrilateral" NumberOfElements="5248">
+          <DataItem Reference="XML">/Xdmf/Domain/Grid/DataItem[@Name=&quot;OUTPUT/BOUNDARY/RNGS/mien01&quot;]</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Reference="XML">/Xdmf/Domain/Grid/DataItem[@Name=&quot;OUTPUT/BOUNDARY/mxyz&quot;]</DataItem>
+        </Geometry>
+      </Grid>
+    </Grid>
+  </Domain>
+</Xdmf>

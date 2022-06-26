@@ -44,11 +44,13 @@ int main(int argc, char **argv)
 	{
 		printf("Argument is missing\n");
 	}
-	else if (argc == 2) // IGA: input file = 1
+	// IGA: input file = 1
+	else if (argc == 2)
 	{
 		printf("IGA carried out.(No local mesh)\n");
 	}
-	else if (argc >= 3) // S-IGA: input file > 1
+	// S-IGA: input file > 1
+	else if (argc >= 3)
 	{
 		printf("S-IGA carried out.(%d local meshes)\n", argc - 2);
 	}
@@ -276,7 +278,7 @@ int main(int argc, char **argv)
     info_ptr->Strain_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRAIN, sizeof(double));	// Strain[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN]
     info_ptr->Stress_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRESS, sizeof(double));	// Stress[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS]
     info_ptr->ReactionForce = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// ReactionForce[MAX_K_WHOLE_SIZE]
-	if (info.Displacement == NULL)
+	if (info.Displacement == NULL || info.Strain_at_GP == NULL || info.Stress_at_GP == NULL || info.ReactionForce == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
 	}
@@ -314,7 +316,7 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
 		{
-			int x = info.line_No_Total_element[i * info.DIMENSION] * 3 - (info.line_No_Total_element[i * info.DIMENSION] - 1), y = info.line_No_Total_element[i * info.DIMENSION + 1] * 3 - (info.line_No_Total_element[i * info.DIMENSION + 1] - 1);
+			int x = info.line_No_Total_element[i * info.DIMENSION] * 2 + 1, y = info.line_No_Total_element[i * info.DIMENSION + 1] * 2 + 1;
 			total_array += 2 * (x + y);
 		}
 		check_n = 16;
@@ -325,18 +327,14 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
 		{
-			int x = info.line_No_Total_element[i * info.DIMENSION] * 3 - (info.line_No_Total_element[i * info.DIMENSION] - 1), y = info.line_No_Total_element[i * info.DIMENSION + 1] * 3 - (info.line_No_Total_element[i * info.DIMENSION + 1] - 1), z = info.line_No_Total_element[i * info.DIMENSION + 2] * 3 - (info.line_No_Total_element[i * info.DIMENSION + 2] - 1);
+			int x = info.line_No_Total_element[i * info.DIMENSION] * 2 + 1, y = info.line_No_Total_element[i * info.DIMENSION + 1] * 2 + 1, z = info.line_No_Total_element[i * info.DIMENSION + 2] * 2 + 1;
 			total_array += 2 * (x * y + y * z + x * z);
 		}
 		check_n = 24;
 		FE_n = 36;
 		opp_n = 6;
 	}
-	info_ptr->Connectivity = (int *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element, sizeof(int));
-	for (i = 0; i < info.Total_Element_to_mesh[Total_mesh] * point_on_element; i++)
-	{
-		info.Connectivity[i] = -1;
-	}
+	info_ptr->Connectivity = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_ele = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_point = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_coord = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION, sizeof(double));
@@ -344,11 +342,19 @@ int main(int argc, char **argv)
 	info_ptr->Patch_array = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * total_array);
 	info_ptr->Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * FE_n);
 	info_ptr->Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * opp_n);
+	info_ptr->disp_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION, sizeof(double));
+	info_ptr->strain_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * N_STRAIN, sizeof(double));
+	info_ptr->stress_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * N_STRESS, sizeof(double));
+	info_ptr->vm_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element, sizeof(double));
+	for (i = 0; i < info.Total_Element_to_mesh[Total_mesh] * point_on_element; i++)
+	{
+		info.Connectivity[i] = -1;
+	}
 	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh] * FE_n; i++)
 	{
 		info.Face_Edge_info[i] = -1;
 	}
-	if (info.Connectivity == NULL || info.Connectivity_ele == NULL || info.Connectivity_point == NULL || info.Connectivity_coord == NULL || info.Patch_check == NULL || info.Patch_array == NULL)
+	if (info.Connectivity == NULL || info.Connectivity_ele == NULL || info.Connectivity_point == NULL || info.Connectivity_coord == NULL || info.Patch_check == NULL || info.Patch_array == NULL || info.Face_Edge_info == NULL || info.Opponent_patch_num == NULL || info.disp_at_connectivity == NULL || info.strain_at_connectivity == NULL || info.stress_at_connectivity == NULL || info.vm_at_connectivity == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);
 	}

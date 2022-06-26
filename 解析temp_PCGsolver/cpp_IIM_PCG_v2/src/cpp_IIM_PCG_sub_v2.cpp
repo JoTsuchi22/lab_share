@@ -1203,9 +1203,8 @@ void Preprocessing_IGA(information *info)
 void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information *info)
 {
 	int re, e;
-	int i, j, k, m;
+	int i, j, m;
 	int l, ll;
-	int n_elements_over_point[MAX_POW_NG_EXTEND];
 	int MAX_NNLOVER = 0;
 
 	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
@@ -1255,7 +1254,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 				}
 
 				Total_n_elements = 0;
-				k = 0;
 				ll = 0;
 
 				// ローカルパッチ各要素のガウス点の物理座標のグローバルパッチでの(xi, eta)算出
@@ -1308,19 +1306,18 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 1] = output_para[1];
 							}
 
-							// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
-							n_elements_over_point[k] = ele_check(i, output_para, temp_element_n, temp_ad, info);
+							// Newton Laphsonによって出力されたxi, etaから重なる要素を求める
+							int n_elements_over_point = ele_check(i, output_para, temp_element_n, temp_ad, info);
 							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
 							{
-								n_elements_over_point[k] = 0;
+								n_elements_over_point = 0;
 							}
-							Total_n_elements += n_elements_over_point[k];
-							for (l = 0; l < n_elements_over_point[k]; l++)
+							Total_n_elements += n_elements_over_point;
+							for (l = 0; l < n_elements_over_point; l++)
 							{
 								element_n_point[ll] = temp_element_n[l];
 								ll++;
 							}
-							k++;
 						}
 						free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
 					}
@@ -1382,19 +1379,18 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 								info->Loc_parameter_on_Glo_ex[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 2] = output_para[2];
 							}
 
-							// Newton Laphsonによって出力されたxi,etaから重なる要素を求める
-							n_elements_over_point[k] = ele_check(i, output_para, temp_element_n, temp_ad, info);
+							// Newton Laphsonによって出力されたxi, etaから重なる要素を求める
+							int n_elements_over_point = ele_check(i, output_para, temp_element_n, temp_ad, info);
 							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
 							{
-								n_elements_over_point[k] = 0;
+								n_elements_over_point = 0;
 							}
-							Total_n_elements += n_elements_over_point[k];
-							for (l = 0; l < n_elements_over_point[k]; l++)
+							Total_n_elements += n_elements_over_point;
+							for (l = 0; l < n_elements_over_point; l++)
 							{
 								element_n_point[ll] = temp_element_n[l];
 								ll++;
 							}
-							k++;
 						}
 						free(temp_Position_Knots_xi), free(temp_Position_Knots_eta), free(temp_Position_Knots_zeta);
 					}
@@ -1471,7 +1467,7 @@ int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad
 {
 	int i, j, k, l, kk;
 	int RangeCheck_flag;					// 要素を求め終えたら立てるフラグ
-	int No_line[MAX_DIMENSION];					// xi, etaが含まれている要素の列数
+	int No_line[MAX_DIMENSION];				// xi, etaが含まれている要素の列数
 	int n = 1;
 
 	for (j = 0; j < info->DIMENSION; j++)
@@ -2817,13 +2813,12 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 				BDBJ_flag = 0;
 			}
 		}
-		
 
 		// 要素内であるとき, 結合要素剛性マトリックス計算
 		if (BDBJ_flag)
 		{
 			// 重なるグローバル要素のBマトリックス
-			Make_BG_Matrix(El_No_glo, BG, G_Gxi, info);
+			Make_B_Matrix_anypoint(El_No_glo, BG, G_Gxi, info);
 			// BGTDBLJの計算
 			coupled_BDBJ(KIEL_SIZE, B, BG, J, K1, info);
 			for (k = 0; k < KIEL_SIZE; k++)
@@ -2841,7 +2836,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 
 
 // BGマトリックスを求める
-void Make_BG_Matrix(int El_No, double *BG, double *Local_coord, information *info)
+void Make_B_Matrix_anypoint(int El_No, double *BG, double *Local_coord, information *info)
 {
 	double a_2x2[2][2], a_3x3[3][3];
 	double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT); // b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
@@ -6873,25 +6868,25 @@ void Make_Parameter_z(information *info)
 {
 	int i, j;
 
+	// 平面応力状態
 	if (DM == 0)
 	{
-		// 平面応力状態
 		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
 		{
 			for (j = 0; j < GP_ON_ELEMENT; j++)
 			{
-				info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 3] = - 1.0 * nu / i * (info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 0] + info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 1]);
+				info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 3] = - 1.0 * nu / E * (info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 0] + info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 1]);
 			}
 		}
 	}
+	// 平面ひずみ状態
 	else if (DM == 1)
 	{
-		// 平面ひずみ状態
 		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
 		{
 			for (j = 0; j < GP_ON_ELEMENT; j++)
 			{
-				info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 3] = i * nu / (1.0 + nu) / (1 - 2.0 * nu) * (info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 0] + info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 1]);
+				info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 3] = E * nu / (1.0 + nu) / (1.0 - 2.0 * nu) * (info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 0] + info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 1]);
 			}
 		}
 	}
@@ -7670,7 +7665,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 		}
 	}
 
-	//書き込み
+	// 書き込み
 	fp = fopen("overlay_view.dat", "a");
 	fprintf(fp, "%d\t%d\t%d\t%d\n", division_n_xi, division_n_eta, element_n_xi, element_n_eta);
 	for (i = 0; i < division_n_xi; i++)
@@ -7704,7 +7699,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	}
 	fclose(fp);
 
-	//グラフ用ファイル書き込み
+	// グラフ用ファイル書き込み
 	fp = fopen("overlay_disp.txt", "a");
 	for (i = 0; i < division_n_xi; i++)
 	{
@@ -8723,7 +8718,7 @@ void K_output_svg(information *info)
 void output_for_paraview(information *info)
 {
 	int i, j;
-	int point_on_element;
+	int point_on_element = 0;
 
 	int num = info->Total_Control_Point_to_mesh[Total_mesh];
 	int digit = 0;
@@ -8737,8 +8732,8 @@ void output_for_paraview(information *info)
 	Make_info_for_viewer(info);
 
 	// global patch
-	char str[256] = "global_patch.xmf";
-	fp = fopen(str, "w");
+	char str_glo[256] = "global_patch.xmf";
+	fp = fopen(str_glo, "w");
 
 	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
 	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
@@ -8803,6 +8798,24 @@ void output_for_paraview(information *info)
 		fprintf(fp, "\n");
 	}
 	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\">\n");
+	fprintf(fp, "        <DataItem Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo);
+	if (info->DIMENSION == 2)
+	{
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * info->DIMENSION + 0], info->stress_at_connectivity[i * info->DIMENSION + 1], info->stress_at_connectivity[i * info->DIMENSION + 3]);
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * info->DIMENSION + 0], info->stress_at_connectivity[i * info->DIMENSION + 1], info->stress_at_connectivity[i * info->DIMENSION + 2]);
+		}
+	}
+	fprintf(fp, "        </DataItem>\n");
+	fprintf(fp, "      </Attribute>\n");
 	fprintf(fp, "    </Grid>\n");
 	fprintf(fp, "  </Domain>\n");
 	fprintf(fp, "</Xdmf>\n");
@@ -8810,6 +8823,77 @@ void output_for_paraview(information *info)
 	fclose(fp);
 
 	// local patch (overlay)
+	char str_loc[256] = "local_patch.xmf";
+	fp = fopen(str_loc, "w");
+
+	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
+	fprintf(fp, "  <Domain>\n");
+	fprintf(fp, "    <Grid Name=\"ien\">\n");
+	if (info->DIMENSION == 2)
+	{
+		point_on_element = 9;
+		fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]);
+	}
+	else if (info->DIMENSION == 3)
+	{
+		point_on_element = 27;
+		fprintf(fp, "      <Topology TopologyType=\"HEXAHEDRON_27\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]);
+	}
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+	fprintf(fp, "      </Topology>\n");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+	}
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+	fprintf(fp, "      </Geometry>\n");
+	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo, info->DIMENSION);
+	if (info->DIMENSION == 2)
+	{
+		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1]);
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1], info->Connectivity_coord[i * info->DIMENSION + 2]);
+		}
+	}
+	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1], point_on_element);
+	for (i = info->Total_Element_to_mesh[1]; i < info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]; i++)
+	{
+		fprintf(fp, "\t\t\t\t");
+		if (info->DIMENSION == 2)
+		{
+			for (j = 0; j < point_on_element; j++)
+			{
+				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - info->Total_Element_to_mesh[1]);
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			for (j = 0; j < point_on_element; j++)
+			{
+				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - info->Total_Element_to_mesh[1]);
+			}
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "    </Grid>\n");
+	fprintf(fp, "  </Domain>\n");
+	fprintf(fp, "</Xdmf>\n");
+
+	fclose(fp);
 }
 
 
@@ -10484,7 +10568,6 @@ void Make_info_for_viewer(information *info)
 	int i, j, k;
 	int point_on_element = pow(3, info->DIMENSION);
 	double *point_array = (double *)malloc(sizeof(double) * point_on_element * info->DIMENSION);
-	double temp_point[MAX_DIMENSION];
 
 	// Make point in element
 	int counter = 0;
@@ -10571,22 +10654,183 @@ void Make_info_for_viewer(information *info)
 		point_array[counter] =  0.0;		point_array[counter + 1] =  0.0;		point_array[counter + 2] =  0.0;
 	}
 
-	// コネクティビティ の配列から 要素番号 と ポイント番号(0 ~ 8 or 0 ~ 26) と 座標
-	for (i = 0; i < Total_connectivity_glo; i++)
+	// calculation physical coordinate, B matrix, strain, stress
+	double temp_point[MAX_DIMENSION];
+	double temp_point_glo[MAX_DIMENSION];
+	double temp_para_glo[MAX_DIMENSION];
+
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *temp_disp = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+	double *temp_disp_glo = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+
+	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
+	int *temp_ad = (int *)malloc(sizeof(int) * info->DIMENSION * (MAX_ORDER + 1));
+
+	for (i = 0; i < Total_connectivity; i++)
 	{
+		int element = info->Connectivity_ele[i], element_glo = 0;
+		int point = info->Connectivity_point[i];
+		int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[element]] * info->DIMENSION;
+
+		// make temp_point
 		for (j = 0; j < info->DIMENSION; j++)
 		{
-			temp_point[j] = point_array[info->Connectivity_point[i] * info->DIMENSION + j];
+			temp_point[j] = point_array[point * info->DIMENSION + j];
 		}
 
-		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[info->Connectivity_ele[i]]]; j++)
-		{
-			double R = Shape_func(j, temp_point, info->Connectivity_ele[i], info);
+		// B matrix
+		Make_B_Matrix_anypoint(element, B, temp_point, info);
 
+		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[element]]; j++)
+		{
+			double R = Shape_func(j, temp_point, element, info);
+
+			// make physical coordinate, disp_at_connectivity, temp_disp
 			for (k = 0; k < info->DIMENSION; k++)
 			{
-				info->Connectivity_coord[i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[info->Connectivity_ele[i] * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
+				double d = info->Displacement[info->Controlpoint_of_Element[element * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
+				info->Connectivity_coord[i * info->DIMENSION + k] += R * info->Node_Coordinate[info->Controlpoint_of_Element[element * MAX_NO_CP_ON_ELEMENT + j] * (info->DIMENSION + 1) + k];
+				info->disp_at_connectivity[i * info->DIMENSION + k] += R * d;
+				temp_disp[j * info->DIMENSION + k] = d;
 			}
 		}
+
+		// overlay
+		if (i >= Total_connectivity_glo)
+		{
+			// make temp_point_glo
+			if (info->DIMENSION == 2)
+			{
+				double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
+				double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
+				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 0]; j++)
+				{
+					temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + j];
+				}
+				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 1]; j++)
+				{
+					temp_Position_Knots_eta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + j];
+				}
+
+				Calc_xi_eta(info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1],
+							temp_Position_Knots_xi, temp_Position_Knots_eta,
+							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
+							info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+							&temp_para_glo[0], &temp_para_glo[1], info);
+
+				ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
+				element_glo = temp_element_n[0];
+
+				// 親要素座標の算出
+				temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
+								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
+				temp_point_glo[1] = - 1.0 + 2.0 * (temp_para_glo[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]])
+								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
+
+			}
+			else if (info->DIMENSION == 3)
+			{
+				double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
+				double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
+				double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 2]);
+
+				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 0]; j++)
+				{
+					temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + j];
+				}
+				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 1]; j++)
+				{
+					temp_Position_Knots_eta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + j];
+				}
+				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 2]; j++)
+				{
+					temp_Position_Knots_zeta[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + j];
+				}
+
+				Calc_xi_eta_zeta(info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1], info->Connectivity_coord[i * info->DIMENSION + 2],
+								 temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+								 info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
+								 info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+								 &temp_para_glo[0], &temp_para_glo[1], &temp_para_glo[2], info);
+
+				ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
+				element_glo = temp_element_n[0];
+
+				// 親要素座標の算出
+				temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
+						 		  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
+				temp_point_glo[1] = - 1.0 + 2.0 * (temp_para_glo[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]])
+								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
+				temp_point_glo[2] = - 1.0 + 2.0 * (temp_para_glo[2] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]])
+								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]]);
+			}
+
+			// BG matrix
+			Make_B_Matrix_anypoint(element_glo, BG, temp_point_glo, info);
+
+			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[element_glo]]; j++)
+			{
+				double R_glo = Shape_func(j, temp_point_glo, element_glo, info);
+
+				// overlay displacement, make temp_disp_glo
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					info->disp_at_connectivity[i * info->DIMENSION + k] += R_glo * info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
+					temp_disp_glo[j * info->DIMENSION + k] = info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
+				}
+			}
+		}
+
+		// strain
+		for (j = 0; j < D_MATRIX_SIZE; j++)
+		{
+			for (k = 0; k < KIEL_SIZE; k++)
+			{
+				info->strain_at_connectivity[i * N_STRAIN + j] += B[j * MAX_KIEL_SIZE + k] * temp_disp[k];
+			}
+		}
+
+		// overlay strain
+		if (i >= Total_connectivity_glo)
+		{
+			int KIEL_SIZE_glo = info->No_Control_point_ON_ELEMENT[info->Element_patch[element_glo]] * info->DIMENSION;
+			for (j = 0; j < D_MATRIX_SIZE; j++)
+			{
+				for (k = 0; k < KIEL_SIZE_glo; k++)
+				{
+					info->strain_at_connectivity[i * N_STRAIN + j] += BG[j * MAX_KIEL_SIZE + k] * temp_disp_glo[k];
+				}
+			}
+		}
+
+		// stress
+		for (j = 0; j < D_MATRIX_SIZE; j++)
+		{
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+			{
+				info->stress_at_connectivity[i * N_STRESS + j] += info->D[j * D_MATRIX_SIZE + k] * info->strain_at_connectivity[i * N_STRAIN + k];
+			}
+		}
+
+		// if DIMENSION == 2, make strain zz
+		if (info->DIMENSION == 2)
+		{
+			// 平面応力状態
+			if (DM == 0)
+			{
+				info->strain_at_connectivity[i * N_STRAIN + 3] = - 1.0 * nu / E * (info->stress_at_connectivity[i * N_STRESS + 0] + info->stress_at_connectivity[i * N_STRESS + 1]);
+			}
+			// 平面ひずみ状態
+			else if (DM == 1)
+			{
+				info->stress_at_connectivity[i * N_STRESS + 3] = E * nu / (1.0 + nu) / (1.0 - 2.0 * nu) * (info->strain_at_connectivity[i * N_STRAIN + 0] + info->strain_at_connectivity[i * N_STRAIN + 1]);
+			}
+		}
+
+		// von Mises stress
+
 	}
+
+	free(B), free(BG), free(temp_disp), free(temp_disp_glo), free(temp_element_n), free(temp_ad);
 }
