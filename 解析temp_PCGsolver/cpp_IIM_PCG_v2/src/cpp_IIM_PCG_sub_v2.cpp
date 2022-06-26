@@ -8869,26 +8869,44 @@ void output_for_paraview(information *info)
 	}
 	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1], point_on_element);
-	for (i = info->Total_Element_to_mesh[1]; i < info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]; i++)
+	for (i = info->Total_Element_to_mesh[1]; i < info->Total_Element_to_mesh[2]; i++)
 	{
 		fprintf(fp, "\t\t\t\t");
 		if (info->DIMENSION == 2)
 		{
 			for (j = 0; j < point_on_element; j++)
 			{
-				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - info->Total_Element_to_mesh[1]);
+				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - Total_connectivity_glo);
 			}
 		}
 		else if (info->DIMENSION == 3)
 		{
 			for (j = 0; j < point_on_element; j++)
 			{
-				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - info->Total_Element_to_mesh[1]);
+				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - Total_connectivity_glo);
 			}
 		}
 		fprintf(fp, "\n");
 	}
 	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\">\n");
+	fprintf(fp, "        <DataItem Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo);
+	if (info->DIMENSION == 2)
+	{
+		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * info->DIMENSION + 0], info->stress_at_connectivity[i * info->DIMENSION + 1], info->stress_at_connectivity[i * info->DIMENSION + 3]);
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * info->DIMENSION + 0], info->stress_at_connectivity[i * info->DIMENSION + 1], info->stress_at_connectivity[i * info->DIMENSION + 2]);
+		}
+	}
+	fprintf(fp, "        </DataItem>\n");
+	fprintf(fp, "      </Attribute>\n");
 	fprintf(fp, "    </Grid>\n");
 	fprintf(fp, "  </Domain>\n");
 	fprintf(fp, "</Xdmf>\n");
@@ -10671,7 +10689,6 @@ void Make_info_for_viewer(information *info)
 	{
 		int element = info->Connectivity_ele[i], element_glo = 0;
 		int point = info->Connectivity_point[i];
-		int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[element]] * info->DIMENSION;
 
 		// make temp_point
 		for (j = 0; j < info->DIMENSION; j++)
@@ -10776,13 +10793,15 @@ void Make_info_for_viewer(information *info)
 				// overlay displacement, make temp_disp_glo
 				for (k = 0; k < info->DIMENSION; k++)
 				{
-					info->disp_at_connectivity[i * info->DIMENSION + k] += R_glo * info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
-					temp_disp_glo[j * info->DIMENSION + k] = info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
+					double d_glo = info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
+					info->disp_at_connectivity[i * info->DIMENSION + k] += R_glo * d_glo;
+					temp_disp_glo[j * info->DIMENSION + k] = d_glo;
 				}
 			}
 		}
 
 		// strain
+		int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[element]] * info->DIMENSION;
 		for (j = 0; j < D_MATRIX_SIZE; j++)
 		{
 			for (k = 0; k < KIEL_SIZE; k++)

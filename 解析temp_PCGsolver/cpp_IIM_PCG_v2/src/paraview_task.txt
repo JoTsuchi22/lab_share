@@ -1,0 +1,17 @@
+paraview <- task flow
+
+
+shape func and dshape func
+
+overlay dim 2 and 3
+
+paraview from comand line and makefile
+    keyword:    pvpython
+
+make paraview configuration
+    conter color band (refer Document)
+    cfg file
+    glo and loc patch view on same brouser
+    
+    make patch boundary
+    make element boundary
