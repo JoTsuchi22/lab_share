@@ -50,7 +50,7 @@ mkdir_output:
 	cd ./analysis && mkdir -p output
 
 # test run
-testrun0:	compile_so_fast run0 view0
+testrun0:	compile_fast run0
 
 testrun1:	compile_so_fast run1 view0
 

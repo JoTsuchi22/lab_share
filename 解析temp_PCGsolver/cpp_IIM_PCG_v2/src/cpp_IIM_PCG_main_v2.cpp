@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 	info_ptr->real_element_line = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh] * info.DIMENSION)); // real_element_line[MAX_N_PATCH][MAX_N_ELEMENT][info.DIMENSION] ゼロエレメントではない要素列
 	info_ptr->real_element = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh]);						// real_element[MAX_N_ELEMENT] ゼロエレメントではない要素の番号
 	info_ptr->real_El_No_on_mesh = (int *)malloc(sizeof(int) * (info.Total_Patch_to_mesh[Total_mesh] * info.Total_Element_to_mesh[Total_mesh]));	// real_El_No_on_mesh[MAX_N_MESH][MAX_N_ELEMENT]
-	info_ptr->Equivalent_Nodal_Force = (double *)calloc(MAX_CP * info.DIMENSION, sizeof(double));						// Equivalent_Nodal_Force[MAX_N_NODE][info.DIMENSION] Equivalent nodal forces arising from the distributed load
+	info_ptr->Equivalent_Nodal_Force = (double *)calloc(MAX_CP * info.DIMENSION, sizeof(double));					// Equivalent_Nodal_Force[MAX_N_NODE][info.DIMENSION] Equivalent nodal forces arising from the distributed load
 	if (info.INC == NULL || info.Controlpoint_of_Element == NULL || info.Element_patch == NULL || info.Element_mesh == NULL || info.line_No_real_element == NULL || info.line_No_Total_element == NULL || info.difference == NULL || info.Total_element_all_ID == NULL || info.ENC == NULL || info.real_element_line == NULL || info.real_element == NULL || info.real_El_No_on_mesh == NULL || info.Equivalent_Nodal_Force == NULL)
 	{
 		printf("Cannot allocate memory\n"); exit(1);

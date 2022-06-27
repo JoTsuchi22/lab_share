@@ -157,7 +157,7 @@ void Make_K_Whole_Ptr_Col(information *info, int mode_select);
 void Make_K_Whole_Val(information *info);
 void Make_K_EL(int El_No, double *K_EL, information *info);
 void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, information *info);
-void Make_B_Matrix_anypoint(int El_No, double *BG, double *Local_coord, information *info);
+void Make_B_Matrix_anypoint(int El_No, double *B, double *Local_coord, information *info);
 void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info);
 void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, information *info);
 // F vector

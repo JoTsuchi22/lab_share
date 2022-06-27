@@ -7094,10 +7094,8 @@ void Make_Strain_refine(double E, double nu, int Total_Element , int El_No, int 
 			Strain_ref[i] = Strain_ref_glo[i];
 		}
 	}
-
-
 	//ローカル要素について
-	if (El_No >= real_Total_Element_to_mesh[1])
+	else if (El_No >= real_Total_Element_to_mesh[1])
 	{
 		for( i = 0; i < N_STRAIN; i ++ )
 		{
