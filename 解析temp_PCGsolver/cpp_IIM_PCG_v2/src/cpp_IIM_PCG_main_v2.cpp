@@ -360,7 +360,9 @@ int main(int argc, char **argv)
 	}
 
 	// paraview のための出力
+	printf("\nStart output_for_paraview\n\n");
 	output_for_paraview(&info);
+	printf("\nFinish output_for_paraview\n\n");
 
 	// memory free
 	free(info.Connectivity), free(info.Connectivity_ele), free(info.Connectivity_point), free(info.Connectivity_coord), free(info.Patch_check), free(info.Patch_array);

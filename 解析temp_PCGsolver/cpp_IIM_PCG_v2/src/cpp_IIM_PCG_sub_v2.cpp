@@ -8824,103 +8824,12 @@ void output_for_paraview(information *info)
 	{
 		for (i = 0; i < Total_connectivity_glo; i++)
 		{
-			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * info->DIMENSION + 0], info->stress_at_connectivity[i * info->DIMENSION + 1], info->stress_at_connectivity[i * info->DIMENSION + 3]);
-		}
-	}
-	else if (info->DIMENSION == 3)
-	{
-		for (i = 0; i < Total_connectivity_glo; i++)
-		{
-			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * info->DIMENSION + 0], info->stress_at_connectivity[i * info->DIMENSION + 1], info->stress_at_connectivity[i * info->DIMENSION + 2]);
-		}
-	}
-	fprintf(fp, "        </DataItem>\n");
-	fprintf(fp, "      </Attribute>\n");
-	fprintf(fp, "    </Grid>\n");
-	fprintf(fp, "  </Domain>\n");
-	fprintf(fp, "</Xdmf>\n");
-
-	fclose(fp);
-
-	// local patch (overlay)
-	char str_loc[256] = "local_patch.xmf";
-	fp = fopen(str_loc, "w");
-
-	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
-	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
-	fprintf(fp, "  <Domain>\n");
-	fprintf(fp, "    <Grid Name=\"ien\">\n");
-	if (info->DIMENSION == 2)
-	{
-		point_on_element = 9;
-		fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]);
-	}
-	else if (info->DIMENSION == 3)
-	{
-		point_on_element = 27;
-		fprintf(fp, "      <Topology TopologyType=\"HEXAHEDRON_27\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]);
-	}
-	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
-	fprintf(fp, "      </Topology>\n");
-	if (info->DIMENSION == 2)
-	{
-		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
-	}
-	else if (info->DIMENSION == 3)
-	{
-		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
-	}
-	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
-	fprintf(fp, "      </Geometry>\n");
-	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo, info->DIMENSION);
-	if (info->DIMENSION == 2)
-	{
-		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
-		{
-			fprintf(fp, "\t\t\t\t%le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1]);
-		}
-	}
-	else if (info->DIMENSION == 3)
-	{
-		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
-		{
-			fprintf(fp, "\t\t\t\t%le %le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1], info->Connectivity_coord[i * info->DIMENSION + 2]);
-		}
-	}
-	fprintf(fp, "      </DataItem>\n");
-	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1], point_on_element);
-	for (i = info->Total_Element_to_mesh[1]; i < info->Total_Element_to_mesh[2]; i++)
-	{
-		fprintf(fp, "\t\t\t\t");
-		if (info->DIMENSION == 2)
-		{
-			for (j = 0; j < point_on_element; j++)
-			{
-				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - Total_connectivity_glo);
-			}
-		}
-		else if (info->DIMENSION == 3)
-		{
-			for (j = 0; j < point_on_element; j++)
-			{
-				fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - Total_connectivity_glo);
-			}
-		}
-		fprintf(fp, "\n");
-	}
-	fprintf(fp, "      </DataItem>\n");
-	fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\">\n");
-	fprintf(fp, "        <DataItem Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo);
-	if (info->DIMENSION == 2)
-	{
-		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
-		{
 			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * N_STRESS + 0], info->stress_at_connectivity[i * N_STRESS + 1], info->stress_at_connectivity[i * N_STRESS + 3]);
 		}
 	}
 	else if (info->DIMENSION == 3)
 	{
-		for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+		for (i = 0; i < Total_connectivity_glo; i++)
 		{
 			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * N_STRESS + 0], info->stress_at_connectivity[i * N_STRESS + 1], info->stress_at_connectivity[i * N_STRESS + 2]);
 		}
@@ -8932,6 +8841,100 @@ void output_for_paraview(information *info)
 	fprintf(fp, "</Xdmf>\n");
 
 	fclose(fp);
+
+	// local patch (overlay)
+	if (Total_mesh >= 2)
+	{
+		char str_loc[256] = "local_patch.xmf";
+		fp = fopen(str_loc, "w");
+
+		fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+		fprintf(fp, "<Xdmf Version=\"2.0\">\n");
+		fprintf(fp, "  <Domain>\n");
+		fprintf(fp, "    <Grid Name=\"ien\">\n");
+		if (info->DIMENSION == 2)
+		{
+			point_on_element = 9;
+			fprintf(fp, "      <Topology TopologyType=\"Quadrilateral_9\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]);
+		}
+		else if (info->DIMENSION == 3)
+		{
+			point_on_element = 27;
+			fprintf(fp, "      <Topology TopologyType=\"HEXAHEDRON_27\" NumberOfElements=\"%d\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1]);
+		}
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+		fprintf(fp, "      </Topology>\n");
+		if (info->DIMENSION == 2)
+		{
+			fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+		}
+		else if (info->DIMENSION == 3)
+		{
+			fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+		}
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+		fprintf(fp, "      </Geometry>\n");
+		fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo, info->DIMENSION);
+		if (info->DIMENSION == 2)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1]);
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le %le\n", info->Connectivity_coord[i * info->DIMENSION + 0], info->Connectivity_coord[i * info->DIMENSION + 1], info->Connectivity_coord[i * info->DIMENSION + 2]);
+			}
+		}
+		fprintf(fp, "      </DataItem>\n");
+		fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1], point_on_element);
+		for (i = info->Total_Element_to_mesh[1]; i < info->Total_Element_to_mesh[2]; i++)
+		{
+			fprintf(fp, "\t\t\t\t");
+			if (info->DIMENSION == 2)
+			{
+				for (j = 0; j < point_on_element; j++)
+				{
+					fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - Total_connectivity_glo);
+				}
+			}
+			else if (info->DIMENSION == 3)
+			{
+				for (j = 0; j < point_on_element; j++)
+				{
+					fprintf(fp, "%*d ", -digit, info->Connectivity[i * point_on_element + j] - Total_connectivity_glo);
+				}
+			}
+			fprintf(fp, "\n");
+		}
+		fprintf(fp, "      </DataItem>\n");
+		fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\">\n");
+		fprintf(fp, "        <DataItem Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo);
+		if (info->DIMENSION == 2)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * N_STRESS + 0], info->stress_at_connectivity[i * N_STRESS + 1], info->stress_at_connectivity[i * N_STRESS + 3]);
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * N_STRESS + 0], info->stress_at_connectivity[i * N_STRESS + 1], info->stress_at_connectivity[i * N_STRESS + 2]);
+			}
+		}
+		fprintf(fp, "        </DataItem>\n");
+		fprintf(fp, "      </Attribute>\n");
+		fprintf(fp, "    </Grid>\n");
+		fprintf(fp, "  </Domain>\n");
+		fprintf(fp, "</Xdmf>\n");
+
+		fclose(fp);
+	}
 }
 
 
