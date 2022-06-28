@@ -1,7 +1,7 @@
 
 タイトル
     重合パッチ法(S-version Isogeometric Analysis Method, S-IGA)の基底関数の高次化に関する研究
-    Higher order of basis functions for S-version IsogeometricAnalysis Method
+    Higher order of basis functions for S-version Isogeometric Analysis Method
 
 著者
     氏名

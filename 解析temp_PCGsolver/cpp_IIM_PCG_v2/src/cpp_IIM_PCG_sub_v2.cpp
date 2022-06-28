@@ -3750,8 +3750,6 @@ void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double
 	}
 	for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 	{
-		// dShape_func1[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]] = info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION] * (weight_func * dShape[0 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0]] * Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]] - dWeight_func1 * shape_func[i]) / (weight_func * weight_func);
-		// dShape_func2[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]] = info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION] * (weight_func * Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]] * dShape[1 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
 		dShape_func1[i] = info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION] * (weight_func * dShape[0 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0]] * Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]] - dWeight_func1 * shape_func[i]) / (weight_func * weight_func);
 		dShape_func2[i] = info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION] * (weight_func * Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]] * dShape[1 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
 	}
@@ -3810,33 +3808,7 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 					   * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION];
 	}
 	for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
-	{		
-		// dShape_func1[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]]
-		// 	= info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION]
-		// 	* (weight_func
-		// 	* dShape[0 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0]]
-		// 	* Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]]
-		// 	* Shape[2 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 2]]
-		// 	- dWeight_func1	* shape_func[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]])
-		// 	/ (weight_func * weight_func);
-
-		// dShape_func2[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]]
-		// 	= info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION]
-		// 	* (weight_func
-		// 	* Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]]
-		// 	* dShape[1 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1]]
-		// 	* Shape[2 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]]
-		// 	- dWeight_func2	* shape_func[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]])
-		// 	/ (weight_func * weight_func);
-
-		// dShape_func3[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]]
-		// 	= info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION]
-		// 	* (weight_func
-		// 	* Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]]
-		// 	* Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]]
-		// 	* dShape[2 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2]]
-		// 	- dWeight_func3 * shape_func[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]])
-		// 	/ (weight_func * weight_func);
+	{
 		dShape_func1[i]
 			= info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION]
 			* (weight_func
@@ -8759,6 +8731,8 @@ void output_for_paraview(information *info)
 	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
 	fprintf(fp, "  <Domain>\n");
 	fprintf(fp, "    <Grid Name=\"ien\">\n");
+
+	// TopologyType
 	if (info->DIMENSION == 2)
 	{
 		point_on_element = 9;
@@ -8771,6 +8745,8 @@ void output_for_paraview(information *info)
 	}
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
 	fprintf(fp, "      </Topology>\n");
+
+	// Geometry
 	if (info->DIMENSION == 2)
 	{
 		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
@@ -8781,6 +8757,28 @@ void output_for_paraview(information *info)
 	}
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
 	fprintf(fp, "      </Geometry>\n");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+	}
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+	fprintf(fp, "      </Geometry>\n");
+
+	// Attribute stress
+	fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\" Dimensions=\"%d 3\">\n", Total_connectivity_glo);
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;stress&quot;]</DataItem>\n");
+	fprintf(fp, "      </Attribute>\n");
+
+	// Attribute strain
+	fprintf(fp, "      <Attribute Name=\"strain\" AttributeType=\"Vector\" Dimensions=\"%d 3\">\n", Total_connectivity_glo);
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;strain&quot;]</DataItem>\n");
+	fprintf(fp, "      </Attribute>\n");
+
+	// xyz
 	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo, info->DIMENSION);
 	if (info->DIMENSION == 2)
 	{
@@ -8797,6 +8795,8 @@ void output_for_paraview(information *info)
 		}
 	}
 	fprintf(fp, "      </DataItem>\n");
+
+	// ien
 	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[1], point_on_element);
 	for (i = 0; i < info->Total_Element_to_mesh[1]; i++)
 	{
@@ -8818,8 +8818,9 @@ void output_for_paraview(information *info)
 		fprintf(fp, "\n");
 	}
 	fprintf(fp, "      </DataItem>\n");
-	fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\">\n");
-	fprintf(fp, "        <DataItem Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo);
+
+	// stress
+	fprintf(fp, "      <DataItem Name=\"stress\" Dimensions=\"%d 3\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo);
 	if (info->DIMENSION == 2)
 	{
 		for (i = 0; i < Total_connectivity_glo; i++)
@@ -8834,8 +8835,25 @@ void output_for_paraview(information *info)
 			fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * N_STRESS + 0], info->stress_at_connectivity[i * N_STRESS + 1], info->stress_at_connectivity[i * N_STRESS + 2]);
 		}
 	}
-	fprintf(fp, "        </DataItem>\n");
-	fprintf(fp, "      </Attribute>\n");
+	fprintf(fp, "      </DataItem>\n");
+
+	// strain
+	fprintf(fp, "      <DataItem Name=\"strain\" Dimensions=\"%d 3\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo);
+	if (info->DIMENSION == 2)
+	{
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->strain_at_connectivity[i * N_STRAIN + 0], info->strain_at_connectivity[i * N_STRAIN + 1], info->strain_at_connectivity[i * N_STRAIN + 3]);
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->strain_at_connectivity[i * N_STRAIN + 0], info->strain_at_connectivity[i * N_STRAIN + 1], info->strain_at_connectivity[i * N_STRAIN + 2]);
+		}
+	}
+	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "    </Grid>\n");
 	fprintf(fp, "  </Domain>\n");
 	fprintf(fp, "</Xdmf>\n");
@@ -8852,6 +8870,8 @@ void output_for_paraview(information *info)
 		fprintf(fp, "<Xdmf Version=\"2.0\">\n");
 		fprintf(fp, "  <Domain>\n");
 		fprintf(fp, "    <Grid Name=\"ien\">\n");
+
+		// TopologyType
 		if (info->DIMENSION == 2)
 		{
 			point_on_element = 9;
@@ -8864,6 +8884,8 @@ void output_for_paraview(information *info)
 		}
 		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
 		fprintf(fp, "      </Topology>\n");
+
+		// Geometry
 		if (info->DIMENSION == 2)
 		{
 			fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
@@ -8874,6 +8896,18 @@ void output_for_paraview(information *info)
 		}
 		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
 		fprintf(fp, "      </Geometry>\n");
+
+		// Attribute stress
+		fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\" Dimensions=\"%d 3\">\n", Total_connectivity - Total_connectivity_glo);
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;stress&quot;]</DataItem>\n");
+		fprintf(fp, "      </Attribute>\n");
+
+		// Attribute strain
+		fprintf(fp, "      <Attribute Name=\"strain\" AttributeType=\"Vector\" Dimensions=\"%d 3\">\n", Total_connectivity - Total_connectivity_glo);
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;strain&quot;]</DataItem>\n");
+		fprintf(fp, "      </Attribute>\n");
+
+		// xyz
 		fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo, info->DIMENSION);
 		if (info->DIMENSION == 2)
 		{
@@ -8890,6 +8924,8 @@ void output_for_paraview(information *info)
 			}
 		}
 		fprintf(fp, "      </DataItem>\n");
+
+		// ien
 		fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Element_to_mesh[2] - info->Total_Element_to_mesh[1], point_on_element);
 		for (i = info->Total_Element_to_mesh[1]; i < info->Total_Element_to_mesh[2]; i++)
 		{
@@ -8911,8 +8947,9 @@ void output_for_paraview(information *info)
 			fprintf(fp, "\n");
 		}
 		fprintf(fp, "      </DataItem>\n");
-		fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\">\n");
-		fprintf(fp, "        <DataItem Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo);
+
+		// stress
+		fprintf(fp, "      <DataItem Name=\"stress\" Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo);
 		if (info->DIMENSION == 2)
 		{
 			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
@@ -8927,8 +8964,25 @@ void output_for_paraview(information *info)
 				fprintf(fp, "\t\t\t\t%le %le %le\n", info->stress_at_connectivity[i * N_STRESS + 0], info->stress_at_connectivity[i * N_STRESS + 1], info->stress_at_connectivity[i * N_STRESS + 2]);
 			}
 		}
-		fprintf(fp, "        </DataItem>\n");
-		fprintf(fp, "      </Attribute>\n");
+		fprintf(fp, "      </DataItem>\n");
+
+		// strain
+		fprintf(fp, "      <DataItem Name=\"strain\" Dimensions=\"%d 3\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo);
+		if (info->DIMENSION == 2)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le %le\n", info->strain_at_connectivity[i * N_STRAIN + 0], info->strain_at_connectivity[i * N_STRAIN + 1], info->strain_at_connectivity[i * N_STRAIN + 3]);
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le %le\n", info->strain_at_connectivity[i * N_STRAIN + 0], info->strain_at_connectivity[i * N_STRAIN + 1], info->strain_at_connectivity[i * N_STRAIN + 2]);
+			}
+		}
+		fprintf(fp, "      </DataItem>\n");
 		fprintf(fp, "    </Grid>\n");
 		fprintf(fp, "  </Domain>\n");
 		fprintf(fp, "</Xdmf>\n");
@@ -9133,7 +9187,6 @@ void Make_connectivity(information *info)
 						{
 							info->Face_Edge_info[i * 32 + k * 8 + l] = 1;
 							info->Opponent_patch_num[i * 4 + k] = j;
-							printf("own_patch:%d opp_patch:%d own_edge:%d opp_edge:%d\n", i, j, k, l);
 							goto end_loop_a;
 						}
 					}
@@ -9183,7 +9236,6 @@ void Make_connectivity(information *info)
 								{
 									info->Face_Edge_info[i * 36 + k * 6 + l] = m;
 									info->Opponent_patch_num[i * 6 + k] = j;
-									printf("own_patch:%d opp_patch:%d own_face:%d opp_face:%d mode:%d\n", i, j, k, l, m);
 									goto end_loop_b;
 								}
 							}
@@ -9251,16 +9303,10 @@ void Make_connectivity(information *info)
 							opp += 2 * (a + b);
 						}
 
-						printf("Patch num = %d\n", i);
-						printf("Edge num = %d\n", k);
-						printf("Opponent patch num = %d\n", info->Opponent_patch_num[i * 4 + j]);
-
 						Edge[j] = 1;
 
 						int p = k / 2;
 						int q = k % 2;
-						printf("p = %d\n", p);
-						printf("q = %d\n", q);
 
 						int temp_ii = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 0] * 2 + 1;
 						int temp_jj = info->line_No_Total_element[info->Opponent_patch_num[i * 4 + j] * info->DIMENSION + 1] * 2 + 1;
@@ -9627,10 +9673,6 @@ void Make_connectivity(information *info)
 							c = info->line_No_Total_element[l * info->DIMENSION + 2] * 2 + 1;
 							opp += 2 * (a * b + b * c + a * c);
 						}
-
-						printf("Patch i = %d\n", i);
-						printf("Face i = %d\n", k);
-						printf("Opponent patch i = %d\n", info->Opponent_patch_num[i * 6 + j]);
 
 						Face[j] = 1;
 
