@@ -6,7 +6,7 @@
 #define CALC_ON_GP 0    // ガウス点での応力等の計算を行わない 0, 行う 1
 #define OUTPUT_SVG 0    // SVG 出力を行わない 0, 行う 1
 #define DM 1            // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
-#define NG 4												// Gauss-Legendreの積分点数
+#define NG 10												// Gauss-Legendreの積分点数
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
 #define MAX_POW_NG NG * NG * NG 							// NGのDIMENSION乗の最大値の計算
 #define MAX_POW_NG_EXTEND NG_EXTEND * NG_EXTEND	* NG_EXTEND // NGのDIMENSION乗の最大値の計算
