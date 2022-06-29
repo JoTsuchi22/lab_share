@@ -25,10 +25,13 @@ run2:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_30x30.txt
 
 run_2D:	mkdir_output
-	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_2D/input.txt
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_2D_IGA/input.txt
 
 run_3D:	mkdir_output
-	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D/input.txt
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D_IGA/input.txt
+
+run_3D_S-IGA:	mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D_S-IGA/input_glo.txt ../input_3D_S-IGA/input_loc.txt
 
 run_crack:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_crack/input_glo.txt ../input_crack/input_loc.txt
@@ -59,6 +62,8 @@ testrun2:	compile_so_fast run2 view0
 testrun_2D: compile_so_fast run_2D view1
 
 testrun_3D: compile_so_fast run_3D
+
+testrun_3D_S-IGA: compile_so_fast run_3D_S-IGA
 
 testrun_crack: compile_so_fast run_crack view0
 

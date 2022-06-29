@@ -13,6 +13,9 @@ run ./analysis/input_2D/input.txt
 gdb ./src/cpp_IIM_PCG_v2.x
 run ./analysis/input_3D/input.txt
 
+gdb ./src/cpp_IIM_PCG_v2.x
+run ./analysis/input_3D_S-IGA/input_glo.txt ./analysis/input_3D_S-IGA/input_loc.txt
+
 
 
 ***************************************

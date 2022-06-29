@@ -1572,7 +1572,7 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
                 fprintf(fp, "%*d", temp_num, i);
                 fprintf(fp, "%le\n", info->disp_constraint_amount[i * info->MAX_DISP_CONSTRAINT + j]);
             }
-            temp += info->length_before[j];
+            temp += info->length_before[temp_counter];
             temp_counter++;
         }
     }
@@ -1890,9 +1890,9 @@ void Sort(int n, information *info)
                     int temp1, temp2, temp3, temp4, temp5;
                     temp1 =         info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 1];
                     temp2 = temp1 + info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 1];
-                    temp3 = temp2 + info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 2];
-                    temp4 = temp3 + info->CP_info[patch_num * info->DIMENSION + 1] * info->CP_info[patch_num * info->DIMENSION + 2];
-                    temp5 = temp4 + info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 2];
+                    temp3 = temp2 + info->CP_info[patch_num * info->DIMENSION + 1] * info->CP_info[patch_num * info->DIMENSION + 2];
+                    temp4 = temp3 + info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 2];
+                    temp5 = temp4 + info->CP_info[patch_num * info->DIMENSION + 1] * info->CP_info[patch_num * info->DIMENSION + 2];
 
                     // if (info->disp_constraint[i * a + j * b + k * c + 1] == 2 && info->disp_constraint[i * a + j * b + k * c + 2] == 0) は何もしない
                     if (info->disp_constraint[i * a + j * b + k * c + 1] == 2 && info->disp_constraint[i * a + j * b + k * c + 2] == 1)

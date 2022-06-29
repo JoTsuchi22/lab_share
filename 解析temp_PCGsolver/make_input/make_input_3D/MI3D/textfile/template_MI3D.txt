@@ -1,4 +1,4 @@
-3   //DEMENSION
+3   // DEMENSION
 
 1   1   1   // 次数
 
