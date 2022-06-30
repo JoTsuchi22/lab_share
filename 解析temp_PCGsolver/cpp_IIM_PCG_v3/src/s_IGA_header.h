@@ -3,10 +3,11 @@
 
 #define MAX_DIMENSION 3
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define SKIP_NV 1       // NURBS viewer の出力を行う 0, 行わない 1
 #define CALC_ON_GP 0    // ガウス点での応力等の計算を行わない 0, 行う 1
 #define OUTPUT_SVG 0    // SVG 出力を行わない 0, 行う 1
 #define DM 1            // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
-#define NG 10												// Gauss-Legendreの積分点数
+#define NG 4												// Gauss-Legendreの積分点数
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数
 #define MAX_POW_NG NG * NG * NG 							// NGのDIMENSION乗の最大値の計算
 #define MAX_POW_NG_EXTEND NG_EXTEND * NG_EXTEND	* NG_EXTEND // NGのDIMENSION乗の最大値の計算
@@ -177,7 +178,7 @@ double InverseMatrix_3x3(double M[3][3]);
 // Shape Function
 double Shape_func(int I_No, double *Local_coord, int El_No, information *info);
 void ShapeFunc_from_paren(double *Position_Data_param, double *Local_coord, int j, int e, information *info);
-void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, double *dShape, information *info);
+void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, double *dShape, int select_deriv, information *info);
 double dShape_func(int I_No, int xez, double *Local_coord, int El_No, information *info);
 void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double *dShape_func2, information *info);
 void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double *dShape_func2, double *dShape_func3, information *info);

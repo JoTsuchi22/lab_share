@@ -42,31 +42,27 @@ run_2nd_order:	mkdir_output
 run_gomimesh:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_5x5.txt
 
-# NURBS viewer, 0: local, 1: global
-view0:
-	cd ./analysis/output && ../../src/NURBS_viewer/NURBS_view.exe ./input_local.txt ./overlay_view.dat ./Displacement_loc.dat > temp.dat
-
-view1:
-	cd ./analysis/output && ../../src/NURBS_viewer/NURBS_view.exe ./input_for_NURBS.txt ./view.dat ./Displacement.dat > temp.dat
-
+# mkdir
 mkdir_output:
 	cd ./analysis && mkdir -p output
 
 # test run
 testrun0:	compile_fast run0
 
-testrun1:	compile_so_fast run1 view0
+testrun1:	compile_so_fast run1
 
-testrun2:	compile_so_fast run2 view0
+testrun2:	compile_so_fast run2
 
-testrun_2D: compile_so_fast run_2D view1
+testrun_2D: compile_so_fast run_2D
 
 testrun_3D: compile_so_fast run_3D
 
 testrun_3D_S-IGA: compile_so_fast run_3D_S-IGA
 
-testrun_crack: compile_so_fast run_crack view0
+safe_testrun_3D_S-IGA: compile_fast run_3D_S-IGA
+
+testrun_crack: compile_so_fast run_crack
 
 testrun_2nd_order: compile_fast run_2nd_order
 
-testrun_gomimesh:	compile_so_fast run_gomimesh view1
+testrun_gomimesh:	compile_so_fast run_gomimesh

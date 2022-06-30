@@ -175,6 +175,10 @@ void Get_Input_2(int tm, char **argv, information *info)
 		{
 			fscanf(fp, "%d", &temp_i);
 			info->No_knot[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j] = temp_i;
+			if (MAX_KNOT < temp_i)
+			{
+				MAX_KNOT = temp_i;
+			}
 			info->Total_Knot_to_patch_dim[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j + 1] = info->Total_Knot_to_patch_dim[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j] + temp_i;
 			printf("No_knot[%d] = %d\n", (i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j, info->No_knot[(i + info->Total_Patch_to_mesh[tm]) * info->DIMENSION + j]);
 		}
@@ -645,8 +649,8 @@ void Make_INC(information *info)
 				// IDが1の要素に番号を振る
 				if (info->Total_element_all_ID[n] == 1)
 				{
-					info->real_element[r + info->real_Total_Element_to_mesh[tm]] = n + Total_Element_to_Now;
-					info->real_El_No_on_mesh[tm * info->Total_Element_to_mesh[Total_mesh] + r] = n + Total_Element_to_Now;
+					info->real_element[r + info->real_Total_Element_to_mesh[tm]] = ele;
+					info->real_El_No_on_mesh[tm * info->Total_Element_to_mesh[Total_mesh] + r] = ele;
 					r++;
 				}
 			}
@@ -762,8 +766,8 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 	double val_jCoord_Local = 0.0;
 	double Position_Data_param[MAX_DIMENSION] = {0.0};
 
-	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
-	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
+	static int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
+	static int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
 
 	Make_gauss_array(0, info);
 
@@ -855,7 +859,7 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 
 			for (ig = 0; ig < GP_1D; ig++)
 			{
-				double Local_Coord[2], sfc, dxyzdge[3], detJ, XiEtaCoordParen, valDistLoad;
+				double Local_Coord[2], sfc, dxyzdge[3] = {0.0}, detJ, XiEtaCoordParen, valDistLoad;
 				int icc;
 				Local_Coord[jCoord] = val_jCoord_Local;
 				Local_Coord[iCoord] = Gxi_1D[ig];
@@ -864,13 +868,12 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 				XiEtaCoordParen = Position_Data_param[iCoord];
 				valDistLoad = Coeff_Dist_Load[0] + Coeff_Dist_Load[1] * XiEtaCoordParen + Coeff_Dist_Load[2] * XiEtaCoordParen * XiEtaCoordParen;
 
-				dxyzdge[0] = 0.0;
-				dxyzdge[1] = 0.0;
-				dxyzdge[2] = 0.0;
 				for (icc = 0; icc < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1); icc++)
 				{
-					dxyzdge[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
-					dxyzdge[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
+					double temp_i = dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii], info);
+
+					dxyzdge[0] += temp_i * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
+					dxyzdge[1] += temp_i * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
 				}
 
 				detJ = sqrt(dxyzdge[0] * dxyzdge[0] + dxyzdge[1] * dxyzdge[1]);
@@ -910,7 +913,6 @@ void Setting_Dist_Load_2D(int mesh_n, int iPatch, int iCoord, double val_Coord, 
 			}
 		}
 	}
-	free(No_Element_for_Integration), free(iControlpoint);
 }
 
 
@@ -925,8 +927,8 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	double val_kCoord_Local = 0.0;
 	double Position_Data_param[MAX_DIMENSION] = {0.0};
 
-	int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh] * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
-	int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
+	static int *No_Element_for_Integration = (int *)malloc(sizeof(int) * info->Total_Knot_to_mesh[Total_mesh] * info->Total_Knot_to_mesh[Total_mesh]); // No_Element_for_Integration[MAX_N_KNOT]
+	static int *iControlpoint = (int *)malloc(sizeof(int) * MAX_NO_CP_ON_ELEMENT);
 
 	Make_gauss_array(0, info);
 
@@ -1024,7 +1026,6 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	}
 	else if (iCoord == 1 && jCoord == 2)
 	{
-		iii = 0, jjj = 0;
 		iX = kPos[0] - info->Order[iPatch * info->DIMENSION + 0];
 		for (iY = iPos[0] - info->Order[iPatch * info->DIMENSION + 1]; iY < iPos[1] - info->Order[iPatch * info->DIMENSION + 1]; iY++)
 		{
@@ -1043,7 +1044,6 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 	}
 	else if (iCoord == 2 && jCoord == 0)
 	{
-		
 		iY = kPos[0] - info->Order[iPatch * info->DIMENSION + 1];
 		for (iZ = iPos[0] - info->Order[iPatch * info->DIMENSION + 2]; iZ < iPos[1] - info->Order[iPatch * info->DIMENSION + 2]; iZ++)
 		{
@@ -1100,13 +1100,16 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 
 						for (icc = 0; icc < (info->Order[iPatch * info->DIMENSION + 0] + 1) * (info->Order[iPatch * info->DIMENSION + 1] + 1) * (info->Order[iPatch * info->DIMENSION + 2] + 1); icc++)
 						{
-							dxyzdgez_i[0] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
-							dxyzdgez_i[1] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
-							dxyzdgez_i[2] += dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 2];
+							double temp_i = dShape_func(icc, iCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
+							double temp_j = dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info);
 
-							dxyzdgez_j[0] += dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
-							dxyzdgez_j[1] += dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
-							dxyzdgez_j[2] += dShape_func(icc, jCoord, Local_Coord, No_Element_for_Integration[iii * info->Total_Knot_to_mesh[Total_mesh] + jjj], info) * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 2];
+							dxyzdgez_i[0] += temp_i * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
+							dxyzdgez_i[1] += temp_i * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
+							dxyzdgez_i[2] += temp_i * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 2];
+
+							dxyzdgez_j[0] += temp_j * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 0];
+							dxyzdgez_j[1] += temp_j * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 1];
+							dxyzdgez_j[2] += temp_j * info->Node_Coordinate[iControlpoint[icc] * (info->DIMENSION + 1) + 2];
 						}
 
 						detJ = (dxyzdgez_i[0] * dxyzdgez_j[1] - dxyzdgez_i[1] * dxyzdgez_j[0]) + (dxyzdgez_i[1] * dxyzdgez_j[2] - dxyzdgez_i[2] * dxyzdgez_j[1]) + (dxyzdgez_i[2] * dxyzdgez_j[0] - dxyzdgez_i[0] * dxyzdgez_j[2]);
@@ -1138,7 +1141,6 @@ void Setting_Dist_Load_3D(int mesh_n, int iPatch, int iCoord, int jCoord, double
 			}
 		}
 	}
-	free(No_Element_for_Integration), free(iControlpoint);
 }
 
 
@@ -1201,13 +1203,15 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
 	int *element_n_point = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT * MAX_POW_NG_EXTEND);
-	int *Check_coupled_No = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER);
+	int *Check_coupled_No = (int *)calloc(MAX_N_ELEMENT_OVER, sizeof(int));
 	int *temp_ad = (int *)malloc(sizeof(int) * info->DIMENSION * (MAX_ORDER + 1));	// 要素の位置を求めるための値
 
-	for (i = 0; i < MAX_N_ELEMENT_OVER; i++)
-	{
-		Check_coupled_No[i] = 0;
-	}
+	double output_para[MAX_DIMENSION] = {0.0};
+	double data_result_shape[MAX_DIMENSION] = {0.0};
+
+	static double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * MAX_KNOT);
+	static double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * MAX_KNOT);
+	static double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * MAX_KNOT);
 
 	for (m = 0; m < 2; m++) // 最初 NG 個のガウス点で重なりを求め, info->NNLOVER[e] >= 2 の e に対して, 再度 NG_EXTEND 個のガウス点で重なりを求める
 	{
@@ -1220,6 +1224,8 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 			{
 				e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_org]];
 				Preprocessing(m, e, info);
+
+				cout << "m = " << m << ", glo = " << e << endl;
 			}
 		}
 
@@ -1227,7 +1233,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 		for (re = 0; re < info->real_Total_Element_on_mesh[mesh_n_over]; re++)
 		{
 			int n;
-			double output_para[MAX_DIMENSION];
 			int Total_n_elements;
 
 			e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_over]];
@@ -1235,6 +1240,8 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 			if (m == 0 || (m == 1 && info->NNLOVER[e] >= 2))
 			{
 				Preprocessing(m, e, info);
+
+				cout << "m = " << m << ", loc = " << e << endl;
 
 				if (m == 1)
 				{
@@ -1254,9 +1261,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 					for (i = 0; i < info->Total_Patch_on_mesh[mesh_n_org]; i++)
 					{
 						// グローバルパッチ i での各方向ノットベクトル
-						double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 0]);
-						double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 1]);
-
 						for (j = 0; j < info->No_knot[i * info->DIMENSION + 0]; j++)
 						{
 							temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 0] + j];
@@ -1268,8 +1272,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 						for (n = 0; n < GP_ON_ELEMENT; n++)
 						{
-							double data_result_shape[MAX_DIMENSION] = {0.0};
-
 							for (l = 0; l < info->DIMENSION; l++)
 							{
 								if (m == 0)
@@ -1286,7 +1288,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 													info->No_Control_point[i * info->DIMENSION + 0], info->No_Control_point[i * info->DIMENSION + 1],
 													info->Order[i * info->DIMENSION + 0], info->Order[i * info->DIMENSION + 1],
 													&output_para[0], &output_para[1], info);
-							
+
 							if (m == 0)
 							{
 								info->Loc_parameter_on_Glo[e * GP_ON_ELEMENT * info->DIMENSION + n * info->DIMENSION + 0] = output_para[0];
@@ -1311,7 +1313,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 								ll++;
 							}
 						}
-						free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
 					}
 				}
 				else if (info->DIMENSION == 3)
@@ -1319,10 +1320,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 					for (i = 0; i < info->Total_Patch_on_mesh[mesh_n_org]; i++)
 					{
 						// グローバルパッチ i での各方向ノットベクトル
-						double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 0]);
-						double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 1]);
-						double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[i * info->DIMENSION + 2]);
-
 						for (j = 0; j < info->No_knot[i * info->DIMENSION + 0]; j++)
 						{
 							temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[i * info->DIMENSION + 0] + j];
@@ -1338,8 +1335,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 						for (n = 0; n < GP_ON_ELEMENT; n++)
 						{
-							double data_result_shape[MAX_DIMENSION] = {0.0};
-
 							for (l = 0; l < info->DIMENSION; l++)
 							{
 								if (m == 0)
@@ -1384,9 +1379,9 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 								ll++;
 							}
 						}
-						free(temp_Position_Knots_xi), free(temp_Position_Knots_eta), free(temp_Position_Knots_zeta);
 					}
 				}
+
 				// 昇順ソート
 				sort(Total_n_elements, element_n_point);
 				// 重複削除
@@ -1414,7 +1409,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 		double Percent_Check_coupled_No = (double)Check_coupled_No[i] * 100.0 / (double)info->real_Total_Element_on_mesh[mesh_n_over];
 		printf("Check_coupled_No[%d] = %d\t\t%.2lf %%\n", i, Check_coupled_No[i], Percent_Check_coupled_No);
 	}
-	
+
 	free(temp_element_n), free(element_n_point), free(Check_coupled_No), free(temp_ad);
 }
 
@@ -1632,19 +1627,12 @@ void Preprocessing(int m, int e, information *info)
 void Make_Gauss_Coordinate(int m, int e, information *info)
 {
 	int i, j, k;
-	double temp_coordinate[MAX_DIMENSION];
-	double R;
 
 	for (i = 0; i < GP_ON_ELEMENT; i++)
-	{
-		for (j = 0; j < info->DIMENSION; j++)
-		{
-			temp_coordinate[j] = Gxi[i][j];
-		}
-		
+	{	
 		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 		{
-			R = Shape_func(j, temp_coordinate, e, info);
+			double R = Shape_func(j, Gxi[i], e, info);
 
 			for (k = 0; k < info->DIMENSION; k++)
 			{
@@ -1665,30 +1653,33 @@ void Make_Gauss_Coordinate(int m, int e, information *info)
 void Make_dSF(int m, int e, information *info)
 {
 	int i, j, k;
-	double temp_coordinate[MAX_DIMENSION];
 
-	for (i = 0; i < GP_ON_ELEMENT; i++)
+	if (m == 0)
 	{
-		for (j = 0; j < info->DIMENSION; j++)
+		for (i = 0; i < GP_ON_ELEMENT; i++)
 		{
-			temp_coordinate[j] = Gxi[i][j];
-		}
-
-		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
-		{
-			for (k = 0; k < info->DIMENSION; k++)
+			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 			{
-				if (m == 0)
+				for (k = 0; k < info->DIMENSION; k++)
 				{
-					info->dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
-				}
-				else if (m == 1)
-				{
-					info->dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, temp_coordinate, e, info);
+					info->dSF[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, Gxi[i], e, info);
 				}
 			}
 		}
 	}
+	else if (m == 1)
+	{
+		for (i = 0; i < GP_ON_ELEMENT; i++)
+		{
+			for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
+			{
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					info->dSF_ex[i * MAX_NO_CP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + k] = dShape_func(j, k, Gxi[i], e, info);
+				}
+			}
+		}
+	}				
 }
 
 
@@ -1789,7 +1780,7 @@ void Make_Jac(int m, int e, information *info)
 void Make_B_Matrix(int m, int e, information *info)
 {
 	int i, j, k, l;
-	double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT);	// b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
+	static double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT);	// b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
 
 	for (i = 0; i < GP_ON_ELEMENT; i++)
 	{
@@ -1905,8 +1896,6 @@ void Make_B_Matrix(int m, int e, information *info)
 			}
 		}
 	}
-
-	free(b);
 }
 
 
@@ -2535,8 +2524,8 @@ void Make_K_Whole_Val(information *info)
 	int i, j, j1, j2, k1, k2, l;
 	int a, b, re;
 
-	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
-	double *coupled_K_EL= (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);		// coupled_K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
+	static double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);			// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
+	static double *coupled_K_EL= (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);		// coupled_K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
 
 	for (re = 0; re < info->real_Total_Element_to_mesh[Total_mesh]; re++)
 	{
@@ -2638,8 +2627,6 @@ void Make_K_Whole_Val(information *info)
 			}
 		}
 	}
-
-	free(K_EL), free(coupled_K_EL);
 }
 
 
@@ -2650,8 +2637,8 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 	
 	int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]] * info->DIMENSION;
 
-	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);  // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
+	static double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);  // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	static double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
 	double J = 0.0;
 
 	for (i = 0; i < KIEL_SIZE; i++)
@@ -2697,8 +2684,6 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 			}
 		}
 	}
-
-	free(B), free(K1);
 }
 
 
@@ -2710,9 +2695,9 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 	int BDBJ_flag = 0;
 	int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No_glo]] * info->DIMENSION;
 
-	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);  // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
-	double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
+	static double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);  // B[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	static double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE); // BG[D_MATRIX_SIZE][MAX_KIEL_SIZE];
+	static double *K1 = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE); // K1[MAX_KIEL_SIZE][MAX_KIEL_SIZE];
 	double J = 0.0;
 
 	for (i = 0; i < KIEL_SIZE; i++)
@@ -2822,8 +2807,6 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			}
 		}
 	}
-
-	free(B), free(BG), free(K1);
 }
 
 
@@ -2831,7 +2814,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 void Make_B_Matrix_anypoint(int El_No, double *B, double *Local_coord, information *info)
 {
 	double a_2x2[2][2], a_3x3[3][3];
-	double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT); // b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
+	static double *b = (double *)malloc(sizeof(double) * info->DIMENSION * MAX_NO_CP_ON_ELEMENT); // b[info->DIMENSION][MAX_NO_CP_ON_ELEMENT]
 
 	int i, j, k;
 
@@ -2930,15 +2913,18 @@ void Make_B_Matrix_anypoint(int El_No, double *B, double *Local_coord, informati
 			B[5 * MAX_KIEL_SIZE + 3 * i + 2] = b[0 * MAX_NO_CP_ON_ELEMENT + i];
 		}
 	}
-
-	free(b);
 }
 
 
 void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info)
 {
 	int i, j, k;
-	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
+	static double *BD = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * D_MATRIX_SIZE); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
+
+	for (i = 0; i < KIEL_SIZE * D_MATRIX_SIZE; i++)
+	{
+		BD[i] = 0.0;
+	}
 
 	// [B]T[D][B]Jの計算
 	for (i = 0; i < KIEL_SIZE; i++)
@@ -2964,15 +2950,18 @@ void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info)
 			K_EL[i * MAX_KIEL_SIZE + j] *= J;
 		}
 	}
-
-	free(BD);
 }
 
 
 void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, information *info)
 {
 	int i, j, k;
-	double *BD = (double *)calloc(MAX_KIEL_SIZE * D_MATRIX_SIZE, sizeof(double)); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
+	static double *BD = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * D_MATRIX_SIZE); // BD[MAX_KIEL_SIZE][D_MATRIX_SIZE];
+
+	for (i = 0; i < KIEL_SIZE * D_MATRIX_SIZE; i++)
+	{
+		BD[i] = 0.0;
+	}
 
 	//[B]T[D][B]Jの計算
 	for (i = 0; i < KIEL_SIZE; i++)
@@ -2998,8 +2987,6 @@ void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, 
 			K_EL[i * MAX_KIEL_SIZE + j] *= J;
 		}
 	}
-
-	free(BD);
 }
 
 
@@ -3007,10 +2994,7 @@ void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, 
 void Make_F_Vec(information *info)
 {
 	int i, index;
-	for (i = 0; i < K_Whole_Size; i++)
-	{
-		info->rhs_vec[i] = 0.0;
-	}
+
 	for (i = 0; i < info->Total_Load_to_mesh[Total_mesh]; i++)
 	{
 		index = info->Index_Dof[info->Load_Node_Dir[i * 2 + 0] * info->DIMENSION + info->Load_Node_Dir[i * 2 + 1]];
@@ -3028,7 +3012,7 @@ void Make_F_Vec_disp_const(information *info)
 	int i, ie, idir, inode, jdir, jnode, kk_const;
 	int ii, iii, b, bb, jj, ii_local, jj_local;
 
-	double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);	// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
+	static double *K_EL = (double *)malloc(sizeof(double) * MAX_KIEL_SIZE * MAX_KIEL_SIZE);	// K_EL[MAX_KIEL_SIZE][MAX_KIEL_SIZE]
 
 	Make_gauss_array(0, info);
 
@@ -3049,7 +3033,6 @@ void Make_F_Vec_disp_const(information *info)
 
 		if (iii > 0)
 		{
-			Make_K_EL(i, K_EL, info);
 			for (idir = 0; idir < info->DIMENSION; idir++)
 			{
 				for (inode = 0; inode < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; inode++)
@@ -3085,7 +3068,6 @@ void Make_F_Vec_disp_const(information *info)
 			}
 		}
 	}
-	free(K_EL);
 }
 
 
@@ -3520,9 +3502,9 @@ double Shape_func(int I_No, double *Local_coord, int El_No, information *info)
 
 	double Position_Data_param[MAX_DIMENSION];
 
-	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT);
-	double *Shape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[info->DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]); // dShape[info->DIMENSION][MAX_N_NODE]
+	static double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT);
+	static double *Shape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[info->DIMENSION][MAX_N_NODE][10]
+	static double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]); // dShape[info->DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CP_ON_ELEMENT; i++)
 	{
@@ -3532,7 +3514,7 @@ double Shape_func(int I_No, double *Local_coord, int El_No, information *info)
 	for (j = 0; j < info->DIMENSION; j++)
 	{
 		ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, info);
-		ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, info);
+		ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, 0, info);
 		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 		{
 			shape_func[i] *= Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + j] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + j]];
@@ -3542,7 +3524,6 @@ double Shape_func(int I_No, double *Local_coord, int El_No, information *info)
 	{
 		weight_func += shape_func[i] * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION];
 	}
-	free(Shape), free(dShape);
 
 	if (I_No < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]])
 		R = shape_func[I_No] * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + I_No] * (info->DIMENSION + 1) + info->DIMENSION] / weight_func;
@@ -3550,7 +3531,6 @@ double Shape_func(int I_No, double *Local_coord, int El_No, information *info)
 	else
 		R = ERROR;
 
-	free(shape_func);
 	return R;
 }
 
@@ -3563,7 +3543,7 @@ void ShapeFunc_from_paren(double *Position_Data_param, double *Local_coord, int 
 }
 
 
-void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, double *dShape, information *info)
+void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, double *dShape, int select_deriv, information *info)
 {
 	int ii;
 	int p;
@@ -3620,36 +3600,43 @@ void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, d
 		}
 	}
 
-	double dleft_term, dright_term;
-	for (ii = 0; ii < info->No_Control_point[info->Element_patch[e] * info->DIMENSION + j] + 1; ii++)
+	if (select_deriv == 0)
 	{
-		dleft_term = 0.0;
-		dright_term = 0.0;
-
-		if (info->Order[info->Element_patch[e] * info->DIMENSION + j] * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1] == 0 && info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j]] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii] == 0)
+		return;
+	}
+	else
+	{
+		double dleft_term, dright_term;
+		for (ii = 0; ii < info->No_Control_point[info->Element_patch[e] * info->DIMENSION + j] + 1; ii++)
+		{
 			dleft_term = 0.0;
-		else
-			dleft_term = info->Order[info->Element_patch[e] * info->DIMENSION + j] / (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j]] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1];
-
-		if (info->Order[info->Element_patch[e] * info->DIMENSION + j] * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1] == 0 && info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + 1] == 0)
 			dright_term = 0.0;
-		else
-			dright_term = info->Order[info->Element_patch[e] * info->DIMENSION + j] / (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + 1]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1];
 
-		dShape[j * info->Total_Control_Point_to_mesh[Total_mesh] + ii] = dleft_term - dright_term;
+			if (info->Order[info->Element_patch[e] * info->DIMENSION + j] * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1] == 0 && info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j]] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii] == 0)
+				dleft_term = 0.0;
+			else
+				dleft_term = info->Order[info->Element_patch[e] * info->DIMENSION + j] / (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j]] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1];
+
+			if (info->Order[info->Element_patch[e] * info->DIMENSION + j] * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1] == 0 && info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + 1] == 0)
+				dright_term = 0.0;
+			else
+				dright_term = info->Order[info->Element_patch[e] * info->DIMENSION + j] / (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + info->Order[info->Element_patch[e] * info->DIMENSION + j] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + 1]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + info->Order[info->Element_patch[e] * info->DIMENSION + j] - 1];
+
+			dShape[j * info->Total_Control_Point_to_mesh[Total_mesh] + ii] = dleft_term - dright_term;
+		}
 	}
 }
 
 
 double dShape_func(int I_No, int xez, double *Local_coord, int El_No, information *info)
 {
+	static double *dShape_func1 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func1[MAX_N_NODE];
+	static double *dShape_func2 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func2[MAX_N_NODE];
+	static double *dShape_func3 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func3[MAX_N_NODE];
 	double dR = 0.0;
 
 	if (info->DIMENSION == 2)
 	{
-		double *dShape_func1 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func1[MAX_N_NODE];
-		double *dShape_func2 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func2[MAX_N_NODE];
-
 		NURBS_deriv_2D(Local_coord, El_No, dShape_func1, dShape_func2, info);
 
 		if (xez != 0 && xez != 1)
@@ -3671,15 +3658,9 @@ double dShape_func(int I_No, int xez, double *Local_coord, int El_No, informatio
 		{
 			dR = ERROR;
 		}
-
-		free(dShape_func1), free(dShape_func2);
 	}
 	else if (info->DIMENSION == 3)
 	{
-		double *dShape_func1 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func1[MAX_N_NODE];
-		double *dShape_func2 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func2[MAX_N_NODE];
-		double *dShape_func3 = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT); // dShape_func3[MAX_N_NODE];
-
 		NURBS_deriv_3D(Local_coord, El_No, dShape_func1, dShape_func2, dShape_func3, info);
 
 		if (xez != 0 && xez != 1 && xez != 2)
@@ -3705,8 +3686,6 @@ double dShape_func(int I_No, int xez, double *Local_coord, int El_No, informatio
 		{
 			dR = ERROR;
 		}
-
-		free(dShape_func1), free(dShape_func2), free(dShape_func3);
 	}
 
 	return dR;
@@ -3720,11 +3699,11 @@ void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double
 	double dWeight_func1 = 0.0;
 	double dWeight_func2 = 0.0;
 
-	double Position_Data_param[MAX_DIMENSION] = {0.0};
+	static double Position_Data_param[MAX_DIMENSION];
 
-	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT);
-	double *Shape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[info->DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]);			// dShape[info->DIMENSION][MAX_N_NODE]
+	static double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT);
+	static double *Shape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER);	// Shape[info->DIMENSION][MAX_N_NODE][10]
+	static double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]);				// dShape[info->DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CP_ON_ELEMENT; i++)
 	{
@@ -3734,7 +3713,7 @@ void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double
 	for (j = 0; j < info->DIMENSION; j++)
 	{
 		ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, info);
-		ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, info);
+		ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, 1, info);
 		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 		{
 			shape_func[i] *= Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + j] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + j]];
@@ -3754,8 +3733,6 @@ void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double
 		dShape_func1[i] = info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION] * (weight_func * dShape[0 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0]] * Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]] - dWeight_func1 * shape_func[i]) / (weight_func * weight_func);
 		dShape_func2[i] = info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION] * (weight_func * Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]] * dShape[1 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1]] - dWeight_func2 * shape_func[i]) / (weight_func * weight_func);
 	}
-
-	free(Shape), free(dShape), free(shape_func);
 }
 
 
@@ -3767,11 +3744,11 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 	double dWeight_func2 = 0.0;
 	double dWeight_func3 = 0.0;
 
-	double Position_Data_param[MAX_DIMENSION] = {0.0};
+	static double Position_Data_param[MAX_DIMENSION];
 
-	double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT);
-	double *Shape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER); // Shape[info->DIMENSION][MAX_N_NODE][10]
-	double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]);			// dShape[info->DIMENSION][MAX_N_NODE]
+	static double *shape_func = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT);
+	static double *Shape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER);	// Shape[info->DIMENSION][MAX_N_NODE][10]
+	static double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]);				// dShape[info->DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CP_ON_ELEMENT; i++)
 	{
@@ -3781,16 +3758,18 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 	for (j = 0; j < info->DIMENSION; j++)
 	{
 		ShapeFunc_from_paren(Position_Data_param, Local_coord, j, El_No, info);
-		ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, info);
+		ShapeFunction1D(Position_Data_param, j, El_No, Shape, dShape, 1, info);
 		for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 		{
 			shape_func[i] *= Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + j] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + j]];
 		}
 	}
+
 	for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 	{
 		weight_func += shape_func[i] * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION];
 	}
+
 	for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 	{
 		dWeight_func1 += dShape[0 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0]]
@@ -3808,6 +3787,7 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 					   * dShape[2 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2]]
 					   * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * (info->DIMENSION + 1) + info->DIMENSION];
 	}
+
 	for (i = 0; i < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; i++)
 	{
 		dShape_func1[i]
@@ -3816,7 +3796,7 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 			* dShape[0 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0]]
 			* Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]]
 			* Shape[2 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 2]]
-			- dWeight_func1	* shape_func[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]])
+			- dWeight_func1	* shape_func[i])
 			/ (weight_func * weight_func);
 
 		dShape_func2[i]
@@ -3825,7 +3805,7 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 			* Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]]
 			* dShape[1 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1]]
 			* Shape[2 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]]
-			- dWeight_func2	* shape_func[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]])
+			- dWeight_func2	* shape_func[i])
 			/ (weight_func * weight_func);
 
 		dShape_func3[i]
@@ -3834,11 +3814,9 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 			* Shape[0 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 0] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 0]]
 			* Shape[1 * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 1] * MAX_ORDER + info->Order[info->Element_patch[El_No] * info->DIMENSION + 1]]
 			* dShape[2 * info->Total_Control_Point_to_mesh[Total_mesh] + info->INC[info->Element_patch[El_No] * info->Total_Control_Point_to_mesh[Total_mesh] * info->DIMENSION + info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i] * info->DIMENSION + 2]]
-			- dWeight_func3 * shape_func[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + i]])
+			- dWeight_func3 * shape_func[i])
 			/ (weight_func * weight_func);
 	}
-
-	free(Shape), free(dShape), free(shape_func);
 }
 
 
@@ -3856,7 +3834,7 @@ double BasisFunc(double *knot_vec, int knot_index, int order, double xi, double 
 	int p, j;
 	double sum1 = 0.0;
 	double sum2 = 0.0;
-	double temp_basis[MAX_ORDER][MAX_ORDER];
+	static double *temp_basis = (double *)malloc(sizeof(double) * MAX_ORDER * MAX_ORDER);
 	(*output) = 0.0;
 	(*d_output) = 0.0;
 
@@ -3866,11 +3844,11 @@ double BasisFunc(double *knot_vec, int knot_index, int order, double xi, double 
 		{
 			if ((knot_vec[knot_index + j] <= xi) && (xi <= knot_vec[knot_index + j + 1]))
 			{
-				temp_basis[j][0] = 1.0;
+				temp_basis[j * MAX_ORDER + 0] = 1.0;
 			}
 			else
 			{
-				temp_basis[j][0] = 0.0;
+				temp_basis[j * MAX_ORDER + 0] = 0.0;
 			}
 		}
 
@@ -3884,27 +3862,27 @@ double BasisFunc(double *knot_vec, int knot_index, int order, double xi, double 
 					sum2 = 0.0;
 					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
 					{
-						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
+						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j * MAX_ORDER + p - 1];
 					}
 					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
 					{
-						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
+						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[(j + 1) * MAX_ORDER + p - 1];
 					}
-					temp_basis[j][p] = sum1 + sum2;
+					temp_basis[j * MAX_ORDER + p] = sum1 + sum2;
 				}
 			}
 			sum1 = 0.0;
 			sum2 = 0.0;
 			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
 			{
-				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
+				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0 * MAX_ORDER + order - 1];
 			}
 			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
 			{
-				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
+				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1 * MAX_ORDER + order - 1];
 			}
 		}
-		(*output) = temp_basis[0][order];
+		(*output) = temp_basis[0 * MAX_ORDER + order];
 		(*d_output) = sum1 - sum2;
 	}
 	return (*output);
@@ -3916,7 +3894,7 @@ double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double
 	int p, j;
 	double sum1 = 0.0;
 	double sum2 = 0.0;
-	double temp_basis[MAX_ORDER][MAX_ORDER];
+	static double *temp_basis = (double *)malloc(sizeof(double) * MAX_ORDER * MAX_ORDER);
 	(*output) = 0.0;
 	(*d_output) = 0.0;
 
@@ -3928,11 +3906,11 @@ double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double
 			{
 				if ((knot_vec[j] <= xi) && (xi <= knot_vec[j + 1]))
 				{
-					temp_basis[j][0] = 1.0;
+					temp_basis[j * MAX_ORDER + 0] = 1.0;
 				}
 				else
 				{
-					temp_basis[j][0] = 0.0;
+					temp_basis[j * MAX_ORDER + 0] = 0.0;
 				}
 			}
 		}
@@ -3942,11 +3920,11 @@ double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double
 			{
 				if ((knot_vec[knot_index + j] < xi) && (xi <= knot_vec[knot_index + j + 1]))
 				{
-					temp_basis[j][0] = 1.0;
+					temp_basis[j * MAX_ORDER + 0] = 1.0;
 				}
 				else
 				{
-					temp_basis[j][0] = 0.0;
+					temp_basis[j * MAX_ORDER + 0] = 0.0;
 				}
 			}
 		}
@@ -3961,33 +3939,28 @@ double rBasisFunc(double *knot_vec, int knot_index, int order, double xi, double
 					sum2 = 0.0;
 					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
 					{
-						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
+						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j * MAX_ORDER + p - 1];
 					}
 					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
 					{
-						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
+						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[(j + 1) * MAX_ORDER + p - 1];
 					}
-					temp_basis[j][p] = sum1 + sum2;
+					temp_basis[j * MAX_ORDER + p] = sum1 + sum2;
 				}
 			}
 			sum1 = 0.0;
 			sum2 = 0.0;
 
-			// for (int temp_i = 0; temp_i < info->No_knot[0][0]; temp_i++)
-			// {
-			// 	printf("knot_vec[%d] = %f\n", temp_i, knot_vec[temp_i]);
-			// }
-
 			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
 			{
-				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
+				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0 * MAX_ORDER + order - 1];
 			}
 			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
 			{
-				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
+				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1 * MAX_ORDER + order - 1];
 			}
 		}
-		(*output) = temp_basis[0][order];
+		(*output) = temp_basis[0 * MAX_ORDER + order];
 		(*d_output) = sum1 - sum2;
 	}
 	return (*output);
@@ -3999,7 +3972,7 @@ double lBasisFunc(double *knot_vec, int knot_index, int cntl_p_n, int order, dou
 	int p, j;
 	double sum1 = 0.0;
 	double sum2 = 0.0;
-	double temp_basis[MAX_ORDER][MAX_ORDER];
+	static double *temp_basis = (double *)malloc(sizeof(double) * MAX_ORDER * MAX_ORDER);
 	(*output) = 0.0;
 	(*d_output) = 0.0;
 
@@ -4011,11 +3984,11 @@ double lBasisFunc(double *knot_vec, int knot_index, int cntl_p_n, int order, dou
 			{
 				if ((knot_vec[cntl_p_n - 1 + j] <= xi) && (xi <= knot_vec[cntl_p_n + j]))
 				{
-					temp_basis[j][0] = 1.0;
+					temp_basis[j * MAX_ORDER + 0] = 1.0;
 				}
 				else
 				{
-					temp_basis[j][0] = 0.0;
+					temp_basis[j * MAX_ORDER + 0] = 0.0;
 				}
 			}
 		}
@@ -4025,11 +3998,11 @@ double lBasisFunc(double *knot_vec, int knot_index, int cntl_p_n, int order, dou
 			{
 				if ((knot_vec[knot_index + j] <= xi) && (xi < knot_vec[knot_index + j + 1]))
 				{
-					temp_basis[j][0] = 1.0;
+					temp_basis[j * MAX_ORDER + 0] = 1.0;
 				}
 				else
 				{
-					temp_basis[j][0] = 0.0;
+					temp_basis[j * MAX_ORDER + 0] = 0.0;
 				}
 			}
 		}
@@ -4044,27 +4017,27 @@ double lBasisFunc(double *knot_vec, int knot_index, int cntl_p_n, int order, dou
 					sum2 = 0.0;
 					if ((knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) != 0.0)
 					{
-						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j][p - 1];
+						sum1 = (xi - knot_vec[knot_index + j]) / (knot_vec[knot_index + j + p] - knot_vec[knot_index + j]) * temp_basis[j * MAX_ORDER + p - 1];
 					}
 					if ((knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) != 0.0)
 					{
-						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[j + 1][p - 1];
+						sum2 = (knot_vec[knot_index + j + p + 1] - xi) / (knot_vec[knot_index + j + p + 1] - knot_vec[knot_index + j + 1]) * temp_basis[(j + 1) * MAX_ORDER + p - 1];
 					}
-					temp_basis[j][p] = sum1 + sum2;
+					temp_basis[j * MAX_ORDER + p] = sum1 + sum2;
 				}
 			}
 			sum1 = 0.0;
 			sum2 = 0.0;
 			if ((knot_vec[knot_index + order] - knot_vec[knot_index]) != 0.0)
 			{
-				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0][order - 1];
+				sum1 = order / (knot_vec[knot_index + order] - knot_vec[knot_index]) * temp_basis[0 * MAX_ORDER + order - 1];
 			}
 			if ((knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) != 0.0)
 			{
-				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1][order - 1];
+				sum2 = order / (knot_vec[knot_index + order + 1] - knot_vec[knot_index + 1]) * temp_basis[1 * MAX_ORDER + order - 1];
 			}
 		}
-		(*output) = temp_basis[0][order];
+		(*output) = temp_basis[0 * MAX_ORDER + order];
 		(*d_output) = sum1 - sum2;
 	}
 	return (*output);
@@ -5941,8 +5914,8 @@ int Calc_xi_eta(double px, double py,
 	int repeat = 10;
 	double tol = 10e-14;
 
-	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
-	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
+	static double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
+	static double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
 	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 0]; i++)
 	{
 		temp_Position_Knots_xi[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + i];
@@ -6136,8 +6109,6 @@ int Calc_xi_eta(double px, double py,
 			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
 	}
 
-	free(temp_Position_Knots_xi), free(temp_Position_Knots_eta);
-
 	return 0;
 }
 
@@ -6167,9 +6138,9 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 	double tol = 10e-14;
 	double coef = 0.0;
 
-	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
-	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
-	double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 2]);
+	static double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
+	static double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
+	static double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 2]);
 	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 0]; i++)
 	{
 		temp_Position_Knots_xi[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + i];
@@ -6774,8 +6745,6 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 				temp_zeta = input_knot_vec_zeta[cntl_p_n_zeta + order_zeta];
 		}
 	}
-
-	free(temp_Position_Knots_xi), free(temp_Position_Knots_eta), free(temp_Position_Knots_zeta);
 
 	return 0;
 }
@@ -8769,6 +8738,11 @@ void output_for_paraview(information *info)
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
 	fprintf(fp, "      </Geometry>\n");
 
+	// Attribute displacement
+	fprintf(fp, "      <Attribute Name=\"displacement\" AttributeType=\"Vector\" Dimensions=\"%d %d\">\n", Total_connectivity_glo, info->DIMENSION);
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;displacement&quot;]</DataItem>\n");
+	fprintf(fp, "      </Attribute>\n");
+
 	// Attribute stress
 	fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\" Dimensions=\"%d 3\">\n", Total_connectivity_glo);
 	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;stress&quot;]</DataItem>\n");
@@ -8817,6 +8791,24 @@ void output_for_paraview(information *info)
 			}
 		}
 		fprintf(fp, "\n");
+	}
+	fprintf(fp, "      </DataItem>\n");
+
+	// displacement
+	fprintf(fp, "      <DataItem Name=\"displacement\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity_glo, info->DIMENSION);
+	if (info->DIMENSION == 2)
+	{
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le\n", info->disp_at_connectivity[i * info->DIMENSION + 0], info->disp_at_connectivity[i * info->DIMENSION + 1]);
+		}
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = 0; i < Total_connectivity_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%le %le %le\n", info->disp_at_connectivity[i * info->DIMENSION + 0], info->disp_at_connectivity[i * info->DIMENSION + 1], info->disp_at_connectivity[i * info->DIMENSION + 2]);
+		}
 	}
 	fprintf(fp, "      </DataItem>\n");
 
@@ -8898,6 +8890,11 @@ void output_for_paraview(information *info)
 		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
 		fprintf(fp, "      </Geometry>\n");
 
+		// Attribute displacement
+		fprintf(fp, "      <Attribute Name=\"displacement\" AttributeType=\"Vector\" Dimensions=\"%d %d\">\n", Total_connectivity - Total_connectivity_glo, info->DIMENSION);
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;displacement&quot;]</DataItem>\n");
+		fprintf(fp, "      </Attribute>\n");
+
 		// Attribute stress
 		fprintf(fp, "      <Attribute Name=\"stress\" AttributeType=\"Vector\" Dimensions=\"%d 3\">\n", Total_connectivity - Total_connectivity_glo);
 		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;stress&quot;]</DataItem>\n");
@@ -8946,6 +8943,24 @@ void output_for_paraview(information *info)
 				}
 			}
 			fprintf(fp, "\n");
+		}
+		fprintf(fp, "      </DataItem>\n");
+
+		// displacement
+		fprintf(fp, "      <DataItem Name=\"displacement\" Dimensions=\"%d %d\" NumberType=\"Float\" Format=\"XML\" Endian=\"Big\">\n", Total_connectivity - Total_connectivity_glo, info->DIMENSION);
+		if (info->DIMENSION == 2)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le\n", info->disp_at_connectivity[i * info->DIMENSION + 0], info->disp_at_connectivity[i * info->DIMENSION + 1]);
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			for (i = Total_connectivity_glo; i < Total_connectivity; i++)
+			{
+				fprintf(fp, "\t\t\t\t%le %le %le\n", info->disp_at_connectivity[i * info->DIMENSION + 0], info->disp_at_connectivity[i * info->DIMENSION + 1], info->disp_at_connectivity[i * info->DIMENSION + 2]);
+			}
 		}
 		fprintf(fp, "      </DataItem>\n");
 
@@ -10751,6 +10766,10 @@ void Make_info_for_viewer(information *info)
 	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
 	int *temp_ad = (int *)malloc(sizeof(int) * info->DIMENSION * (MAX_ORDER + 1));
 
+	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * MAX_KNOT);
+	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * MAX_KNOT);
+	double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * MAX_KNOT);
+
 	for (i = 0; i < Total_connectivity; i++)
 	{
 		int element = info->Connectivity_ele[i], element_glo = 0;
@@ -10785,8 +10804,6 @@ void Make_info_for_viewer(information *info)
 			// make temp_point_glo
 			if (info->DIMENSION == 2)
 			{
-				double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
-				double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
 				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 0]; j++)
 				{
 					temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + j];
@@ -10814,10 +10831,6 @@ void Make_info_for_viewer(information *info)
 			}
 			else if (info->DIMENSION == 3)
 			{
-				double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
-				double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
-				double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 2]);
-
 				for (j = 0; j < info->No_knot[0 * info->DIMENSION + 0]; j++)
 				{
 					temp_Position_Knots_xi[j] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + j];
