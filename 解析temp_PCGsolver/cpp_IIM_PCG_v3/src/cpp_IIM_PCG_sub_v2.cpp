@@ -1224,8 +1224,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 			{
 				e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_org]];
 				Preprocessing(m, e, info);
-
-				cout << "m = " << m << ", glo = " << e << endl;
 			}
 		}
 
@@ -1240,8 +1238,6 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 			if (m == 0 || (m == 1 && info->NNLOVER[e] >= 2))
 			{
 				Preprocessing(m, e, info);
-
-				cout << "m = " << m << ", loc = " << e << endl;
 
 				if (m == 1)
 				{
