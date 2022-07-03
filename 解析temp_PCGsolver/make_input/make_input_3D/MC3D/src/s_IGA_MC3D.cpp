@@ -1606,21 +1606,21 @@ void Output_inputdata(int total_disp_constraint_n, const information *info)
             {
                 fprintf(fp, "\n");
             }
-            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 0]);
-            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 1]);
-            fprintf(fp, "%d ", (int)info->distributed_load_info[i * 9 + 2]);
-            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 9 + 3]);
-            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 4]);
-            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 5]);
-            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 6]);
-            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 7]);
-            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 8]);
-            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 9]);
-            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 10]);
-            fprintf(fp, "%le   ", info->distributed_load_info[i * 9 + 11]);
-            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 12]);
-            fprintf(fp, "%le ", info->distributed_load_info[i * 9 + 13]);
-            fprintf(fp, "%le", info->distributed_load_info[i * 9 + 14]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 15 + 0]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 15 + 1]);
+            fprintf(fp, "%d ", (int)info->distributed_load_info[i * 15 + 2]);
+            fprintf(fp, "%*d", temp_num, (int)info->distributed_load_info[i * 15 + 3]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 15 + 4]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 15 + 5]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 15 + 6]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 15 + 7]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 15 + 8]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 15 + 9]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 15 + 10]);
+            fprintf(fp, "%le   ", info->distributed_load_info[i * 15 + 11]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 15 + 12]);
+            fprintf(fp, "%le ", info->distributed_load_info[i * 15 + 13]);
+            fprintf(fp, "%le", info->distributed_load_info[i * 15 + 14]);
         }
     }
 

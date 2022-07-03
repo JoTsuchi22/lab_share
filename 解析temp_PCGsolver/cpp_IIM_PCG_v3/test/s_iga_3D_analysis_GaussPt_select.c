@@ -6451,11 +6451,9 @@ int ele_check(int patch_n, double para_coord[DIMENSION], double phys_coord[DIMEN
             if ( RangeCheck_frag == 1 )
 				break;
 
-
 			//0////////////////////Local要素のガウス点がGlobalパッチ内にない場合////////////////////
 			if ( para_coord[j] < Position_Knots[patch_n][j][0] - ERR || para_coord[j] > Position_Knots[patch_n][j][No_knot[patch_n][j] - 1] + ERR)
 			{
-				printf("no over element\n");
 				RangeCheck_frag++;
 			}
 
@@ -6463,17 +6461,12 @@ int ele_check(int patch_n, double para_coord[DIMENSION], double phys_coord[DIMEN
 			//1////////////////////Local要素のガウス点がGlobal要素内部にある場合////////////////////
 			if ( para_coord[j] < Position_Knots[patch_n][j][Order[patch_n][j] + k] )
             {
-                //printf("if\nPosition_Knots[%d][%d][%d]=%le\n",
-                //        patch_n,j,Order[patch_n][j]+k,Position_Knots[patch_n][j][Order[patch_n][j]+k]);
                 int kk = 0;
                 for (kk = 0; kk < k + 1; kk++)
                 {
                     if ( para_coord[j] > Position_Knots[patch_n][j][Order[patch_n][j] + k - kk] )
                     {
-						//printf("j=%d\t要素内部\n",j);
-                        //printf("ifif\nPosition_Knots[%d][%d][%d]=%le\n", patch_n,j,Order[patch_n][j]+k-kk, Position_Knots[patch_n][j][Order[patch_n][j]+k-kk]);
                         temp_ad[j][l] = k - kk;
-						//printf("temp_ad[%d][%d]=%d\n",j,l,temp_ad[j][l]);
 						l++;
                         RangeCheck_frag++;
                         break;
@@ -6485,40 +6478,27 @@ int ele_check(int patch_n, double para_coord[DIMENSION], double phys_coord[DIMEN
 			//2////////////////////Local要素のガウス点がGlobal要素境界上にある場合////////////////////要チェック
 			if ( fabs(para_coord[j] - Position_Knots[patch_n][j][Order[patch_n][j] + k]) < ERR )
 			{
-				//printf("j=%d\t要素境界上",j);
 				//2-1////////////////////ガウス点の座標がGlobalパッチの始点上にある場合////////////////////
 				if ( fabs(para_coord[j] - Position_Knots[patch_n][j][0]) < ERR )
 				{
-					//printf("のパッチの始点上\n");
 					temp_ad[j][l] = k;
-					//printf("start point\n");
-					//printf("temp_ad[%d][%d]=%d\n",j,l,temp_ad[j][l]);
 					l++;
 					break;
 				}
 				//2-2////////////////////ガウス点の座標がGlobalパッチの終点上にある場合////////////////////
 				if ( fabs(para_coord[j] - Position_Knots[patch_n][j][No_knot[patch_n][j] - 1]) < ERR )
 				{
-					//printf("のパッチの終点上\n");
 					temp_ad[j][l] = k - 1;
-					//printf("finish point\n");
-					//printf("temp_ad[%d][%d]=%d\n",j,l,temp_ad[j][l]);
 					l++;
 					break;
 				}
 				//2-3////////////////////ガウス点の座標がGlobal要素境界上にある場合////////////////////
 				else
 				{
-					//printf("の要素間\n");
 					temp_ad[j][l] = k - 1;
-					//printf("temp_ad[%d][%d]=%d\n",j,l,temp_ad[j][l]);
-					//printf("data_result_shape[%d]=%le in element_line[%d] on patch[%d] on mesh[0]\n",
-					//		j,phys_coord[j],k-1,patch_n);
 					l++;
 					temp_ad[j][l] = k;
-					//printf("temp_ad[%d][%d]=%d\n",j,l,temp_ad[j][l]);
 					l++;
-					//break;
 				}
 
 				for(kk = 0; kk < Order[patch_n][j]; kk++)

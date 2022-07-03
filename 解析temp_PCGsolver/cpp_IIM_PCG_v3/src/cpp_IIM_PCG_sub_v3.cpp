@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -1223,6 +1224,8 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 			for (re = 0; re < info->real_Total_Element_on_mesh[mesh_n_org]; re++)
 			{
 				e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_org]];
+				cout << "m = 0, glo = " << e << " / " << info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1] << endl;
+
 				Preprocessing(m, e, info);
 			}
 		}
@@ -1237,6 +1240,8 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 			if (m == 0 || (m == 1 && info->NNLOVER[e] >= 2))
 			{
+				cout << "m = " << m << ", loc = " << e << " / " << info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1] << endl;
+
 				Preprocessing(m, e, info);
 
 				if (m == 1)
@@ -1298,9 +1303,10 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 							// Newton Laphsonによって出力されたxi, etaから重なる要素を求める
 							int n_elements_over_point = ele_check(i, output_para, temp_element_n, temp_ad, info);
-							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
+							if (itr_n == ERROR) // data_result_shapeがグローバルメッシュ上にないとき
 							{
 								n_elements_over_point = 0;
+								cout << "ERROR local patch is not inside of global patch" << endl;
 							}
 							Total_n_elements += n_elements_over_point;
 							for (l = 0; l < n_elements_over_point; l++)
@@ -1364,9 +1370,10 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 							// Newton Laphsonによって出力されたxi, etaから重なる要素を求める
 							int n_elements_over_point = ele_check(i, output_para, temp_element_n, temp_ad, info);
-							if (itr_n == 0) // data_result_shapeがグローバルメッシュ上にないとき
+							if (itr_n == ERROR) // data_result_shapeがグローバルメッシュ上にないとき
 							{
 								n_elements_over_point = 0;
+								cout << "ERROR local patch is not inside of global patch" << endl;
 							}
 							Total_n_elements += n_elements_over_point;
 							for (l = 0; l < n_elements_over_point; l++)
@@ -1470,7 +1477,7 @@ int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad
 				break;
 
 			// Local要素の頂点がGlobalパッチ内にない場合
-			if (para_coord[j] < info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + 0] || para_coord[j] > info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->No_knot[patch_n * info->DIMENSION + j] - 1])
+			if (para_coord[j] < info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + 0] || para_coord[j] - MERGE_ERROR > info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->No_knot[patch_n * info->DIMENSION + j] - 1] + MERGE_ERROR)
 			{
 				RangeCheck_flag++;
 			}
@@ -1492,23 +1499,23 @@ int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad
 			}
 
 			// Local要素の頂点がGlobal要素境界上にある場合
-			if (para_coord[j] == info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->Order[patch_n * info->DIMENSION + j] + k])
+			if (fabs(para_coord[j] - info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->Order[patch_n * info->DIMENSION + j] + k]) < MERGE_ERROR)
 			{
-				//頂点の座標がGlobalパッチの始点上にある場合
-				if (para_coord[j] == info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + 0])
+				// 頂点の座標がGlobalパッチの始点上にある場合
+				if (fabs(para_coord[j] - info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + 0]) < MERGE_ERROR)
 				{
 					temp_ad[j * (MAX_ORDER + 1) + l] = k;
 					l++;
 					break;
 				}
-				//頂点の座標がGlobalパッチの終点上にある場合
-				if (para_coord[j] == info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->No_knot[patch_n * info->DIMENSION + j] - 1])
+				// 頂点の座標がGlobalパッチの終点上にある場合
+				if (fabs(para_coord[j] - info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->No_knot[patch_n * info->DIMENSION + j] - 1]) < MERGE_ERROR)
 				{
 					temp_ad[j * (MAX_ORDER + 1) + l] = k - 1;
 					l++;
 					break;
 				}
-				//頂点の座標がGlobal要素境界上にある場合
+				// 頂点の座標がGlobal要素境界上にある場合
 				else
 				{
 					temp_ad[j * (MAX_ORDER + 1) + l] = k - 1;
@@ -1518,7 +1525,7 @@ int ele_check(int patch_n, double *para_coord, int *temp_element_n, int *temp_ad
 				}
 				for (kk = 0; kk < info->Order[patch_n * info->DIMENSION + j]; kk++)
 				{
-					if (para_coord[j] == info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->Order[patch_n * info->DIMENSION + j] + k + kk + 1])
+					if (fabs(para_coord[j] - info->Position_Knots[info->Total_Knot_to_patch_dim[patch_n * info->DIMENSION + j] + info->Order[patch_n * info->DIMENSION + j] + k + kk + 1]) < MERGE_ERROR)
 					// 多重ノット(次数分ループ)
 					{
 						printf("C0 continuity\n");
@@ -1805,28 +1812,28 @@ void Make_B_Matrix(int m, int e, information *info)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
 					
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 			else if (m == 1)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
 
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 					
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 		}
@@ -1836,58 +1843,58 @@ void Make_B_Matrix(int m, int e, information *info)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 			else if (m == 1)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix_ex[e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 		}
@@ -2527,6 +2534,8 @@ void Make_K_Whole_Val(information *info)
 	{
 		i = info->real_element[re];
 
+		cout << "e = " << i << " / " << info->real_Total_Element_to_mesh[Total_mesh] << endl;
+
 		if (Total_mesh == 1) // IGA
 		{
 			Make_gauss_array(0, info);
@@ -2655,7 +2664,7 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[(long int)El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
@@ -2666,7 +2675,7 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[(long int)El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
@@ -2717,7 +2726,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[(long int)El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 			for (j = 0; j < info->DIMENSION; j++)
@@ -2732,7 +2741,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[(long int)El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 			for (j = 0; j < info->DIMENSION; j++)
@@ -4046,15 +4055,15 @@ double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					 double *weight, int order_xi, int order_eta,
 					 double xi, double eta,
 					 double *output_x, double *output_y,
-					 double *output_dxi_x, double *output_data_x,
-					 double *output_dxi_y, double *output_data_y)
+					 double *output_dxi_x, double *output_deta_x,
+					 double *output_dxi_y, double *output_deta_y)
 {
 	int i, j, temp_index;
 	double temp1, temp2, temp3;
 	double molecule_x, molecule_y;
 	double dxi_molecule_x, dxi_molecule_y;
-	double data_molecule_x, data_molecule_y;
-	double denominator, dxi_denominator, data_denominator;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
 	double temp_output_xi, temp_output_eta;
 	double temp_d_output_xi, temp_d_output_eta;
 	molecule_x = 0.0;
@@ -4063,9 +4072,9 @@ double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	dxi_molecule_x = 0.0;
 	dxi_molecule_y = 0.0;
 	dxi_denominator = 0.0;
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
 
 	int index_min_xi = 0;
 	// int index_max_xi = cntl_p_n_xi; //2020_09_12
@@ -4120,9 +4129,9 @@ double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 			dxi_molecule_x += temp2 * cntl_px[temp_index];
 			dxi_molecule_y += temp2 * cntl_py[temp_index];
 			dxi_denominator += temp2;
-			data_molecule_x += temp3 * cntl_px[temp_index];
-			data_molecule_y += temp3 * cntl_py[temp_index];
-			data_denominator += temp3;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
 		}
 	}
 	(*output_x) = molecule_x / denominator;
@@ -4131,8 +4140,8 @@ double NURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	temp1 = denominator * denominator;
 	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
 	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_data_x) = (data_molecule_x * denominator - molecule_x * data_denominator) / temp1;
-	(*output_data_y) = (data_molecule_y * denominator - molecule_y * data_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
 	return denominator;
 }
 
@@ -4143,15 +4152,15 @@ double rNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					  double *weight, int order_xi, int order_eta,
 					  double xi, double eta,
 					  double *output_x, double *output_y,
-					  double *output_dxi_x, double *output_data_x,
-					  double *output_dxi_y, double *output_data_y)
+					  double *output_dxi_x, double *output_deta_x,
+					  double *output_dxi_y, double *output_deta_y)
 {
 	int i, j, temp_index;
 	double temp1, temp2, temp3;
 	double molecule_x, molecule_y;
 	double dxi_molecule_x, dxi_molecule_y;
-	double data_molecule_x, data_molecule_y;
-	double denominator, dxi_denominator, data_denominator;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
 	double temp_output_xi, temp_output_eta;
 	double temp_d_output_xi, temp_d_output_eta;
 	molecule_x = 0.0;
@@ -4160,9 +4169,9 @@ double rNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	dxi_molecule_x = 0.0;
 	dxi_molecule_y = 0.0;
 	dxi_denominator = 0.0;
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
 
 	int index_min_xi = 0;
 	int index_max_xi = cntl_p_n_xi - 1;
@@ -4215,9 +4224,9 @@ double rNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 			dxi_molecule_x += temp2 * cntl_px[temp_index];
 			dxi_molecule_y += temp2 * cntl_py[temp_index];
 			dxi_denominator += temp2;
-			data_molecule_x += temp3 * cntl_px[temp_index];
-			data_molecule_y += temp3 * cntl_py[temp_index];
-			data_denominator += temp3;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
 		}
 	}
 	(*output_x) = molecule_x / denominator;
@@ -4226,8 +4235,8 @@ double rNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	temp1 = denominator * denominator;
 	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
 	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_data_x) = (data_molecule_x * denominator - molecule_x * data_denominator) / temp1;
-	(*output_data_y) = (data_molecule_y * denominator - molecule_y * data_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
 	return denominator;
 }
 
@@ -4238,15 +4247,15 @@ double lNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					  double *weight, int order_xi, int order_eta,
 					  double xi, double eta,
 					  double *output_x, double *output_y,
-					  double *output_dxi_x, double *output_data_x,
-					  double *output_dxi_y, double *output_data_y)
+					  double *output_dxi_x, double *output_deta_x,
+					  double *output_dxi_y, double *output_deta_y)
 {
 	int i, j, temp_index;
 	double temp1, temp2, temp3;
 	double molecule_x, molecule_y;
 	double dxi_molecule_x, dxi_molecule_y;
-	double data_molecule_x, data_molecule_y;
-	double denominator, dxi_denominator, data_denominator;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
 	double temp_output_xi, temp_output_eta;
 	double temp_d_output_xi, temp_d_output_eta;
 	molecule_x = 0.0;
@@ -4255,9 +4264,9 @@ double lNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	dxi_molecule_x = 0.0;
 	dxi_molecule_y = 0.0;
 	dxi_denominator = 0.0;
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
 
 	int index_min_xi = 0;
 	int index_max_xi = cntl_p_n_xi - 1;
@@ -4312,9 +4321,9 @@ double lNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 			dxi_molecule_x += temp2 * cntl_px[temp_index];
 			dxi_molecule_y += temp2 * cntl_py[temp_index];
 			dxi_denominator += temp2;
-			data_molecule_x += temp3 * cntl_px[temp_index];
-			data_molecule_y += temp3 * cntl_py[temp_index];
-			data_denominator += temp3;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
 		}
 	}
 	(*output_x) = molecule_x / denominator;
@@ -4323,8 +4332,8 @@ double lNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	temp1 = denominator * denominator;
 	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
 	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_data_x) = (data_molecule_x * denominator - molecule_x * data_denominator) / temp1;
-	(*output_data_y) = (data_molecule_y * denominator - molecule_y * data_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
 	return denominator;
 }
 
@@ -4335,15 +4344,15 @@ double rlNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					   double *weight, int order_xi, int order_eta,
 					   double xi, double eta,
 					   double *output_x, double *output_y,
-					   double *output_dxi_x, double *output_data_x,
-					   double *output_dxi_y, double *output_data_y)
+					   double *output_dxi_x, double *output_deta_x,
+					   double *output_dxi_y, double *output_deta_y)
 {
 	int i, j, temp_index;
 	double temp1, temp2, temp3;
 	double molecule_x, molecule_y;
 	double dxi_molecule_x, dxi_molecule_y;
-	double data_molecule_x, data_molecule_y;
-	double denominator, dxi_denominator, data_denominator;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
 	double temp_output_xi, temp_output_eta;
 	double temp_d_output_xi, temp_d_output_eta;
 	molecule_x = 0.0;
@@ -4352,9 +4361,9 @@ double rlNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	dxi_molecule_x = 0.0;
 	dxi_molecule_y = 0.0;
 	dxi_denominator = 0.0;
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
 
 	int index_min_xi = 0;
 	int index_max_xi = cntl_p_n_xi - 1;
@@ -4408,9 +4417,9 @@ double rlNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 			dxi_molecule_x += temp2 * cntl_px[temp_index];
 			dxi_molecule_y += temp2 * cntl_py[temp_index];
 			dxi_denominator += temp2;
-			data_molecule_x += temp3 * cntl_px[temp_index];
-			data_molecule_y += temp3 * cntl_py[temp_index];
-			data_denominator += temp3;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
 		}
 	}
 	(*output_x) = molecule_x / denominator;
@@ -4419,8 +4428,8 @@ double rlNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	temp1 = denominator * denominator;
 	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
 	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_data_x) = (data_molecule_x * denominator - molecule_x * data_denominator) / temp1;
-	(*output_data_y) = (data_molecule_y * denominator - molecule_y * data_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
 	return denominator;
 }
 
@@ -4431,15 +4440,15 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 					   double *weight, int order_xi, int order_eta,
 					   double xi, double eta,
 					   double *output_x, double *output_y,
-					   double *output_dxi_x, double *output_data_x,
-					   double *output_dxi_y, double *output_data_y)
+					   double *output_dxi_x, double *output_deta_x,
+					   double *output_dxi_y, double *output_deta_y)
 {
 	int i, j, temp_index;
 	double temp1, temp2, temp3;
 	double molecule_x, molecule_y;
 	double dxi_molecule_x, dxi_molecule_y;
-	double data_molecule_x, data_molecule_y;
-	double denominator, dxi_denominator, data_denominator;
+	double deta_molecule_x, deta_molecule_y;
+	double denominator, dxi_denominator, deta_denominator;
 	double temp_output_xi, temp_output_eta;
 	double temp_d_output_xi, temp_d_output_eta;
 	molecule_x = 0.0;
@@ -4448,9 +4457,9 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	dxi_molecule_x = 0.0;
 	dxi_molecule_y = 0.0;
 	dxi_denominator = 0.0;
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_denominator = 0.0;
 
 	int index_min_xi = 0;
 	int index_max_xi = cntl_p_n_xi - 1;
@@ -4504,9 +4513,9 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 			dxi_molecule_x += temp2 * cntl_px[temp_index];
 			dxi_molecule_y += temp2 * cntl_py[temp_index];
 			dxi_denominator += temp2;
-			data_molecule_x += temp3 * cntl_px[temp_index];
-			data_molecule_y += temp3 * cntl_py[temp_index];
-			data_denominator += temp3;
+			deta_molecule_x += temp3 * cntl_px[temp_index];
+			deta_molecule_y += temp3 * cntl_py[temp_index];
+			deta_denominator += temp3;
 		}
 	}
 	(*output_x) = molecule_x / denominator;
@@ -4515,8 +4524,8 @@ double lrNURBS_surface(double *input_knot_vec_xi, double *input_knot_vec_eta,
 	temp1 = denominator * denominator;
 	(*output_dxi_x) = (dxi_molecule_x * denominator - molecule_x * dxi_denominator) / temp1;
 	(*output_dxi_y) = (dxi_molecule_y * denominator - molecule_y * dxi_denominator) / temp1;
-	(*output_data_x) = (data_molecule_x * denominator - molecule_x * data_denominator) / temp1;
-	(*output_data_y) = (data_molecule_y * denominator - molecule_y * data_denominator) / temp1;
+	(*output_deta_x) = (deta_molecule_x * denominator - molecule_x * deta_denominator) / temp1;
+	(*output_deta_y) = (deta_molecule_y * denominator - molecule_y * deta_denominator) / temp1;
 	return denominator;
 }
 
@@ -4527,17 +4536,17 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -4551,10 +4560,10 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -4578,13 +4587,11 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -4606,7 +4613,6 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -4628,7 +4634,6 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -4662,10 +4667,10 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -4681,9 +4686,9 @@ double rrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -4698,17 +4703,17 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -4722,10 +4727,10 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -4749,13 +4754,11 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -4777,7 +4780,6 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -4799,7 +4801,6 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -4833,10 +4834,10 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -4852,9 +4853,9 @@ double lrrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -4869,17 +4870,17 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -4893,10 +4894,10 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -4920,13 +4921,11 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -4948,7 +4947,6 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -4970,7 +4968,6 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -5004,10 +5001,10 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -5023,9 +5020,9 @@ double rlrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -5040,17 +5037,17 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -5064,10 +5061,10 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -5091,13 +5088,11 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -5119,7 +5114,6 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -5141,7 +5135,6 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -5175,10 +5168,10 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -5194,9 +5187,9 @@ double rrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -5211,17 +5204,17 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -5235,10 +5228,10 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -5262,13 +5255,11 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -5290,7 +5281,6 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -5312,7 +5302,6 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -5346,10 +5335,10 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -5365,9 +5354,9 @@ double llrNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -5382,17 +5371,17 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -5406,10 +5395,10 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -5433,13 +5422,11 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -5461,7 +5448,6 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -5483,7 +5469,6 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -5517,10 +5502,10 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -5536,9 +5521,9 @@ double lrlNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -5553,17 +5538,17 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -5577,10 +5562,10 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -5604,13 +5589,11 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -5632,7 +5615,6 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -5654,7 +5636,6 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -5688,10 +5669,10 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -5707,9 +5688,9 @@ double rllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -5724,17 +5705,17 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
                        double *weight, int order_xi, int order_eta, int order_zeta,
                        double xi, double eta, double zeta,
                        double *output_x, double *output_y, double *output_z,
-                       double *output_dxi_x, double *output_data_x, double *output_dzeta_x,
-                       double *output_dxi_y, double *output_data_y, double *output_dzeta_y,
-                       double *output_dxi_z, double *output_data_z, double *output_dzeta_z)
+                       double *output_dxi_x, double *output_deta_x, double *output_dzeta_x,
+                       double *output_dxi_y, double *output_deta_y, double *output_dzeta_y,
+                       double *output_dxi_z, double *output_deta_z, double *output_dzeta_z)
 {
 	int i, j, k, temp_index = 0;
 	double temp1, temp2, temp3, temp4;
 	double molecule_x, molecule_y, molecule_z;
 	double dxi_molecule_x, dxi_molecule_y, dxi_molecule_z;
-	double data_molecule_x, data_molecule_y, data_molecule_z;
+	double deta_molecule_x, deta_molecule_y, deta_molecule_z;
 	double dzeta_molecule_x, dzeta_molecule_y, dzeta_molecule_z;
-	double denominator, dxi_denominator, data_denominator, dzeta_denominator;
+	double denominator, dxi_denominator, deta_denominator, dzeta_denominator;
 	double temp_output_xi, temp_output_eta, temp_output_zeta;
 	double temp_d_output_xi, temp_d_output_eta, temp_d_output_zeta;
 
@@ -5748,10 +5729,10 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	dxi_molecule_z = 0.0;
 	dxi_denominator = 0.0;
 
-	data_molecule_x = 0.0;
-	data_molecule_y = 0.0;
-	data_molecule_z = 0.0;
-	data_denominator = 0.0;
+	deta_molecule_x = 0.0;
+	deta_molecule_y = 0.0;
+	deta_molecule_z = 0.0;
+	deta_denominator = 0.0;
 
 	dzeta_molecule_x = 0.0;
 	dzeta_molecule_y = 0.0;
@@ -5775,13 +5756,11 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 			break;
 		}
 	}
-
 	if (index_min_xi < 0)
 	{
 		index_min_xi = 0;
 		index_max_xi = order_xi + 1;
 	}
-
 	if (index_max_xi > cntl_p_n_xi)
 	{
 		index_min_xi = cntl_p_n_xi - order_xi - 1;
@@ -5803,7 +5782,6 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_eta = 0;
 		index_max_eta = order_eta + 1;
 	}
-
 	if (index_max_eta > cntl_p_n_eta)
 	{
 		index_min_eta = cntl_p_n_eta - order_eta - 1;
@@ -5825,7 +5803,6 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 		index_min_zeta = 0;
 		index_max_zeta = order_zeta + 1;
 	}
-
 	if (index_max_zeta > cntl_p_n_zeta)
 	{
 		index_min_zeta = cntl_p_n_zeta - order_zeta - 1;
@@ -5859,10 +5836,10 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 				dxi_molecule_z += temp2 * cntl_pz[temp_index];
 				dxi_denominator += temp2;
 
-				data_molecule_x += temp3 * cntl_px[temp_index];
-				data_molecule_y += temp3 * cntl_py[temp_index];
-				data_molecule_z += temp3 * cntl_pz[temp_index];
-				data_denominator += temp3;
+				deta_molecule_x += temp3 * cntl_px[temp_index];
+				deta_molecule_y += temp3 * cntl_py[temp_index];
+				deta_molecule_z += temp3 * cntl_pz[temp_index];
+				deta_denominator += temp3;
 
 				dzeta_molecule_x += temp4 * cntl_px[temp_index];
 				dzeta_molecule_y += temp4 * cntl_py[temp_index];
@@ -5878,9 +5855,9 @@ double lllNURBS_volume(double *knot_vec_xi, double *knot_vec_eta, double *knot_v
 	(*output_dxi_x)   = weight[temp_index] * (dxi_molecule_x   * denominator - molecule_x * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_y)   = weight[temp_index] * (dxi_molecule_y   * denominator - molecule_y * dxi_denominator)   / (denominator * denominator);
 	(*output_dxi_z)   = weight[temp_index] * (dxi_molecule_z   * denominator - molecule_z * dxi_denominator)   / (denominator * denominator);
-	(*output_data_x)  = weight[temp_index] * (data_molecule_x  * denominator - molecule_x * data_denominator)  / (denominator * denominator);
-	(*output_data_y)  = weight[temp_index] * (data_molecule_y  * denominator - molecule_y * data_denominator)  / (denominator * denominator);
-	(*output_data_z)  = weight[temp_index] * (data_molecule_z  * denominator - molecule_z * data_denominator)  / (denominator * denominator);
+	(*output_deta_x)  = weight[temp_index] * (deta_molecule_x  * denominator - molecule_x * deta_denominator)  / (denominator * denominator);
+	(*output_deta_y)  = weight[temp_index] * (deta_molecule_y  * denominator - molecule_y * deta_denominator)  / (denominator * denominator);
+	(*output_deta_z)  = weight[temp_index] * (deta_molecule_z  * denominator - molecule_z * deta_denominator)  / (denominator * denominator);
 	(*output_dzeta_x) = weight[temp_index] * (dzeta_molecule_x * denominator - molecule_x * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_y) = weight[temp_index] * (dzeta_molecule_y * denominator - molecule_y * dzeta_denominator) / (denominator * denominator);
 	(*output_dzeta_z) = weight[temp_index] * (dzeta_molecule_z * denominator - molecule_z * dzeta_denominator) / (denominator * denominator);
@@ -5898,7 +5875,7 @@ int Calc_xi_eta(double px, double py,
 	double temp_xi, temp_eta;
 	double temp_x, temp_y;
 	double temp_matrix[2][2];
-	double temp_dxi, temp_data;
+	double temp_dxi, temp_deta;
 	double temp_tol_x, temp_tol_y;
 
 	(*output_xi) = 0;
@@ -5910,17 +5887,6 @@ int Calc_xi_eta(double px, double py,
 	int repeat = 10;
 	double tol = 10e-14;
 
-	static double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
-	static double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
-	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 0]; i++)
-	{
-		temp_Position_Knots_xi[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + i];
-	}
-	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 1]; i++)
-	{
-		temp_Position_Knots_eta[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + i];
-	}
-
 	// 初期値の設定
 	temp_xi = input_knot_vec_xi[0] + input_knot_vec_xi[cntl_p_n_xi + order_xi];
 	temp_xi *= 0.5;
@@ -5929,10 +5895,10 @@ int Calc_xi_eta(double px, double py,
 
 	for (i = 0; i < repeat; i++)
 	{
-		rNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+		rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 					   info->Control_Coord_x, info->Control_Coord_y,
-					   info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
-					   info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+					   cntl_p_n_xi, cntl_p_n_eta,
+					   info->Control_Weight, order_xi, order_eta,
 					   temp_xi, temp_eta,
 					   &temp_x, &temp_y,
 					   &temp_matrix[0][0], &temp_matrix[0][1],
@@ -5954,9 +5920,9 @@ int Calc_xi_eta(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -5975,10 +5941,10 @@ int Calc_xi_eta(double px, double py,
 
 	for (i = 0; i < repeat; i++)
 	{
-		lNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+		lNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 					   info->Control_Coord_x, info->Control_Coord_y,
-					   info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
-					   info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+					   cntl_p_n_xi, cntl_p_n_eta,
+					   info->Control_Weight, order_xi, order_eta,
 					   temp_xi, temp_eta,
 					   &temp_x, &temp_y,
 					   &temp_matrix[0][0], &temp_matrix[0][1],
@@ -6000,9 +5966,9 @@ int Calc_xi_eta(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -6021,10 +5987,10 @@ int Calc_xi_eta(double px, double py,
 
 	for (i = 0; i < repeat; i++)
 	{
-		rlNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+		rlNURBS_surface(input_knot_vec_eta, input_knot_vec_eta,
 						info->Control_Coord_x, info->Control_Coord_y,
-						info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
-						info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+						cntl_p_n_xi, cntl_p_n_eta,
+						info->Control_Weight, order_xi, order_eta,
 						temp_xi, temp_eta,
 						&temp_x, &temp_y,
 						&temp_matrix[0][0], &temp_matrix[0][1],
@@ -6046,9 +6012,9 @@ int Calc_xi_eta(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -6067,10 +6033,10 @@ int Calc_xi_eta(double px, double py,
 
 	for (i = 0; i < repeat; i++)
 	{
-		lrNURBS_surface(temp_Position_Knots_xi, temp_Position_Knots_eta,
+		lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 						info->Control_Coord_x, info->Control_Coord_y,
-						info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
-						info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+						cntl_p_n_xi, cntl_p_n_eta,
+						info->Control_Weight, order_xi, order_eta,
 						temp_xi, temp_eta,
 						&temp_x, &temp_y,
 						&temp_matrix[0][0], &temp_matrix[0][1],
@@ -6092,9 +6058,9 @@ int Calc_xi_eta(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -6105,7 +6071,7 @@ int Calc_xi_eta(double px, double py,
 			temp_eta = input_knot_vec_eta[cntl_p_n_eta + order_eta];
 	}
 
-	return 0;
+	return ERROR;
 }
 
 
@@ -6118,7 +6084,7 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 	double temp_xi, temp_eta, temp_zeta;
 	double temp_x, temp_y, temp_z;
 	double temp_matrix[3][3];
-	double temp_dxi, temp_data, temp_dzeta;
+	double temp_dxi, temp_deta, temp_dzeta;
     double temp_tol_x, temp_tol_y, temp_tol_z;
 
 	(*output_xi)   = 0.0;
@@ -6126,30 +6092,13 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 	(*output_zeta) = 0.0;
 
 	int i, j;
-	// int repeat  = 5;
-	// int repeat2 = 5;
-	// double tol = 10e-22;
-	int repeat  = 10;
+	int repeat  = 5;
 	int repeat2 = 5;
+	// double tol = 10e-22;
+
 	double tol = 10e-14;
 	double coef = 0.0;
 
-	static double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 0]);
-	static double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 1]);
-	static double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * info->No_knot[0 * info->DIMENSION + 2]);
-	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 0]; i++)
-	{
-		temp_Position_Knots_xi[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + i];
-	}
-	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 1]; i++)
-	{
-		temp_Position_Knots_eta[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + i];
-	}
-	for (i = 0; i < info->No_knot[0 * info->DIMENSION + 2]; i++)
-	{
-		temp_Position_Knots_eta[i] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + i];
-	}
-
 	for (j = 0; j < repeat2; j++)
 	{
 		// 初期値の設定
@@ -6175,10 +6124,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			rrrNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			rrrNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6204,10 +6153,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6249,10 +6198,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			lrrNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			lrrNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6278,10 +6227,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6323,10 +6272,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			rlrNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			rlrNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6352,10 +6301,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6397,10 +6346,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			rrlNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			rrlNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6426,10 +6375,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6471,10 +6420,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			llrNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			llrNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6500,10 +6449,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6545,10 +6494,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			lrlNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			lrlNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6574,10 +6523,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6619,10 +6568,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			rllNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			rllNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6648,10 +6597,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6693,10 +6642,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 
 		for (i = 0; i < repeat; i++)
 		{
-			lllNURBS_volume(temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+			lllNURBS_volume(input_knot_vec_xi, input_knot_vec_eta, input_knot_vec_zeta,
 							info->Control_Coord_x, info->Control_Coord_y, info->Control_Coord_z,
-							info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
-							info->Control_Weight, info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+							cntl_p_n_xi, cntl_p_n_eta, cntl_p_n_zeta,
+							info->Control_Weight, order_xi, order_eta, order_zeta,
 							temp_xi, temp_eta, temp_zeta,
 							&temp_x, &temp_y, &temp_z,
 							&temp_matrix[0][0], &temp_matrix[0][1], &temp_matrix[0][2],
@@ -6722,10 +6671,10 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 			InverseMatrix_3x3(temp_matrix);
 
 			temp_dxi   = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y) + temp_matrix[0][2] * (pz - temp_z);
-			temp_data  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
+			temp_deta  = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y) + temp_matrix[1][2] * (pz - temp_z);
 			temp_dzeta = temp_matrix[2][0] * (px - temp_x) + temp_matrix[2][1] * (py - temp_y) + temp_matrix[2][2] * (pz - temp_z);
 			temp_xi   = temp_xi + temp_dxi;
-			temp_eta  = temp_eta + temp_data;
+			temp_eta  = temp_eta + temp_deta;
 			temp_zeta = temp_zeta + temp_dzeta;
 			if (temp_xi < input_knot_vec_xi[0])
 				temp_xi = input_knot_vec_xi[0];
@@ -6742,7 +6691,7 @@ int Calc_xi_eta_zeta(double px, double py, double pz,
 		}
 	}
 
-	return 0;
+	return ERROR;
 }
 
 
@@ -6792,7 +6741,7 @@ void Make_Strain(information *info)
 			{
 				for (l = 0; l < KIEL_SIZE; l++)
 				{
-					info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + k] += info->B_Matrix[i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + l] * temp_disp[l];
+					info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + k] += info->B_Matrix[(long int)i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + l] * temp_disp[l];
 				}
 			}
 		}
@@ -6865,7 +6814,7 @@ void Make_ReactionForce(information *info)
 				{
 					for (m = 0; m < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; m++)
 					{
-						info->ReactionForce[info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + m] * info->DIMENSION + l] += info->B_Matrix[i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + m * info->DIMENSION + l] * info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + k] * w[j] * info->Jac[i * MAX_POW_NG + j];
+						info->ReactionForce[info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + m] * info->DIMENSION + l] += info->B_Matrix[(long int)i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + m * info->DIMENSION + l] * info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + k] * w[j] * info->Jac[i * MAX_POW_NG + j];
 					}
 				}
 			}
@@ -7044,12 +6993,12 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 
 	double *dxi_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// dxi_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
 	double *dxi_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// dxi_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
-	double *data_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// data_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
-	double *data_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// data_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
+	double *deta_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// deta_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
+	double *deta_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// deta_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
 	double *dxi_disp_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);	// dxi_disp_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
 	double *dxi_disp_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);	// dxi_disp_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
-	double *data_disp_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);	// data_disp_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
-	double *data_disp_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);	// data_disp_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
+	double *deta_disp_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);	// deta_disp_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
+	double *deta_disp_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);	// deta_disp_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
 
 	k = 0;
 	l = 0;
@@ -7120,8 +7069,8 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 						   weight, order_xi, order_eta,
 						   calc_xi[i], calc_eta[j],
 						   &info->coord_x[i * division_n_eta + j], &info->coord_y[i * division_n_eta + j],
-						   &dxi_x[ep], &data_x[ep],
-						   &dxi_y[ep], &data_y[ep]);
+						   &dxi_x[ep], &deta_x[ep],
+						   &dxi_y[ep], &deta_y[ep]);
 		}
 	}
 
@@ -7144,8 +7093,8 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 						   weight, order_xi, order_eta,
 						   calc_xi[i], calc_eta[j],
 						   &info->disp_x[i * division_n_eta + j], &info->disp_y[i * division_n_eta + j],
-						   &dxi_disp_x[ep], &data_disp_x[ep],
-						   &dxi_disp_y[ep], &data_disp_y[ep]);
+						   &dxi_disp_x[ep], &deta_disp_x[ep],
+						   &dxi_disp_y[ep], &deta_disp_y[ep]);
 		}
 	}
 
@@ -7170,15 +7119,15 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 							   weight, order_xi, order_eta,
 							   calc_xi[i], calc_eta[j],
 							   &info->coord_x[i * division_n_eta + j], &info->coord_y[i * division_n_eta + j],
-							   &dxi_x[ep], &data_x[ep],
-							   &dxi_y[ep], &data_y[ep]);
+							   &dxi_x[ep], &deta_x[ep],
+							   &dxi_y[ep], &deta_y[ep]);
 				rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 							   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 							   weight, order_xi, order_eta,
 							   calc_xi[i], calc_eta[j],
 							   &info->disp_x[i * division_n_eta + j], &info->disp_y[i * division_n_eta + j],
-							   &dxi_disp_x[ep], &data_disp_x[ep],
-							   &dxi_disp_y[ep], &data_disp_y[ep]);
+							   &dxi_disp_x[ep], &deta_disp_x[ep],
+							   &dxi_disp_y[ep], &deta_disp_y[ep]);
 			}
 
 			ll = division_ele_eta;
@@ -7197,15 +7146,15 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 							   weight, order_xi, order_eta,
 							   calc_xi[i], calc_eta[j],
 							   &info->coord_x[i * division_n_eta + j], &info->coord_y[i * division_n_eta + j],
-							   &dxi_x[ep], &data_x[ep],
-							   &dxi_y[ep], &data_y[ep]);
+							   &dxi_x[ep], &deta_x[ep],
+							   &dxi_y[ep], &deta_y[ep]);
 				rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 							   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 							   weight, order_xi, order_eta,
 							   calc_xi[i], calc_eta[j],
 							   &info->disp_x[i * division_n_eta + j], &info->disp_y[i * division_n_eta + j],
-							   &dxi_disp_x[ep], &data_disp_x[ep],
-							   &dxi_disp_y[ep], &data_disp_y[ep]);
+							   &dxi_disp_x[ep], &deta_disp_x[ep],
+							   &dxi_disp_y[ep], &deta_disp_y[ep]);
 			}
 
 			kk = division_ele_xi;
@@ -7222,15 +7171,15 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 							weight, order_xi, order_eta,
 							calc_xi[i], calc_eta[j],
 							&info->coord_x[i * division_n_eta + j], &info->coord_y[i * division_n_eta + j],
-							&dxi_x[ep], &data_x[ep],
-							&dxi_y[ep], &data_y[ep]);
+							&dxi_x[ep], &deta_x[ep],
+							&dxi_y[ep], &deta_y[ep]);
 			rlNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 							weight, order_xi, order_eta,
 							calc_xi[i], calc_eta[j],
 							&info->disp_x[i * division_n_eta + j], &info->disp_y[i * division_n_eta + j],
-							&dxi_disp_x[ep], &data_disp_x[ep],
-							&dxi_disp_y[ep], &data_disp_y[ep]);
+							&dxi_disp_x[ep], &deta_disp_x[ep],
+							&dxi_disp_y[ep], &deta_disp_y[ep]);
 
 			kk = 0;
 			ll = division_ele_eta;
@@ -7246,15 +7195,15 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 							weight, order_xi, order_eta,
 							calc_xi[i], calc_eta[j],
 							&info->coord_x[i * division_n_eta + j], &info->coord_y[i * division_n_eta + j],
-							&dxi_x[ep], &data_x[ep],
-							&dxi_y[ep], &data_y[ep]);
+							&dxi_x[ep], &deta_x[ep],
+							&dxi_y[ep], &deta_y[ep]);
 			lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 							weight, order_xi, order_eta,
 							calc_xi[i], calc_eta[j],
 							&info->disp_x[i * division_n_eta + j], &info->disp_y[i * division_n_eta + j],
-							&dxi_disp_x[ep], &data_disp_x[ep],
-							&dxi_disp_y[ep], &data_disp_y[ep]);
+							&dxi_disp_x[ep], &deta_disp_x[ep],
+							&dxi_disp_y[ep], &deta_disp_y[ep]);
 		}
 	}
 
@@ -7275,14 +7224,14 @@ void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int
 
 					temp_matrix[0][0] = dxi_x[ep] * temp1;
 					temp_matrix[0][1] = dxi_y[ep] * temp1;
-					temp_matrix[1][0] = data_x[ep] * temp2;
-					temp_matrix[1][1] = data_y[ep] * temp2;
+					temp_matrix[1][0] = deta_x[ep] * temp2;
+					temp_matrix[1][1] = deta_y[ep] * temp2;
 
 					InverseMatrix_2x2(temp_matrix);
 
-					info->strain[ep * 3 + 0] = temp_matrix[0][0] * temp1 * dxi_disp_x[ep] + temp_matrix[0][1] * temp2 * data_disp_x[ep];
-					info->strain[ep * 3 + 1] = temp_matrix[1][0] * temp1 * dxi_disp_y[ep] + temp_matrix[1][1] * temp2 * data_disp_y[ep];
-					info->strain[ep * 3 + 2] = temp_matrix[1][0] * temp1 * dxi_disp_x[ep] + temp_matrix[1][1] * temp2 * data_disp_x[ep] + temp_matrix[0][0] * temp1 * dxi_disp_y[ep] + temp_matrix[0][1] * temp2 * data_disp_y[ep];
+					info->strain[ep * 3 + 0] = temp_matrix[0][0] * temp1 * dxi_disp_x[ep] + temp_matrix[0][1] * temp2 * deta_disp_x[ep];
+					info->strain[ep * 3 + 1] = temp_matrix[1][0] * temp1 * dxi_disp_y[ep] + temp_matrix[1][1] * temp2 * deta_disp_y[ep];
+					info->strain[ep * 3 + 2] = temp_matrix[1][0] * temp1 * dxi_disp_x[ep] + temp_matrix[1][1] * temp2 * deta_disp_x[ep] + temp_matrix[0][0] * temp1 * dxi_disp_y[ep] + temp_matrix[0][1] * temp2 * deta_disp_y[ep];
 				}
 			}
 		}
@@ -7478,8 +7427,8 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 
 	double *dxi_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// dxi_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
 	double *dxi_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// dxi_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
-	double *data_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// data_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
-	double *data_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// data_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
+	double *deta_x = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// deta_x[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
+	double *deta_y = (double *)malloc(sizeof(double) * info->Total_Element_to_mesh[Total_mesh] * DIVISION_ELEMENT);		// deta_y[MAX_ELEMENTS][MAX_ELEMENTS][MAX_DIVISION + 1][MAX_DIVISION + 1]
 
 	k = 0;
 	l = 0;
@@ -7549,8 +7498,8 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 						   weight_loc, order_xi_loc, order_eta_loc,
 						   calc_xi_loc[i], calc_eta_loc[j],
 						   &info->coord_x[i * division_n_eta + j], &info->coord_y[i * division_n_eta + j],
-						   &dxi_x[ep], &data_x[ep],
-						   &dxi_y[ep], &data_y[ep]);
+						   &dxi_x[ep], &deta_x[ep],
+						   &dxi_y[ep], &deta_y[ep]);
 
 			CalcXiEtaByNR(info->coord_x[i * division_n_eta + j], info->coord_y[i * division_n_eta + j],
 						  knot_vec_xi_glo, knot_vec_eta_glo,
@@ -7810,7 +7759,7 @@ void Calculation_overlay(int order_xi_loc, int order_eta_loc,
 	fclose(fp);
 
 	free(calc_xi_loc), free(calc_eta_loc);
-	free(dxi_x), free(dxi_y), free(data_x), free(data_y);
+	free(dxi_x), free(dxi_y), free(deta_x), free(deta_y);
 }
 
 
@@ -7827,7 +7776,7 @@ int CalcXiEtaByNR(double px, double py,
 	double temp_xi, temp_eta;
 	double temp_x, temp_y;
 	double temp_matrix[2][2];
-	double temp_dxi, temp_data;
+	double temp_dxi, temp_deta;
 	double temp_tol_x = DBL_MAX;
 	double temp_tol_y = DBL_MAX;
 
@@ -7875,8 +7824,8 @@ int CalcXiEtaByNR(double px, double py,
 			double dtilda_xi = 0.0;
 			double dtilda_eta = 0.0;
 			double disp_x, disp_y;
-			double dxi_x, data_x, dxi_y, data_y;
-			double dxi_disp_x, data_disp_x, dxi_disp_y, data_disp_y;
+			double dxi_x, deta_x, dxi_y, deta_y;
+			double dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y;
 			double temp_matrix2[2][2];
 			double temp;
 			double strain_xx, strain_yy, strain_xy;
@@ -7903,27 +7852,27 @@ int CalcXiEtaByNR(double px, double py,
 						   weight, order_xi, order_eta,
 						   temp_xi, temp_eta,
 						   &temp, &temp,
-						   &dxi_x, &data_x,
-						   &dxi_y, &data_y);
+						   &dxi_x, &deta_x,
+						   &dxi_y, &deta_y);
 
 			rNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 						   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 						   weight, order_xi, order_eta,
 						   temp_xi, temp_eta,
 						   &disp_x, &disp_y,
-						   &dxi_disp_x, &data_disp_x,
-						   &dxi_disp_y, &data_disp_y);
+						   &dxi_disp_x, &deta_disp_x,
+						   &dxi_disp_y, &deta_disp_y);
 
 			temp_matrix2[0][0] = dxi_x * dtilda_xi;
 			temp_matrix2[0][1] = dxi_y * dtilda_xi;
-			temp_matrix2[1][0] = data_x * dtilda_eta;
-			temp_matrix2[1][1] = data_y * dtilda_eta;
+			temp_matrix2[1][0] = deta_x * dtilda_eta;
+			temp_matrix2[1][1] = deta_y * dtilda_eta;
 
 			InverseMatrix_2x2(temp_matrix2);
 
-			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * data_disp_x;
-			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * data_disp_y;
-			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * data_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * data_disp_y;
+			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * deta_disp_x;
+			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * deta_disp_y;
+			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * deta_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * deta_disp_y;
 
 			temp = sqrt(disp_x * disp_x + disp_y * disp_y);
 
@@ -7940,9 +7889,9 @@ int CalcXiEtaByNR(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -7987,8 +7936,8 @@ int CalcXiEtaByNR(double px, double py,
 			double dtilda_xi = 0.0;
 			double dtilda_eta = 0.0;
 			double disp_x, disp_y;
-			double dxi_x, data_x, dxi_y, data_y;
-			double dxi_disp_x, data_disp_x, dxi_disp_y, data_disp_y;
+			double dxi_x, deta_x, dxi_y, deta_y;
+			double dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y;
 			double temp_matrix2[2][2];
 			double temp;
 			double strain_xx, strain_yy, strain_xy;
@@ -8015,27 +7964,27 @@ int CalcXiEtaByNR(double px, double py,
 						   weight, order_xi, order_eta,
 						   temp_xi, temp_eta,
 						   &temp, &temp,
-						   &dxi_x, &data_x,
-						   &dxi_y, &data_y);
+						   &dxi_x, &deta_x,
+						   &dxi_y, &deta_y);
 
 			lNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 						   disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 						   weight, order_xi, order_eta,
 						   temp_xi, temp_eta,
 						   &disp_x, &disp_y,
-						   &dxi_disp_x, &data_disp_x,
-						   &dxi_disp_y, &data_disp_y);
+						   &dxi_disp_x, &deta_disp_x,
+						   &dxi_disp_y, &deta_disp_y);
 
 			temp_matrix2[0][0] = dxi_x * dtilda_xi;
 			temp_matrix2[0][1] = dxi_y * dtilda_xi;
-			temp_matrix2[1][0] = data_x * dtilda_eta;
-			temp_matrix2[1][1] = data_y * dtilda_eta;
+			temp_matrix2[1][0] = deta_x * dtilda_eta;
+			temp_matrix2[1][1] = deta_y * dtilda_eta;
 
 			InverseMatrix_2x2(temp_matrix2);
 
-			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * data_disp_x;
-			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * data_disp_y;
-			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * data_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * data_disp_y;
+			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * deta_disp_x;
+			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * deta_disp_y;
+			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * deta_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * deta_disp_y;
 
 			temp = sqrt(disp_x * disp_x + disp_y * disp_y);
 
@@ -8052,9 +8001,9 @@ int CalcXiEtaByNR(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -8099,8 +8048,8 @@ int CalcXiEtaByNR(double px, double py,
 			double dtilda_xi = 0.0;
 			double dtilda_eta = 0.0;
 			double disp_x, disp_y;
-			double dxi_x, data_x, dxi_y, data_y;
-			double dxi_disp_x, data_disp_x, dxi_disp_y, data_disp_y;
+			double dxi_x, deta_x, dxi_y, deta_y;
+			double dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y;
 			double temp_matrix2[2][2];
 			double temp;
 			double strain_xx, strain_yy, strain_xy;
@@ -8127,27 +8076,27 @@ int CalcXiEtaByNR(double px, double py,
 							weight, order_xi, order_eta,
 							temp_xi, temp_eta,
 							&temp, &temp,
-							&dxi_x, &data_x,
-							&dxi_y, &data_y);
+							&dxi_x, &deta_x,
+							&dxi_y, &deta_y);
 
 			rlNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 							weight, order_xi, order_eta,
 							temp_xi, temp_eta,
 							&disp_x, &disp_y,
-							&dxi_disp_x, &data_disp_x,
-							&dxi_disp_y, &data_disp_y);
+							&dxi_disp_x, &deta_disp_x,
+							&dxi_disp_y, &deta_disp_y);
 
 			temp_matrix2[0][0] = dxi_x * dtilda_xi;
 			temp_matrix2[0][1] = dxi_y * dtilda_xi;
-			temp_matrix2[1][0] = data_x * dtilda_eta;
-			temp_matrix2[1][1] = data_y * dtilda_eta;
+			temp_matrix2[1][0] = deta_x * dtilda_eta;
+			temp_matrix2[1][1] = deta_y * dtilda_eta;
 
 			InverseMatrix_2x2(temp_matrix2);
 
-			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * data_disp_x;
-			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * data_disp_y;
-			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * data_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * data_disp_y;
+			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * deta_disp_x;
+			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * deta_disp_y;
+			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * deta_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * deta_disp_y;
 
 			temp = sqrt(disp_x * disp_x + disp_y * disp_y);
 
@@ -8164,9 +8113,9 @@ int CalcXiEtaByNR(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -8207,8 +8156,8 @@ int CalcXiEtaByNR(double px, double py,
 			double dtilda_xi = 0.0;
 			double dtilda_eta = 0.0;
 			double disp_x, disp_y;
-			double dxi_x, data_x, dxi_y, data_y;
-			double dxi_disp_x, data_disp_x, dxi_disp_y, data_disp_y;
+			double dxi_x, deta_x, dxi_y, deta_y;
+			double dxi_disp_x, deta_disp_x, dxi_disp_y, deta_disp_y;
 			double temp_matrix2[2][2];
 			double temp;
 			double strain_xx, strain_yy, strain_xy;
@@ -8235,27 +8184,27 @@ int CalcXiEtaByNR(double px, double py,
 							weight, order_xi, order_eta,
 							temp_xi, temp_eta,
 							&temp, &temp,
-							&dxi_x, &data_x,
-							&dxi_y, &data_y);
+							&dxi_x, &deta_x,
+							&dxi_y, &deta_y);
 
 			lrNURBS_surface(input_knot_vec_xi, input_knot_vec_eta,
 							disp_cntl_px, disp_cntl_py, cntl_p_n_xi, cntl_p_n_eta,
 							weight, order_xi, order_eta,
 							temp_xi, temp_eta,
 							&disp_x, &disp_y,
-							&dxi_disp_x, &data_disp_x,
-							&dxi_disp_y, &data_disp_y);
+							&dxi_disp_x, &deta_disp_x,
+							&dxi_disp_y, &deta_disp_y);
 
 			temp_matrix2[0][0] = dxi_x * dtilda_xi;
 			temp_matrix2[0][1] = dxi_y * dtilda_xi;
-			temp_matrix2[1][0] = data_x * dtilda_eta;
-			temp_matrix2[1][1] = data_y * dtilda_eta;
+			temp_matrix2[1][0] = deta_x * dtilda_eta;
+			temp_matrix2[1][1] = deta_y * dtilda_eta;
 
 			InverseMatrix_2x2(temp_matrix2);
 
-			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * data_disp_x;
-			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * data_disp_y;
-			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * data_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * data_disp_y;
+			strain_xx = temp_matrix2[0][0] * dtilda_xi * dxi_disp_x + temp_matrix2[0][1] * dtilda_eta * deta_disp_x;
+			strain_yy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_y + temp_matrix2[1][1] * dtilda_eta * deta_disp_y;
+			strain_xy = temp_matrix2[1][0] * dtilda_xi * dxi_disp_x + temp_matrix2[1][1] * dtilda_eta * deta_disp_x + temp_matrix2[0][0] * dtilda_xi * dxi_disp_y + temp_matrix2[0][1] * dtilda_eta * deta_disp_y;
 
 			temp = sqrt(disp_x * disp_x + disp_y * disp_y);
 
@@ -8272,9 +8221,9 @@ int CalcXiEtaByNR(double px, double py,
 		InverseMatrix_2x2(temp_matrix);
 
 		temp_dxi = temp_matrix[0][0] * (px - temp_x) + temp_matrix[0][1] * (py - temp_y);
-		temp_data = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
+		temp_deta = temp_matrix[1][0] * (px - temp_x) + temp_matrix[1][1] * (py - temp_y);
 		temp_xi = temp_xi + temp_dxi;
-		temp_eta = temp_eta + temp_data;
+		temp_eta = temp_eta + temp_deta;
 		if (temp_xi < input_knot_vec_xi[0])
 			temp_xi = input_knot_vec_xi[0];
 		if (temp_xi > input_knot_vec_xi[cntl_p_n_xi + order_xi])
@@ -10925,6 +10874,4 @@ void Make_info_for_viewer(information *info)
 		// von Mises stress
 
 	}
-
-	free(point_array), free(B), free(BG), free(temp_disp), free(temp_disp_glo), free(temp_element_n), free(temp_ad);
 }

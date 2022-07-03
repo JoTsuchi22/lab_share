@@ -1,5 +1,5 @@
 PROGRAM_NAME	= cpp_IIM_PCG
-VERSION			= v2
+VERSION			= v3
 CC				= g++
 CFLAGS			= -g -lm -Wall -Wextra
 CFLAGS_fast		= -O1 -lm -Wall -Wextra
@@ -36,6 +36,9 @@ run_3D_S-IGA:	mkdir_output
 run_3D_S-IGA_2:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D_S-IGA_2/input_glo.txt ../input_3D_S-IGA_2/input_loc.txt
 
+run_3D_S-IGA_3:	mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D_S-IGA_3/input.txt
+
 run_crack:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_crack/input_glo.txt ../input_crack/input_loc.txt
 
@@ -62,7 +65,9 @@ testrun_3D: compile_so_fast run_3D
 
 testrun_3D_S-IGA: compile_so_fast run_3D_S-IGA
 
-testrun_3D_S-IGA_2: compile_fast run_3D_S-IGA_2
+testrun_3D_S-IGA_2: compile_so_fast run_3D_S-IGA_2
+
+testrun_3D_S-IGA_3: compile_so_fast run_3D_S-IGA_3
 
 testrun_crack: compile_so_fast run_crack
 
