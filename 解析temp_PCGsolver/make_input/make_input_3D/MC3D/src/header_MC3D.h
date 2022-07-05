@@ -12,13 +12,19 @@ struct information {
     int Total_patch;
     double E_and_nu[2];
     int *disp_constraint_n;
+    int *disp_constraint_n_del;
     int *disp_constraint_face_edge_n;
+    int *disp_constraint_face_edge_n_del;
     double *disp_constraint_amount;
+    double *disp_constraint_amount_del;
     int *disp_constraint;
+    int *disp_constraint_del;
     int distributed_load_n;
     double *distributed_load_info;
     int MAX_DISP_CONSTRAINT;
+    int MAX_DISP_CONSTRAINT_DEL;
     int MAX_DISP_CONSTRAINT_FACE_EDGE;
+    int MAX_DISP_CONSTRAINT_FACE_EDGE_DEL;
 
     int *Order;
     int *KV_info;

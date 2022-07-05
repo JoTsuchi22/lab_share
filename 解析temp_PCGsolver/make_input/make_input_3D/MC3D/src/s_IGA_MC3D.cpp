@@ -16,11 +16,15 @@ int main(int argc, char **argv)
 
     // memory allocation
     info_ptr->disp_constraint_n = (int *)malloc(sizeof(int) * info.DIMENSION);                                          // disp_constraint_n[DIMENSION]
+    info_ptr->disp_constraint_n_del = (int *)malloc(sizeof(int) * info.DIMENSION);                                          // disp_constraint_n[DIMENSION]
     info_ptr->disp_constraint_face_edge_n = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);     // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
+    info_ptr->disp_constraint_face_edge_n_del = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);     // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
     info_ptr->disp_constraint_amount = (double *)malloc(sizeof(double) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);    // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
+    info_ptr->disp_constraint_amount_del = (double *)malloc(sizeof(double) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);    // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
     info_ptr->disp_constraint = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
+    info_ptr->disp_constraint_del = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
     info_ptr->distributed_load_info = (double *)malloc(sizeof(double) * info.distributed_load_n * 15);                   // distributed_load_info[MAX_DISTRIBUTED_LOAD][15]
-    if (info.disp_constraint_n == NULL || info.disp_constraint_face_edge_n == NULL || info.disp_constraint_amount == NULL || info.disp_constraint == NULL || info.distributed_load_info == NULL)
+    if (info.disp_constraint_n == NULL || info.disp_constraint_n_del == NULL || info.disp_constraint_face_edge_n == NULL || info.disp_constraint_face_edge_n_del == NULL || info.disp_constraint_amount == NULL || info.disp_constraint_amount_del == NULL || info.disp_constraint == NULL || info.disp_constraint_del == NULL || info.distributed_load_info == NULL)
     {
         printf("Cannot allocate memory\n"); exit(1);
     }
@@ -271,7 +275,8 @@ void Get_inputdata_boundary_0(char *filename, information *info)
     fgets(s, 256, fp);
 
     // 各方向への変位指定する個数
-    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE = 0, temp_n_0, temp_n_1;
+    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE = 0, temp_MAX_DISP_CONSTRAINT_DEL = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = 0
+    int temp_n_0, temp_n_1, temp_n_2, temp_n_3;
     for (i = 0; i < info->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
@@ -279,6 +284,13 @@ void Get_inputdata_boundary_0(char *filename, information *info)
         if (temp_MAX_DISP_CONSTRAINT < temp_i)
         {
             temp_MAX_DISP_CONSTRAINT = temp_i;
+        }
+
+        fscanf(fp, "%d", &temp_i);
+        temp_n_2 = temp_i;
+        if (temp_MAX_DISP_CONSTRAINT_DEL < temp_i)
+        {
+            temp_MAX_DISP_CONSTRAINT_DEL = temp_i;
         }
 
         for (j = 0; j < temp_n_0; j++)
@@ -298,12 +310,32 @@ void Get_inputdata_boundary_0(char *filename, information *info)
                 fscanf(fp, "%d", &temp_i);
                 fscanf(fp, "%d", &temp_i);
             }
-
-            fgets(s, 256, fp);
         }
+
+        for (j = 0; j < temp_n_2; j++)
+        {
+            fscanf(fp, "%d", &temp_i);
+            temp_n_3 = temp_i;
+            if (temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL < temp_i)
+            {
+                temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = temp_i;
+            }
+
+            fscanf(fp, "%lf", &temp_d);
+
+            for (k = 0; k < temp_n_3; k++)
+            {
+                fscanf(fp, "%d", &temp_i);
+                fscanf(fp, "%d", &temp_i);
+                fscanf(fp, "%d", &temp_i);
+            }
+        }
+        fgets(s, 256, fp);
     }
     info->MAX_DISP_CONSTRAINT = temp_MAX_DISP_CONSTRAINT;
+    info->MAX_DISP_CONSTRAINT_DEL = temp_MAX_DISP_CONSTRAINT_DEL;
     info->MAX_DISP_CONSTRAINT_FACE_EDGE = temp_MAX_DISP_CONSTRAINT_FACE_EDGE;
+    info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL;
 
     // 分布荷重の荷重の個数
     fscanf(fp, "%d", &temp_i);
@@ -344,11 +376,16 @@ void Get_inputdata_boundary_1(char *filename, information *info)
     // 各方向への変位指定する個数
     int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int b = info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
+    int a_del = info->MAX_DISP_CONSTRAINT_DEL * info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 3;
+    int b_del = info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 3;
     int c = 3;
     for (i = 0; i < info->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
         info->disp_constraint_n[i] = temp_i;
+
+        fscanf(fp, "%d", &temp_i);
+        info->disp_constraint_n_del[i] = temp_i;
 
         for (j = 0; j < info->disp_constraint_n[i]; j++)
         {
@@ -370,8 +407,30 @@ void Get_inputdata_boundary_1(char *filename, information *info)
                 info->disp_constraint[i * a + j * b + k * c + 2] = temp_i;
             }
 
-            fgets(s, 256, fp);
         }
+
+        for (j = 0; j < info->disp_constraint_n_del[i]; j++)
+        {
+            fscanf(fp, "%d", &temp_i);
+            info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT_DEL + j] = temp_i;
+
+            fscanf(fp, "%lf", &temp_d);
+            info->disp_constraint_amount_del[i * info->MAX_DISP_CONSTRAINT_DEL + j] = temp_d;
+
+            for (k = 0; k < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT_DEL + j]; k++)
+            {
+                fscanf(fp, "%d", &temp_i);
+                info->disp_constraint_del[i * a_del + j * b_del + k * c + 0] = temp_i;
+
+                fscanf(fp, "%d", &temp_i);
+                info->disp_constraint_del[i * a_del + j * b_del + k * c + 1] = temp_i;
+
+                fscanf(fp, "%d", &temp_i);
+                info->disp_constraint_del[i * a_del + j * b_del + k * c + 2] = temp_i;
+            }
+        }
+
+        fgets(s, 256, fp);
     }
 
     // 分布荷重の荷重の個数
@@ -1943,7 +2002,6 @@ void Sort(int n, information *info)
                 }
             }
         }
-        
     }
 
     temp = 0;
