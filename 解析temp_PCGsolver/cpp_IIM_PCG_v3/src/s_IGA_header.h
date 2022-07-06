@@ -4,8 +4,9 @@
 #define MAX_DIMENSION 3
 #define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
 #define SKIP_NV 1       // NURBS viewer の出力を行う 0, 行わない 1
-#define CALC_ON_GP 0    // ガウス点での応力等の計算を行わない 0, 行う 1
-#define OUTPUT_SVG 0    // SVG 出力を行わない 0, 行う 1
+#define CALC_ON_GP 1    // ガウス点での応力等の計算を行う 0, 行わない 1
+#define OUTPUT_SVG 1    // SVG 出力を行う 0, 行わない 1
+#define MODE_EX 1       // 一部で積分点数を増やして計算を行う 0, 行わない 1
 #define DM 1            // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
 #define NG 4												// Gauss-Legendreの積分点数
 #define NG_EXTEND 10										// Gauss-Legendreの積分点数

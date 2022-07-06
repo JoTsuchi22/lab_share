@@ -1,8 +1,11 @@
+#include <iostream>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 
 #include "header_MC3D.h"
+
+using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -16,15 +19,13 @@ int main(int argc, char **argv)
 
     // memory allocation
     info_ptr->disp_constraint_n = (int *)malloc(sizeof(int) * info.DIMENSION);                                          // disp_constraint_n[DIMENSION]
-    info_ptr->disp_constraint_n_del = (int *)malloc(sizeof(int) * info.DIMENSION);                                          // disp_constraint_n[DIMENSION]
     info_ptr->disp_constraint_face_edge_n = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);     // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
-    info_ptr->disp_constraint_face_edge_n_del = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);     // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
+    info_ptr->disp_constraint_face_edge_n_del = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT); // disp_constraint_face_edge_n[DIMENSION][MAX_DISP_CONSTRAINT]
     info_ptr->disp_constraint_amount = (double *)malloc(sizeof(double) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);    // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
-    info_ptr->disp_constraint_amount_del = (double *)malloc(sizeof(double) * info.DIMENSION * info.MAX_DISP_CONSTRAINT);    // disp_constraint_amount[DIMENSION][MAX_DISP_CONSTRAINT]
-    info_ptr->disp_constraint = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
-    info_ptr->disp_constraint_del = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);     // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
-    info_ptr->distributed_load_info = (double *)malloc(sizeof(double) * info.distributed_load_n * 15);                   // distributed_load_info[MAX_DISTRIBUTED_LOAD][15]
-    if (info.disp_constraint_n == NULL || info.disp_constraint_n_del == NULL || info.disp_constraint_face_edge_n == NULL || info.disp_constraint_face_edge_n_del == NULL || info.disp_constraint_amount == NULL || info.disp_constraint_amount_del == NULL || info.disp_constraint == NULL || info.disp_constraint_del == NULL || info.distributed_load_info == NULL)
+    info_ptr->disp_constraint = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE * 3);    // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
+    info_ptr->disp_constraint_del = (int *)malloc(sizeof(int) * info.DIMENSION * info.MAX_DISP_CONSTRAINT * info.MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 4);    // disp_constraint[DIMENSION][MAX_DISP_CONSTRAINT][MAX_DISP_CONSTRAINT_FACE_EDGE][3]
+    info_ptr->distributed_load_info = (double *)malloc(sizeof(double) * info.distributed_load_n * 15);                  // distributed_load_info[MAX_DISTRIBUTED_LOAD][15]
+    if (info.disp_constraint_n == NULL || info.disp_constraint_face_edge_n == NULL || info.disp_constraint_face_edge_n_del == NULL || info.disp_constraint_amount == NULL || info.disp_constraint == NULL || info.disp_constraint_del == NULL || info.distributed_load_info == NULL)
     {
         printf("Cannot allocate memory\n"); exit(1);
     }
@@ -206,10 +207,10 @@ int main(int argc, char **argv)
         }
     }
 
-    info_ptr->length_before = (int *)calloc(temp5, sizeof(int));    // 各変位量でのマージ前の長さ
-    info_ptr->length_after = (int *)malloc(sizeof(int) * temp5);    // 各変位量でのマージ後の長さ
-    info_ptr->Boundary = (int *)malloc(sizeof(int) * temp4);        // 境界条件のコネクティビティ
-    info_ptr->Boundary_result = (int *)malloc(sizeof(int) * temp4); // ソート・マージ後境界条件のコネクティビティ
+    info_ptr->length_before = (int *)calloc(temp5, sizeof(int));        // 各変位量でのマージ前の長さ
+    info_ptr->length_after = (int *)malloc(sizeof(int) * temp5);        // 各変位量でのマージ後の長さ
+    info_ptr->Boundary = (int *)malloc(sizeof(int) * temp4);            // 境界条件のコネクティビティ
+    info_ptr->Boundary_result = (int *)malloc(sizeof(int) * temp4);     // ソート・マージ後境界条件のコネクティビティ
 
     if (info.length_before == NULL || info.length_after == NULL || info.Boundary == NULL || info.Boundary_result == NULL)
     {
@@ -217,7 +218,7 @@ int main(int argc, char **argv)
     }
 
     // 強制変位・変位固定の境界条件を作成
-    Sort(temp5, &info);
+    Delete_and_Sort(temp5, &info);
 
     printf("state: output\n");
     Output_inputdata(temp5 ,&info);
@@ -227,13 +228,6 @@ int main(int argc, char **argv)
     {
         Output_SVG(&info);   // SVG出力
     }
-
-    // memory free
-    free(info.disp_constraint_n), free(info.disp_constraint_face_edge_n), free(info.disp_constraint_amount), free(info.disp_constraint), free(info.distributed_load_info);
-    free(info.Order), free(info.KV_info), free(info.CP_info);
-    free(info.CP), free(info.CP_result), free(info.A), free(info.B), free(info.Connectivity), free(info.KV);
-    free(info.Face_Edge_info), free(info.Opponent_patch_num);
-    free(info.length_before), free(info.length_after), free(info.Boundary), free(info.Boundary_result);
 
     return 0;
 }
@@ -275,8 +269,8 @@ void Get_inputdata_boundary_0(char *filename, information *info)
     fgets(s, 256, fp);
 
     // 各方向への変位指定する個数
-    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE = 0, temp_MAX_DISP_CONSTRAINT_DEL = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = 0
-    int temp_n_0, temp_n_1, temp_n_2, temp_n_3;
+    int temp_MAX_DISP_CONSTRAINT = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE = 0, temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = 0;
+    int temp_n_0, temp_n_1, temp_n_2;
     for (i = 0; i < info->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
@@ -284,13 +278,6 @@ void Get_inputdata_boundary_0(char *filename, information *info)
         if (temp_MAX_DISP_CONSTRAINT < temp_i)
         {
             temp_MAX_DISP_CONSTRAINT = temp_i;
-        }
-
-        fscanf(fp, "%d", &temp_i);
-        temp_n_2 = temp_i;
-        if (temp_MAX_DISP_CONSTRAINT_DEL < temp_i)
-        {
-            temp_MAX_DISP_CONSTRAINT_DEL = temp_i;
         }
 
         for (j = 0; j < temp_n_0; j++)
@@ -302,6 +289,13 @@ void Get_inputdata_boundary_0(char *filename, information *info)
                 temp_MAX_DISP_CONSTRAINT_FACE_EDGE = temp_i;
             }
 
+            fscanf(fp, "%d", &temp_i);
+            temp_n_2 = temp_i;
+            if (temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL < temp_i)
+            {
+                temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = temp_i;
+            }
+
             fscanf(fp, "%lf", &temp_d);
 
             for (k = 0; k < temp_n_1; k++)
@@ -310,30 +304,19 @@ void Get_inputdata_boundary_0(char *filename, information *info)
                 fscanf(fp, "%d", &temp_i);
                 fscanf(fp, "%d", &temp_i);
             }
-        }
 
-        for (j = 0; j < temp_n_2; j++)
-        {
-            fscanf(fp, "%d", &temp_i);
-            temp_n_3 = temp_i;
-            if (temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL < temp_i)
+            for (k = 0; k < temp_n_2; k++)
             {
-                temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = temp_i;
-            }
-
-            fscanf(fp, "%lf", &temp_d);
-
-            for (k = 0; k < temp_n_3; k++)
-            {
+                fscanf(fp, "%d", &temp_i);
                 fscanf(fp, "%d", &temp_i);
                 fscanf(fp, "%d", &temp_i);
                 fscanf(fp, "%d", &temp_i);
             }
         }
+
         fgets(s, 256, fp);
     }
     info->MAX_DISP_CONSTRAINT = temp_MAX_DISP_CONSTRAINT;
-    info->MAX_DISP_CONSTRAINT_DEL = temp_MAX_DISP_CONSTRAINT_DEL;
     info->MAX_DISP_CONSTRAINT_FACE_EDGE = temp_MAX_DISP_CONSTRAINT_FACE_EDGE;
     info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL = temp_MAX_DISP_CONSTRAINT_FACE_EDGE_DEL;
 
@@ -376,21 +359,22 @@ void Get_inputdata_boundary_1(char *filename, information *info)
     // 各方向への変位指定する個数
     int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int b = info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
-    int a_del = info->MAX_DISP_CONSTRAINT_DEL * info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 3;
-    int b_del = info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 3;
     int c = 3;
+    int a_del = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 4;
+    int b_del = info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 4;
+    int c_del = 4;
     for (i = 0; i < info->DIMENSION; i++)
     {
         fscanf(fp, "%d", &temp_i);
         info->disp_constraint_n[i] = temp_i;
 
-        fscanf(fp, "%d", &temp_i);
-        info->disp_constraint_n_del[i] = temp_i;
-
         for (j = 0; j < info->disp_constraint_n[i]; j++)
         {
             fscanf(fp, "%d", &temp_i);
             info->disp_constraint_face_edge_n[i * info->MAX_DISP_CONSTRAINT + j] = temp_i;
+
+            fscanf(fp, "%d", &temp_i);
+            info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT + j] = temp_i;
 
             fscanf(fp, "%lf", &temp_d);
             info->disp_constraint_amount[i * info->MAX_DISP_CONSTRAINT + j] = temp_d;
@@ -407,26 +391,19 @@ void Get_inputdata_boundary_1(char *filename, information *info)
                 info->disp_constraint[i * a + j * b + k * c + 2] = temp_i;
             }
 
-        }
-
-        for (j = 0; j < info->disp_constraint_n_del[i]; j++)
-        {
-            fscanf(fp, "%d", &temp_i);
-            info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT_DEL + j] = temp_i;
-
-            fscanf(fp, "%lf", &temp_d);
-            info->disp_constraint_amount_del[i * info->MAX_DISP_CONSTRAINT_DEL + j] = temp_d;
-
-            for (k = 0; k < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT_DEL + j]; k++)
+            for (k = 0; k < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT + j]; k++)
             {
                 fscanf(fp, "%d", &temp_i);
-                info->disp_constraint_del[i * a_del + j * b_del + k * c + 0] = temp_i;
+                info->disp_constraint_del[i * a_del + j * b_del + k * c_del + 3] = temp_i;
 
                 fscanf(fp, "%d", &temp_i);
-                info->disp_constraint_del[i * a_del + j * b_del + k * c + 1] = temp_i;
+                info->disp_constraint_del[i * a_del + j * b_del + k * c_del + 0] = temp_i;
 
                 fscanf(fp, "%d", &temp_i);
-                info->disp_constraint_del[i * a_del + j * b_del + k * c + 2] = temp_i;
+                info->disp_constraint_del[i * a_del + j * b_del + k * c_del + 1] = temp_i;
+
+                fscanf(fp, "%d", &temp_i);
+                info->disp_constraint_del[i * a_del + j * b_del + k * c_del + 2] = temp_i;
             }
         }
 
@@ -1823,13 +1800,16 @@ void Output_SVG(const information *info)
 }
 
 
-// heap sort
-void Sort(int n, information *info)
+// delete and heap sort
+void Delete_and_Sort(int n, information *info)
 {
-    int i, j, k, l;
+    int i, j, k, l, m;
     int a = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int b = info->MAX_DISP_CONSTRAINT_FACE_EDGE * 3;
     int c = 3;
+    int a_del = info->MAX_DISP_CONSTRAINT * info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 4;
+    int b_del = info->MAX_DISP_CONSTRAINT_FACE_EDGE_DEL * 4;
+    int c_del = 4;
     int temp = 0;
 
     if (info->DIMENSION == 2)
@@ -1882,7 +1862,22 @@ void Sort(int n, information *info)
     }
 
     temp = 0;
+    for (i = 0; i < info->DIMENSION; i++)
+    {
+        for (j = 0; j < info->disp_constraint_n[i]; j++)
+        {
+            for (k = 0; k < info->disp_constraint_face_edge_n[i * info->MAX_DISP_CONSTRAINT + j]; k++)
+            {
+                temp++;
+            }
+        }
+    }
 
+    int *check_array_l = (int *)malloc(sizeof(int) * temp);
+    int *check_array_l_del = (int *)calloc(temp, sizeof(int));
+    int *temp_check_array_l_del = (int *)malloc(sizeof(int) * temp);
+
+    temp = 0;
     if (info->DIMENSION == 2)
     {
         for (i = 0; i < info->DIMENSION; i++)
@@ -1891,6 +1886,98 @@ void Sort(int n, information *info)
             {
                 for (k = 0; k < info->disp_constraint_face_edge_n[i * info->MAX_DISP_CONSTRAINT + j]; k++)
                 {
+                    int patch_num = info->disp_constraint[i * a + j * b + k * c + 0];
+                    if (info->disp_constraint[i * a + j * b + k * c + 1] == 0)
+                    {
+                        check_array_l[temp] = info->CP_info[patch_num * info->DIMENSION + 1];
+                    }
+                    else if (info->disp_constraint[i * a + j * b + k * c + 1] == 1)
+                    {
+                        check_array_l[temp] = info->CP_info[patch_num * info->DIMENSION];
+                    }
+
+                    for (l = 0; l < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT + j]; l++)
+                    {
+                        if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 3] == k)
+                        {
+                            int patch_num_del = info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0];
+                            if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0)
+                            {
+                                check_array_l_del[temp] += info->CP_info[patch_num_del * info->DIMENSION + 1];
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1)
+                            {
+                                check_array_l_del[temp] += info->CP_info[patch_num_del * info->DIMENSION];
+                            }
+                        }
+                    }
+                    temp++;
+                }
+            }
+        }
+    }
+    else if (info->DIMENSION == 3)
+    {
+        for (i = 0; i < info->DIMENSION; i++)
+        {
+            for (j = 0; j < info->disp_constraint_n[i]; j++)
+            {
+                for (k = 0; k < info->disp_constraint_face_edge_n[i * info->MAX_DISP_CONSTRAINT + j]; k++)
+                {
+                    int patch_num = info->disp_constraint[i * a + j * b + k * c + 0];
+                    if (info->disp_constraint[i * a + j * b + k * c + 1] == 0)
+                    {
+                        check_array_l[temp] = info->CP_info[patch_num * info->DIMENSION + 1] * info->CP_info[patch_num * info->DIMENSION + 2];
+                    }
+                    else if (info->disp_constraint[i * a + j * b + k * c + 1] == 1)
+                    {
+                        check_array_l[temp] = info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 2];
+                    }
+                    else if (info->disp_constraint[i * a + j * b + k * c + 1] == 2)
+                    {
+                        check_array_l[temp] = info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 1];
+                    }
+
+                    for (l = 0; l < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT + j]; l++)
+                    {
+                        if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 3] == k)
+                        {
+                            int patch_num_del = info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0];
+                            if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0)
+                            {
+                                check_array_l_del[temp] += info->CP_info[patch_num_del * info->DIMENSION + 1] * info->CP_info[patch_num_del * info->DIMENSION + 2];;
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1)
+                            {
+                                check_array_l_del[temp] += info->CP_info[patch_num_del * info->DIMENSION] * info->CP_info[patch_num_del * info->DIMENSION + 2];
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 2)
+                            {
+                                check_array_l_del[temp] += info->CP_info[patch_num_del * info->DIMENSION] * info->CP_info[patch_num_del * info->DIMENSION + 1];
+                            }
+                        }
+                    }
+                    temp++;
+                }
+            }
+        }
+    }
+
+    temp = 0;
+    int temp_count = 0, temp_l = 0;
+    if (info->DIMENSION == 2)
+    {
+        for (i = 0; i < info->DIMENSION; i++)
+        {
+            for (j = 0; j < info->disp_constraint_n[i]; j++)
+            {
+                for (k = 0; k < info->disp_constraint_face_edge_n[i * info->MAX_DISP_CONSTRAINT + j]; k++)
+                {
+                    int *temp_Boundary = (int *)malloc(sizeof(int) * check_array_l[temp_count]);
+                    int *temp_Boundary_del = (int *)malloc(sizeof(int) * check_array_l_del[temp_count]);
+                    int *temp_Boundary_del_result = (int *)malloc(sizeof(int) * check_array_l_del[temp_count]);
+                    int temp_a = 0, temp_b = 0;
+
                     int A_to_here = 0;
                     for (l = 0; l < info->disp_constraint[i * a + j * b + k * c + 0]; l++)
                     {
@@ -1915,19 +2002,83 @@ void Sort(int n, information *info)
                     {
                         for (l = 0; l < info->CP_info[info->disp_constraint[i * a + j * b + k * c + 0] * info->DIMENSION + 1]; l++)
                         {
-                            info->Boundary[temp] = info->A[A_to_here + l];
-                            temp++;
+                            temp_Boundary[temp_a] = info->A[A_to_here + l];
+                            temp_a++;
                         }
                     }
                     else if (info->disp_constraint[i * a + j * b + k * c + 1] == 1)
                     {
                         for (l = 0; l < info->CP_info[info->disp_constraint[i * a + j * b + k * c + 0] * info->DIMENSION]; l++)
                         {
-                            info->Boundary[temp] = info->A[A_to_here + l];
-                            temp++;
+                            temp_Boundary[temp_a] = info->A[A_to_here + l];
+                            temp_a++;
                         }
                     }
+
+                    for (l = 0; l < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT + j]; l++)
+                    {
+                        if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 3] == k)
+                        {
+                            int A_to_here_del = 0;
+                            for (m = 0; m < info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0]; m++)
+                            {
+                                A_to_here_del += 2 * (info->CP_info[m * info->DIMENSION] + info->CP_info[m * info->DIMENSION + 1]);
+                            }
+
+                            // if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 0) は何もしない
+                            if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 1)
+                            {
+                                A_to_here_del += info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION];
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 1)
+                            {
+                                A_to_here_del += info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION] + info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION + 1];
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 0)
+                            {
+                                A_to_here_del += 2 * info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION] + info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION + 1];
+                            }
+
+                            if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0)
+                            {
+                                for (m = 0; m < info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION + 1]; m++)
+                                {
+                                    temp_Boundary_del[temp_b] = info->A[A_to_here_del + m];
+                                    temp_b++;
+                                }
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1)
+                            {
+                                for (m = 0; m < info->CP_info[info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0] * info->DIMENSION]; m++)
+                                {
+                                    temp_Boundary_del[temp_b] = info->A[A_to_here_del + m];
+                                    temp_b++;
+                                }
+                            }
+                        }
+                    }
+
+                    heapSort(temp_Boundary, check_array_l[temp_count]);
+                    heapSort(temp_Boundary_del, check_array_l_del[temp_count]);
+
+                    int before_l = check_array_l[temp_count];
+                    if (check_array_l_del[temp_count] != 0)
+                    {
+                        Dedupe_for_del(temp_Boundary_del, check_array_l_del[temp_count], temp_Boundary_del_result, &temp_check_array_l_del[temp_count]);
+                        Delete(temp_Boundary, check_array_l, temp_Boundary_del_result, temp_check_array_l_del[temp_count], temp_count);
+                    }
+
+                    for (l = 0; l < check_array_l[temp_count]; l++)
+                    {
+                        info->Boundary[temp] = temp_Boundary[l];
+                        temp++;
+                    }
+
+                    info->length_before[temp_l] -= (before_l - check_array_l[temp_count]);
+
+                    temp_count++;
                 }
+                temp_l++;
             }
         }
     }
@@ -1939,6 +2090,11 @@ void Sort(int n, information *info)
             {
                 for (k = 0; k < info->disp_constraint_face_edge_n[i * info->MAX_DISP_CONSTRAINT + j]; k++)
                 {
+                    int *temp_Boundary = (int *)malloc(sizeof(int) * check_array_l[temp_count]);
+                    int *temp_Boundary_del = (int *)malloc(sizeof(int) * check_array_l_del[temp_count]);
+                    int *temp_Boundary_del_result = (int *)malloc(sizeof(int) * check_array_l_del[temp_count]);
+                    int temp_a = 0, temp_b = 0;
+
                     int A_to_here = 0;
                     for (l = 0; l < info->disp_constraint[i * a + j * b + k * c + 0]; l++)
                     {
@@ -1979,27 +2135,115 @@ void Sort(int n, information *info)
                     {
                         for (l = 0; l < info->CP_info[patch_num * info->DIMENSION + 1] * info->CP_info[patch_num * info->DIMENSION + 2]; l++)
                         {
-                            info->Boundary[temp] = info->A[A_to_here + l];
-                            temp++;
+                            temp_Boundary[temp_a] = info->A[A_to_here + l];
+                            temp_a++;
                         }
                     }
                     else if (info->disp_constraint[i * a + j * b + k * c + 1] == 1)
                     {
                         for (l = 0; l < info->CP_info[patch_num * info->DIMENSION + 0] * info->CP_info[patch_num * info->DIMENSION + 2]; l++)
                         {
-                            info->Boundary[temp] = info->A[A_to_here + l];
-                            temp++;
+                            temp_Boundary[temp_a] = info->A[A_to_here + l];
+                            temp_a++;
                         }
                     }
                     else if (info->disp_constraint[i * a + j * b + k * c + 1] == 2)
                     {
                         for (l = 0; l < info->CP_info[patch_num * info->DIMENSION] * info->CP_info[patch_num * info->DIMENSION + 1]; l++)
                         {
-                            info->Boundary[temp] = info->A[A_to_here + l];
-                            temp++;
+                            temp_Boundary[temp_a] = info->A[A_to_here + l];
+                            temp_a++;
                         }
                     }
+
+                    for (l = 0; l < info->disp_constraint_face_edge_n_del[i * info->MAX_DISP_CONSTRAINT + j]; l++)
+                    {
+                        if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 3] == k)
+                        {
+                            int A_to_here_del = 0;
+                            for (m = 0; m < info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0]; m++)
+                            {
+                                A_to_here_del += 2 * (info->CP_info[m * info->DIMENSION] * info->CP_info[m * info->DIMENSION + 1] + info->CP_info[m * info->DIMENSION + 1] * info->CP_info[m * info->DIMENSION + 2] + info->CP_info[m * info->DIMENSION] * info->CP_info[m * info->DIMENSION + 2]);
+                            }
+
+                            int patch_num_del = info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 0];
+                            int temp1, temp2, temp3, temp4, temp5;
+                            temp1 =         info->CP_info[patch_num_del * info->DIMENSION] * info->CP_info[patch_num_del * info->DIMENSION + 1];
+                            temp2 = temp1 + info->CP_info[patch_num_del * info->DIMENSION] * info->CP_info[patch_num_del * info->DIMENSION + 1];
+                            temp3 = temp2 + info->CP_info[patch_num_del * info->DIMENSION + 1] * info->CP_info[patch_num_del * info->DIMENSION + 2];
+                            temp4 = temp3 + info->CP_info[patch_num_del * info->DIMENSION] * info->CP_info[patch_num_del * info->DIMENSION + 2];
+                            temp5 = temp4 + info->CP_info[patch_num_del * info->DIMENSION + 1] * info->CP_info[patch_num_del * info->DIMENSION + 2];
+
+                            // if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 2 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 0) は何もしない
+                            if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 2 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 1)
+                            {
+                                A_to_here_del += temp1;
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 0)
+                            {
+                                A_to_here_del += temp3;
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 1)
+                            {
+                                A_to_here_del += temp5;
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 0)
+                            {
+                                A_to_here_del += temp2;
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0 && info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 2] == 1)
+                            {
+                                A_to_here_del += temp4;
+                            }
+
+                            if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 0)
+                            {
+                                for (m = 0; m < info->CP_info[patch_num_del * info->DIMENSION + 1] * info->CP_info[patch_num_del * info->DIMENSION + 2]; m++)
+                                {
+                                    temp_Boundary_del[temp_b] = info->A[A_to_here_del + m];
+                                    temp_b++;
+                                }
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 1)
+                            {
+                                for (m = 0; m < info->CP_info[patch_num_del * info->DIMENSION + 0] * info->CP_info[patch_num_del * info->DIMENSION + 2]; m++)
+                                {
+                                    temp_Boundary_del[temp_b] = info->A[A_to_here_del + m];
+                                    temp_b++;
+                                }
+                            }
+                            else if (info->disp_constraint_del[i * a_del + j * b_del + l * c_del + 1] == 2)
+                            {
+                                for (m = 0; m < info->CP_info[patch_num_del * info->DIMENSION] * info->CP_info[patch_num_del * info->DIMENSION + 1]; m++)
+                                {
+                                    temp_Boundary_del[temp_b] = info->A[A_to_here_del + m];
+                                    temp_b++;
+                                }
+                            }
+                        }
+                    }
+
+                    heapSort(temp_Boundary, check_array_l[temp_count]);
+                    heapSort(temp_Boundary_del, check_array_l_del[temp_count]);
+
+                    int before_l = check_array_l[temp_count];
+                    if (check_array_l_del[temp_count] != 0)
+                    {
+                        Dedupe_for_del(temp_Boundary_del, check_array_l_del[temp_count], temp_Boundary_del_result, &temp_check_array_l_del[temp_count]);
+                        Delete(temp_Boundary, check_array_l, temp_Boundary_del_result, temp_check_array_l_del[temp_count], temp_count);
+                    }
+
+                    for (l = 0; l < check_array_l[temp_count]; l++)
+                    {
+                        info->Boundary[temp] = temp_Boundary[l];
+                        temp++;
+                    }
+
+                    info->length_before[temp_l] -= (before_l - check_array_l[temp_count]);
+
+                    temp_count++;
                 }
+                temp_l++;
             }
         }
     }
@@ -2051,6 +2295,8 @@ void Sort(int n, information *info)
         temp += info->length_before[i];
     }
     printf("\n");
+
+    free(check_array_l), free(check_array_l_del), free(temp_check_array_l_del);
 }
 
 
@@ -2254,4 +2500,67 @@ void Dedupe(int *a, int *num, int *a_new, int *num_new, int n)
     temp_length++;
 
     num_new[n] = temp_length;
+}
+
+
+void Dedupe_for_del(int *a, int num, int *a_new, int *num_new)
+{
+    int i;
+    int temp_to_here = 0;
+    int temp_length = 0;
+
+    for (i = 0; i < num - 1; i++)
+    {
+        if (a[i] < a[i + 1])
+        {
+            a_new[temp_to_here] = a[i];
+            temp_to_here++;
+            temp_length++;
+        }
+    }
+    a_new[temp_to_here] = a[num - 1];
+    temp_length++;
+
+    *num_new = temp_length;
+}
+
+
+void Delete(int *a, int *l, int *a_del, int l_del, int n)
+{
+    int counter = 0, counter_del = 0, counter_new = 0;
+    
+    for (;;)
+    {
+        if (counter_del < l_del)
+        {
+            if (a[counter] == a_del[counter_del])
+            {
+                counter++;
+                counter_del++;
+            }
+            else if (a[counter] > a_del[counter_del])
+            {
+                counter_del++;
+            }
+            else if (a[counter] < a_del[counter_del])
+            {
+                a[counter_new] = a[counter];
+                counter++;
+                counter_new++;
+            }
+        }
+        else if (counter < l[n])
+        {
+            a[counter_new] = a[counter];
+            counter++;
+            counter_new++;
+        }
+
+        if (counter == l[n])
+        {
+            break;
+        }
+    }
+
+    l[n] = counter_new;
 }

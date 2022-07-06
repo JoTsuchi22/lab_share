@@ -390,7 +390,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 		for (i = 0; i < Total_DistributeForce; i++)
 		{
 			fscanf(fp, "%d %d %d %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &val_Coord, &Range_Coord[0], &Range_Coord[1], &Coeff_Dist_Load[0], &Coeff_Dist_Load[1], &Coeff_Dist_Load[2]);
-			printf("Distibuted load nober: %d\n", i);
+			printf("Distibuted load number: %d\n", i);
 			printf("type_load: %d iPatch: %d iCoord: %d val_Coord: %le Range_Coord: %le %le\nCoef_Dist_Load: %le %le %le\n",
 					type_load, iPatch, iCoord, val_Coord, Range_Coord[0], Range_Coord[1], Coeff_Dist_Load[0], Coeff_Dist_Load[1], Coeff_Dist_Load[2]);
 
@@ -414,7 +414,7 @@ void Get_Input_2(int tm, char **argv, information *info)
 		for (i = 0; i < Total_DistributeForce; i++)
 		{
 			fscanf(fp, "%d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &type_load, &iPatch, &iCoord, &jCoord, &val_Coord, &iRange_Coord[0], &iRange_Coord[1], &jRange_Coord[0], &jRange_Coord[1], &iCoeff_Dist_Load[0], &iCoeff_Dist_Load[1], &iCoeff_Dist_Load[2], &jCoeff_Dist_Load[0], &jCoeff_Dist_Load[1], &jCoeff_Dist_Load[2]);
-			printf("Distibuted load nober: %d\n", i);
+			printf("Distibuted load number: %d\n", i);
 			printf("type_load: %d iPatch: %d iCoord: %d jCoord: %d val_Coord: %le\nRange_Coord: %le %le %le %le\nCoef_Dist_Load: %le %le %le %le %le %le\n",
 					type_load, iPatch, iCoord, jCoord, val_Coord,
 					iRange_Coord[0], iRange_Coord[1], jRange_Coord[0], jRange_Coord[1],
@@ -1238,7 +1238,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 			e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_over]];
 
-			if (m == 0 || (m == 1 && info->NNLOVER[e] >= 2))
+			if (m == 0 || (m == 1 && info->NNLOVER[e] >= 2 && MODE_EX == 0))
 			{
 				cout << "m = " << m << ", loc = " << e << " / " << info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1] << endl;
 
@@ -2536,11 +2536,11 @@ void Make_K_Whole_Val(information *info)
 
 		cout << "e = " << i << " / " << info->real_Total_Element_to_mesh[Total_mesh] << endl;
 
-		if (Total_mesh == 1) // IGA
+		if (Total_mesh == 1 && re == 0) // IGA
 		{
 			Make_gauss_array(0, info);
 		}
-		else if (Total_mesh >= 2) // S-IGA
+		else if (Total_mesh >= 2 && MODE_EX == 0) // S-IGA
 		{
 			if (info->Element_mesh[i] == 0 && re == 0)
 			{
@@ -2557,6 +2557,10 @@ void Make_K_Whole_Val(information *info)
 					Make_gauss_array(1, info);
 				}
 			}
+		}
+		else if (MODE_EX == 1 && re == 0)
+		{
+			Make_gauss_array(0, info);
 		}
 
 		// 各要素のK_ELを求める
@@ -10798,6 +10802,10 @@ void Make_info_for_viewer(information *info)
 				ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
 				element_glo = temp_element_n[0];
 
+				// cout << "ele = " << element_glo << endl;;
+				// cout << "parameter" << endl;;
+				// cout << temp_para_glo[0] << " " << temp_para_glo[1] << " " << temp_para_glo[2] << endl;
+
 				// 親要素座標の算出
 				temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
 						 		  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
@@ -10805,6 +10813,9 @@ void Make_info_for_viewer(information *info)
 								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
 				temp_point_glo[2] = - 1.0 + 2.0 * (temp_para_glo[2] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]])
 								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]]);
+			
+				// cout << "tilde" << endl;;
+				// cout << temp_point_glo[0] << " " << temp_point_glo[1] << " " << temp_point_glo[2] << endl;
 			}
 
 			// BG matrix

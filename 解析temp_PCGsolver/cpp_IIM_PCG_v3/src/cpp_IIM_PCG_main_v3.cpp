@@ -288,7 +288,7 @@ int main(int argc, char **argv)
 	printf("\nFinish Make_Displacement\n\n");
 
 	// ガウス点での値
-	if (CALC_ON_GP == 1)
+	if (CALC_ON_GP == 0)
 	{
 		Make_Strain(&info);
 		printf("\nFinish Make_Strain\n\n");
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 	}
 
 	// Kマトリックスのsvg出力
-	if (OUTPUT_SVG == 1)
+	if (OUTPUT_SVG == 0)
 	{
 		K_output_svg(&info);
 		printf("\nFinish K_output_svg\n\n");
@@ -415,7 +415,7 @@ int main(int argc, char **argv)
 	}
 
 	// S-IGA のポスト処理 (for NURBS viewer)
-	if ((info.DIMENSION == 2 && SKIP_S_IGA != 1) && SKIP_NV == 0)
+	if ((info.DIMENSION == 2 && SKIP_S_IGA != 1) && SKIP_NV == 1)
 	{
 		printf("\nStart S_IGA overlay\n\n");
 		start[1] = chrono::system_clock::now();
@@ -427,7 +427,7 @@ int main(int argc, char **argv)
 		printf("\nS-IGA overlay time: %.3f[s]\n\n", time);
 		printf("\nFinish S_IGA overlay\n\n");
 	}
-	else if ((info.DIMENSION == 2 && SKIP_S_IGA == 1) || SKIP_NV == 1)
+	else if ((info.DIMENSION == 2 && SKIP_S_IGA == 1) || SKIP_NV == 0)
 	{
 		printf("\nSKIP_S_IGA = 1, skip S-IGA\n\n");
 	}
