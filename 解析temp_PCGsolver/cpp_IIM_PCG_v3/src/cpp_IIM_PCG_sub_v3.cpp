@@ -10802,10 +10802,6 @@ void Make_info_for_viewer(information *info)
 				ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
 				element_glo = temp_element_n[0];
 
-				// cout << "ele = " << element_glo << endl;;
-				// cout << "parameter" << endl;;
-				// cout << temp_para_glo[0] << " " << temp_para_glo[1] << " " << temp_para_glo[2] << endl;
-
 				// 親要素座標の算出
 				temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
 						 		  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
@@ -10813,9 +10809,6 @@ void Make_info_for_viewer(information *info)
 								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
 				temp_point_glo[2] = - 1.0 + 2.0 * (temp_para_glo[2] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]])
 								  / (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]]);
-			
-				// cout << "tilde" << endl;;
-				// cout << temp_point_glo[0] << " " << temp_point_glo[1] << " " << temp_point_glo[2] << endl;
 			}
 
 			// BG matrix
