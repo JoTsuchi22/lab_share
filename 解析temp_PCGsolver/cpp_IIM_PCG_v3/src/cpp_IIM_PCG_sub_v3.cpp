@@ -10876,6 +10876,6 @@ void Make_info_for_viewer(information *info)
 		}
 
 		// von Mises stress
-
+		
 	}
 }
