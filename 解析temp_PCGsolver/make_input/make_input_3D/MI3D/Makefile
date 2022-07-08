@@ -9,7 +9,10 @@ run0:	MI3D
 	cd ./textfile && ../src/S_IGA_MI3D.x ../textfile/test_MI3D_00.txt ../textfile/test_MI3D_01.txt ../textfile/test_MI3D_02.txt
 
 run1:	MI3D
-	cd ./textfile && ../src/S_IGA_MI3D.x ../textfile/test_MC3D_00.txt ../textfile/test_MC3D_01.txt ../textfile/test_MC3D_02.txt ../textfile/test_MC3D_03.txt
+	cd ./textfile && ../src/S_IGA_MI3D.x ../textfile/test_singular.txt
 
 run2:	MI3D
-	cd ./textfile && ../src/S_IGA_MI3D.x ../textfile/test_singular.txt
+	cd ./textfile && ../src/S_IGA_MI3D.x ../textfile/test_s.txt
+
+run3:	MI3D
+	cd ./textfile && ../src/S_IGA_MI3D.x ../textfile/test_ss.txt

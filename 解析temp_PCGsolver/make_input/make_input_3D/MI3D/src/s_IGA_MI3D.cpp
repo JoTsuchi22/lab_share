@@ -1,9 +1,12 @@
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
 
 #include "header_MI3D.h"
+
+using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -113,7 +116,15 @@ int main(int argc, char **argv)
             }
             else if (info_glo.mode == 1)
             {
-                KI_cp(j, &info_glo, info);
+                // オープンノットベクトル
+                if (info[j].knot_n == 2 * (info[j].Order + 1))
+                {
+                    KI_cp(j, &info_glo, info);
+                }
+                else
+                {
+                    KI_cp_not_open_knot_vec(j, &info_glo, info);
+                }
             }
         }
 
@@ -162,7 +173,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     {
         fscanf(fp, "%d", &temp_i);
         info[j].Order = temp_i;
-        info[j].Order_before = temp_i;
     }
     fgets(s, 256, fp);
 
@@ -180,7 +190,6 @@ void Get_InputData_1(char *filename, info_global *info_glo, info_each_DIMENSION 
     {
         fscanf(fp, "%d", &temp_i);
         info[j].CP_n = temp_i;
-        info[j].CP_n_before = temp_i;
         info_glo->Total_Control_Point *= temp_i;
     }
     fgets(s, 256, fp);
@@ -578,12 +587,12 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
     }
     info[insert_axis].CP_n += insert_knot_n;
     info[insert_axis].knot_n += insert_knot_n;
-    int temp_CP = 1;
+    int temp_CP_n = 1;
     for (i = 0; i < info_glo->DIMENSION; i++)
     {
-        temp_CP *= info[i].CP_n;
+        temp_CP_n *= info[i].CP_n;
     }
-    info_glo->Total_Control_Point = temp_CP;
+    info_glo->Total_Control_Point = temp_CP_n;
     for (i = 0; i < info_glo->Total_Control_Point; i++)
     {
         for (j = 0; j < info_glo->DIMENSION; j++)
@@ -734,8 +743,7 @@ void KI_calc_T_1D(int insert_axis, int insert_knot_n, info_global *info_glo, inf
 void KI_cp(int insert_axis, info_global *info_glo, info_each_DIMENSION *info)
 {
     int i;
-    int cp_n_after_OE = info[insert_axis].CP_n_before + info[insert_axis].OE_n * (info[insert_axis].CP_n_before - info[insert_axis].Order_before);
-    int insert_knot_n = info[insert_axis].KI_cp_n - cp_n_after_OE;
+    int insert_knot_n = info[insert_axis].KI_cp_n - info[insert_axis].CP_n;
     double *insert_knot_in_KI = (double *)malloc(sizeof(double) * insert_knot_n);
 
     for (i = 0; i < insert_knot_n; i++)
@@ -743,6 +751,30 @@ void KI_cp(int insert_axis, info_global *info_glo, info_each_DIMENSION *info)
         insert_knot_in_KI[i] = (i + 1.0) / (insert_knot_n + 1.0);
     }
     KI_non_uniform(insert_axis, insert_knot_n, insert_knot_in_KI, info_glo, info);
+
+    free(insert_knot_in_KI);
+}
+
+
+void KI_cp_not_open_knot_vec(int insert_axis, info_global *info_glo, info_each_DIMENSION *info)
+{
+    int i;
+    int insert_knot_n = info[insert_axis].KI_cp_n - (info[insert_axis].CP_n - (info[insert_axis].knot_n - 2 * (info[insert_axis].Order + 1)));
+    int removal_knot_n = info[insert_axis].knot_n - 2 * (info[insert_axis].Order + 1);
+    double *insert_knot_in_KI = (double *)malloc(sizeof(double) * insert_knot_n);
+    double *removal_knot_in_KI = (double *)malloc(sizeof(double) * removal_knot_n);
+
+    for (i = 0; i < insert_knot_n; i++)
+    {
+        insert_knot_in_KI[i] = (i + 1.0) / (insert_knot_n + 1.0);
+    }
+    for (i = 0; i < removal_knot_n; i++)
+    {
+        removal_knot_in_KI[i] = info[insert_axis].KV[i + info[insert_axis].Order + 1];
+    }
+
+    KI_non_uniform(insert_axis, insert_knot_n, insert_knot_in_KI, info_glo, info);
+    KR_non_uniform(insert_axis, removal_knot_n, removal_knot_in_KI, info_glo, info);
 
     free(insert_knot_in_KI);
 }
@@ -823,7 +855,7 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
             Calc_Bezier(elevation_axis, info_glo, info, &w, DIM);
 
             // update
-            int temp_CP_n = info[elevation_axis].OE_n * (info[elevation_axis].CP_n - info[elevation_axis].Order);
+            int temp_CP_n = info[elevation_axis].OE_n * ((info[elevation_axis].CP_n - 1) / info[elevation_axis].Order);
             for (j = 0; j < info[elevation_axis].CP_n + temp_CP_n; j++)
             {
                 int temp = 0;
@@ -922,7 +954,7 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
                 Calc_Bezier(elevation_axis, info_glo, info, &w, DIM);
 
                 // update
-                int temp_CP_n = info[elevation_axis].OE_n * (info[elevation_axis].CP_n - info[elevation_axis].Order);
+                int temp_CP_n = info[elevation_axis].OE_n * ((info[elevation_axis].CP_n - 1) / info[elevation_axis].Order);
                 for (k = 0; k < info[elevation_axis].CP_n + temp_CP_n; k++)
                 {
                     int temp = 0;
@@ -955,14 +987,14 @@ void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info)
     }
 
     // update
-    info[elevation_axis].CP_n += info[elevation_axis].OE_n * (info[elevation_axis].CP_n - info[elevation_axis].Order);
+    info[elevation_axis].CP_n += info[elevation_axis].OE_n * ((info[elevation_axis].CP_n - 1) / info[elevation_axis].Order);
     info[elevation_axis].Order += info[elevation_axis].OE_n;
-    int temp_CP = 1;
+    int temp_CP_n = 1;
     for (i = 0; i < info_glo->DIMENSION; i++)
     {
-        temp_CP *= info[i].CP_n;
+        temp_CP_n *= info[i].CP_n;
     }
-    info_glo->Total_Control_Point = temp_CP;
+    info_glo->Total_Control_Point = temp_CP_n;
     for (i = 0; i < info_glo->Total_Control_Point; i++)
     {
         for (j = 0; j < info_glo->DIMENSION; j++)
@@ -1062,7 +1094,7 @@ void Calc_insert_knot_in_OE(int elevation_axis, int *insert_knot_n, double *inse
         }
     }
 
-    int temp3 = 0;
+    int temp3 = 0, temp4 = 0, temp_count = 0;
     for (i = 0; i < temp1; i++)
     {
         int temp2 = 0;
@@ -1073,48 +1105,48 @@ void Calc_insert_knot_in_OE(int elevation_axis, int *insert_knot_n, double *inse
                 temp2++;
             }
         }
-        if (temp2 < n)
-        {
-            vec_temp1[temp3] = vec_unique[i];
-            temp3++;
-        }
-    }
 
-    int temp4 = 0;
-    if (n - 2 > 0)
-    {
-        for (i = 0; i < temp3; i++)
+        temp_count = temp2;
+        for (;;)
         {
-            for (j = 0; j < n - 1; j++)
+            if (temp_count < n)
             {
-                vec_temp2[temp4] = vec_temp1[j];
+                vec_temp1[temp3] = vec_unique[i];
+                temp3++;
+                temp_count++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        temp_count = temp2;
+        for (;;)
+        {
+            if (temp_count < n + info[elevation_axis].OE_n)
+            {
+                vec_temp2[temp4] = vec_unique[i];
                 temp4++;
+                temp_count++;
+            }
+            else
+            {
+                break;
             }
         }
     }
 
-    if (n - 2 > 0)
-    {
-        for (i = 0; i < temp4; i++)
-        {
-            insert_knot[i] = vec_temp2[i];
-        }
-        *insert_knot_n = temp4;
-    }
-    else
-    {
-        for (i = 0; i < temp3; i++)
-        {
-            insert_knot[i] = vec_temp1[i];
-        }
-        *insert_knot_n = temp3;
-    }
-
     for (i = 0; i < temp3; i++)
     {
-        removal_knot[i] = vec_temp1[i];
+        insert_knot[i] = vec_temp1[i];
     }
-    *removal_knot_n = temp3;
+    *insert_knot_n = temp3;
+
+    for (i = 0; i < temp4; i++)
+    {
+        removal_knot[i] = vec_temp2[i];
+    }
+    *removal_knot_n = temp4;
 
     free(vec_temp1), free(vec_temp2), free(vec_unique);
 }
@@ -1318,7 +1350,7 @@ void Calc_Bezier(int elevation_axis, info_global *info_glo, info_each_DIMENSION 
     int counter = 1;
     int n = info[elevation_axis].Order;
     int l = info[elevation_axis].CP_n;
-    int number_of_Bezier_line = l - n;
+    int number_of_Bezier_line = (l - 1) / n;
     int *temp_Bezier_array = (int *)malloc(sizeof(int) * number_of_Bezier_line);
 
     for (i = 0; i < number_of_Bezier_line; i++)
@@ -1546,12 +1578,12 @@ void KR_non_uniform(int removal_axis, int removal_knot_n, double *removal_knot, 
     }
     info[removal_axis].CP_n -= removal_knot_n;
     info[removal_axis].knot_n -= removal_knot_n;
-    int temp_CP = 1;
+    int temp_CP_n = 1;
     for (i = 0; i < info_glo->DIMENSION; i++)
     {
-        temp_CP *= info[i].CP_n;
+        temp_CP_n *= info[i].CP_n;
     }
-    info_glo->Total_Control_Point = temp_CP;
+    info_glo->Total_Control_Point = temp_CP_n;
     for (i = 0; i < info_glo->Total_Control_Point; i++)
     {
         for (j = 0; j < info_glo->DIMENSION; j++)

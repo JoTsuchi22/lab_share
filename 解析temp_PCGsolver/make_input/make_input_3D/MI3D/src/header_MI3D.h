@@ -14,8 +14,6 @@ struct info_global {
 struct info_each_DIMENSION {
     int CP_n;
     int Order;
-    int CP_n_before;
-    int Order_before;
     int OE_n;
     int knot_n;
     int KI_cp_n;
@@ -41,6 +39,7 @@ void KI_non_uniform(int insert_axis, int insert_knot_n, double *insert_knot_in_K
 void KI_calc_knot_1D(int insert_axis, int insert_knot_n, double *insert_knot_in_KI, info_each_DIMENSION *info);
 void KI_calc_T_1D(int insert_axis, int insert_knot_n, info_global *info_glo, info_each_DIMENSION *info, line_coordinate *w, line_coordinate *DIM);
 void KI_cp(int insert_axis, info_global *info_glo, info_each_DIMENSION *info);
+void KI_cp_not_open_knot_vec(int insert_axis, info_global *info_glo, info_each_DIMENSION *info);
 // Order Elevation
 void OE(int elevation_axis, info_global *info_glo, info_each_DIMENSION *info);
 void Calc_insert_knot_in_OE(int elevation_axis, int *insert_knot_n, double *insert_knot, int *removal_knot_n, double *removal_knot, info_each_DIMENSION *info);
