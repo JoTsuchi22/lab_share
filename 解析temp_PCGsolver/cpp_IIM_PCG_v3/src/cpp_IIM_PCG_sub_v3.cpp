@@ -8628,8 +8628,9 @@ void K_output_svg(information *info)
 // paraview
 void output_for_paraview(information *info)
 {
-	int i, j;
+	int i, j, k;
 	int point_on_element = 0;
+	int point_on_edge = 3;
 
 	int num = info->Total_Control_Point_to_mesh[Total_mesh];
 	int digit = 0;
@@ -8641,6 +8642,7 @@ void output_for_paraview(information *info)
 
 	Make_connectivity(info);
 	Make_info_for_viewer(info);
+	Make_boundary_line(info);
 
 	// global patch
 	char str_glo[256] = "global_patch.xmf";
@@ -8666,16 +8668,6 @@ void output_for_paraview(information *info)
 	fprintf(fp, "      </Topology>\n");
 
 	// Geometry
-	if (info->DIMENSION == 2)
-	{
-		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
-	}
-	else if (info->DIMENSION == 3)
-	{
-		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
-	}
-	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
-	fprintf(fp, "      </Geometry>\n");
 	if (info->DIMENSION == 2)
 	{
 		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
@@ -8794,6 +8786,97 @@ void output_for_paraview(information *info)
 		{
 			fprintf(fp, "\t\t\t\t%le %le %le\n", info->strain_at_connectivity[i * N_STRAIN + 0], info->strain_at_connectivity[i * N_STRAIN + 1], info->strain_at_connectivity[i * N_STRAIN + 2]);
 		}
+	}
+	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "    </Grid>\n");
+	fprintf(fp, "  </Domain>\n");
+	fprintf(fp, "</Xdmf>\n");
+
+	fclose(fp);
+
+	// global patch control point
+	char str_glo_cp[256] = "global_patch_control_point.xmf";
+	fp = fopen(str_glo_cp, "w");
+
+	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
+	fprintf(fp, "  <Domain>\n");
+	fprintf(fp, "    <Grid Name=\"ien\">\n");
+	fprintf(fp, "      <Topology TopologyType=\"Polyvertex\" NumberOfElements=\"%d\">\n", info->Total_Control_Point_to_mesh[1]);
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+	fprintf(fp, "      </Topology>\n");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+	}
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+	fprintf(fp, "      </Geometry>\n");
+	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[1], info->DIMENSION);
+	for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
+	{
+		fprintf(fp, "\t\t\t\t");
+		for (j = 0; j < info->DIMENSION; j++)
+		{
+			fprintf(fp, "%le ", info->Node_Coordinate[i * (info->DIMENSION + 1) + j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 1\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[1]);
+	for (i = 0; i < info->Total_Control_Point_to_mesh[1]; i++)
+	{
+		fprintf(fp, "\t\t\t\t%d\n", i);
+	}
+	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "    </Grid>\n");
+	fprintf(fp, "  </Domain>\n");
+	fprintf(fp, "</Xdmf>\n");
+
+	fclose(fp);
+
+	// global patch boundary line
+	char str_glo_bl[256] = "global_patch_boundary_line.xmf";
+	fp = fopen(str_glo_bl, "w");
+
+	fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+	fprintf(fp, "<Xdmf Version=\"2.0\">\n");
+	fprintf(fp, "  <Domain>\n");
+	fprintf(fp, "    <Grid Name=\"ien\">\n");
+	fprintf(fp, "      <Topology TopologyType=\"EDGE_3\" NumberOfElements=\"%d\">\n", Total_edge_glo);
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+	fprintf(fp, "      </Topology>\n");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+	}
+	fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+	fprintf(fp, "      </Geometry>\n");
+	fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", Total_edge_glo * point_on_edge, info->DIMENSION);
+	for (i = 0; i < Total_edge_glo; i++)
+	{
+		for (j = 0; j < point_on_edge; j++)
+		{
+			fprintf(fp, "\t\t\t\t");
+			for (k = 0; k < info->DIMENSION; k++)
+			{
+				fprintf(fp, "%le ", info->Edge_coord[i * point_on_edge * info->DIMENSION + j * info->DIMENSION + k]);
+			}
+			fprintf(fp, "\n");
+		}
+	}
+	fprintf(fp, "      </DataItem>\n");
+	fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", Total_edge_glo, point_on_edge);
+	for (i = 0; i < Total_edge_glo; i++)
+	{
+		fprintf(fp, "\t\t\t\t%*d %*d %*d\n", -digit, i * 3, -digit, i * 3 + 1, -digit, i * 3 + 2);
 	}
 	fprintf(fp, "      </DataItem>\n");
 	fprintf(fp, "    </Grid>\n");
@@ -8946,6 +9029,97 @@ void output_for_paraview(information *info)
 			{
 				fprintf(fp, "\t\t\t\t%le %le %le\n", info->strain_at_connectivity[i * N_STRAIN + 0], info->strain_at_connectivity[i * N_STRAIN + 1], info->strain_at_connectivity[i * N_STRAIN + 2]);
 			}
+		}
+		fprintf(fp, "      </DataItem>\n");
+		fprintf(fp, "    </Grid>\n");
+		fprintf(fp, "  </Domain>\n");
+		fprintf(fp, "</Xdmf>\n");
+
+		fclose(fp);
+
+		// local patch control point
+		char str_loc_cp[256] = "local_patch_control_point.xmf";
+		fp = fopen(str_loc_cp, "w");
+
+		fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+		fprintf(fp, "<Xdmf Version=\"2.0\">\n");
+		fprintf(fp, "  <Domain>\n");
+		fprintf(fp, "    <Grid Name=\"ien\">\n");
+		fprintf(fp, "      <Topology TopologyType=\"Polyvertex\" NumberOfElements=\"%d\">\n", info->Total_Control_Point_to_mesh[Total_mesh] - info->Total_Control_Point_to_mesh[1]);
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+		fprintf(fp, "      </Topology>\n");
+		if (info->DIMENSION == 2)
+		{
+			fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+		}
+		else if (info->DIMENSION == 3)
+		{
+			fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+		}
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+		fprintf(fp, "      </Geometry>\n");
+		fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[Total_mesh] - info->Total_Control_Point_to_mesh[1], info->DIMENSION);
+		for (i = info->Total_Control_Point_to_mesh[1]; i < info->Total_Control_Point_to_mesh[Total_mesh]; i++)
+		{
+			fprintf(fp, "\t\t\t\t");
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				fprintf(fp, "%le ", info->Node_Coordinate[i * (info->DIMENSION + 1) + j]);
+			}
+			fprintf(fp, "\n");
+		}
+		fprintf(fp, "      </DataItem>\n");
+		fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d 1\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", info->Total_Control_Point_to_mesh[Total_mesh] - info->Total_Control_Point_to_mesh[1]);
+		for (i = 0; i < info->Total_Control_Point_to_mesh[Total_mesh] - info->Total_Control_Point_to_mesh[1]; i++)
+		{
+			fprintf(fp, "\t\t\t\t%d\n", i);
+		}
+		fprintf(fp, "      </DataItem>\n");
+		fprintf(fp, "    </Grid>\n");
+		fprintf(fp, "  </Domain>\n");
+		fprintf(fp, "</Xdmf>\n");
+
+		fclose(fp);
+
+		// local patch boundary line
+		char str_loc_bl[256] = "local_patch_boundary_line.xmf";
+		fp = fopen(str_loc_bl, "w");
+
+		fprintf(fp, "<?xml version=\"1.0\" ?>\n");
+		fprintf(fp, "<Xdmf Version=\"2.0\">\n");
+		fprintf(fp, "  <Domain>\n");
+		fprintf(fp, "    <Grid Name=\"ien\">\n");
+		fprintf(fp, "      <Topology TopologyType=\"EDGE_3\" NumberOfElements=\"%d\">\n", Total_edge - Total_edge_glo);
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;ien&quot;]</DataItem>\n");
+		fprintf(fp, "      </Topology>\n");
+		if (info->DIMENSION == 2)
+		{
+			fprintf(fp, "      <Geometry GeometryType=\"XY\">\n");
+		}
+		else if (info->DIMENSION == 3)
+		{
+			fprintf(fp, "      <Geometry GeometryType=\"XYZ\">\n");
+		}
+		fprintf(fp, "        <DataItem Reference=\"XML\">/Xdmf/Domain/Grid/DataItem[@Name=&quot;xyz&quot;]</DataItem>\n");
+		fprintf(fp, "      </Geometry>\n");
+		fprintf(fp, "      <DataItem Name=\"xyz\" Dimensions=\"%d %d\" NumberType=\"Float\" Precision=\"8\" Format=\"XML\" Endian=\"Big\">\n", (Total_edge - Total_edge_glo) * point_on_edge, info->DIMENSION);
+		for (i = Total_edge_glo; i < Total_edge; i++)
+		{
+			for (j = 0; j < point_on_edge; j++)
+			{
+				fprintf(fp, "\t\t\t\t");
+				for (k = 0; k < info->DIMENSION; k++)
+				{
+					fprintf(fp, "%le ", info->Edge_coord[i * point_on_edge * info->DIMENSION + j * info->DIMENSION + k]);
+				}
+				fprintf(fp, "\n");
+			}
+		}
+		fprintf(fp, "      </DataItem>\n");
+		fprintf(fp, "      <DataItem Name=\"ien\" Dimensions=\"%d %d\" NumberType=\"Int\" Format=\"XML\" Endian=\"Big\">\n", Total_edge - Total_edge_glo, point_on_edge);
+		for (i = 0; i < Total_edge - Total_edge_glo; i++)
+		{
+			fprintf(fp, "\t\t\t\t%*d %*d %*d\n", -digit, i * 3, -digit, i * 3 + 1, -digit, i * 3 + 2);
 		}
 		fprintf(fp, "      </DataItem>\n");
 		fprintf(fp, "    </Grid>\n");
@@ -10878,4 +11052,186 @@ void Make_info_for_viewer(information *info)
 		// von Mises stress
 		
 	}
+}
+
+
+void Make_boundary_line(information *info)
+{
+	int i, j, k;
+	int point_on_edge = 3;
+	int counter = 0;
+
+	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+	{
+		if (info->DIMENSION == 2)
+		{
+			int point_on_element = 9;
+			int x = info->ENC[i * info->DIMENSION + 0];
+			int y = info->ENC[i * info->DIMENSION + 1];
+			int x_max = info->line_No_Total_element[info->Element_patch[i] * info->DIMENSION + 0] - 1;
+			int y_max = info->line_No_Total_element[info->Element_patch[i] * info->DIMENSION + 1] - 1;
+
+			if (x == 0)
+			{
+				int POINT[3] = {0, 3, 7};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == x_max)
+			{
+				int POINT[3] = {1, 2, 5};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (y == 0)
+			{
+				int POINT[3] = {0, 1, 4};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (y == y_max)
+			{
+				int POINT[3] = {3, 2, 6};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+		}
+		else if (info->DIMENSION == 3)
+		{
+			int point_on_element = 27;
+			int x = info->ENC[i * info->DIMENSION + 0];
+			int y = info->ENC[i * info->DIMENSION + 1];
+			int z = info->ENC[i * info->DIMENSION + 2];
+			int x_max = info->line_No_Total_element[info->Element_patch[i] * info->DIMENSION + 0] - 1;
+			int y_max = info->line_No_Total_element[info->Element_patch[i] * info->DIMENSION + 1] - 1;
+			int z_max = info->line_No_Total_element[info->Element_patch[i] * info->DIMENSION + 2] - 1;
+
+			if (x == 0 && y == 0)
+			{
+				int POINT[3] = {0, 4, 16};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == x_max && y == 0)
+			{
+				int POINT[3] = {1, 5, 17};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == 0 && y == y_max)
+			{
+				int POINT[3] = {3, 7, 19};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == x_max && y == y_max)
+			{
+				int POINT[3] = {2, 6, 18};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == 0 && z == 0)
+			{
+				int POINT[3] = {0, 3, 11};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == x_max && z == 0)
+			{
+				int POINT[3] = {1, 2, 9};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == 0 && z == z_max)
+			{
+				int POINT[3] = {4, 7, 15};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (x == x_max && z == z_max)
+			{
+				int POINT[3] = {5, 6, 13};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (y == 0 && z == 0)
+			{
+				int POINT[3] = {0, 1, 8};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (y == y_max && z == 0)
+			{
+				int POINT[3] = {3, 2, 10};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (y == 0 && z == z_max)
+			{
+				int POINT[3] = {4, 5, 12};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+			if (y == y_max && z == z_max)
+			{
+				int POINT[3] = {7, 6, 14};
+				for (j = 0; j < point_on_edge; j++)
+					for (k = 0; k < info->DIMENSION; k++)
+						info->Edge_coord[counter * point_on_edge * info->DIMENSION + j * info->DIMENSION + k] = info->Connectivity_coord[info->Connectivity[i * point_on_element + POINT[j]] * info->DIMENSION + k];
+				
+				counter++;
+			}
+		}
+
+		if (i == info->Total_Element_to_mesh[1] - 1)
+		{
+			Total_edge_glo = counter;
+		}
+	}
+	Total_edge = counter;
 }

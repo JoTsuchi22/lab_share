@@ -38,6 +38,8 @@ extern int K_Whole_Size;
 
 extern int Total_connectivity;
 extern int Total_connectivity_glo;
+extern int Total_edge;
+extern int Total_edge_glo;
 extern int DIVISION_ELEMENT;
 
 // file pointer

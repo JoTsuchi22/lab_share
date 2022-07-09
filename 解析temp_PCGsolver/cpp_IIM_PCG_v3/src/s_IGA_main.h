@@ -38,6 +38,8 @@ int K_Whole_Size;
 
 int Total_connectivity;
 int Total_connectivity_glo;
+int Total_edge;
+int Total_edge_glo;
 int DIVISION_ELEMENT;
 
 // file pointer

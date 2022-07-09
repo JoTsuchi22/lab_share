@@ -27,7 +27,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	int i, tm;
+	int i, j, tm;
 	information info, *info_ptr;
 	info_ptr = &info;
 
@@ -312,6 +312,7 @@ int main(int argc, char **argv)
 
 	// memory allocation
 	int total_array = 0, check_n = 0, FE_n = 0, opp_n = 0, point_on_element = pow(3, info.DIMENSION);
+	int total_edge = 0, edge_on_ele = 0;
 	if (info.DIMENSION == 2)
 	{
 		for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
@@ -322,6 +323,7 @@ int main(int argc, char **argv)
 		check_n = 16;
 		FE_n = 32;
 		opp_n = 4;
+		edge_on_ele = 2;
 	}
 	else if (info.DIMENSION == 3)
 	{
@@ -333,6 +335,14 @@ int main(int argc, char **argv)
 		check_n = 24;
 		FE_n = 36;
 		opp_n = 6;
+		edge_on_ele = 4;
+	}
+	for (i = 0; i < info.Total_Patch_to_mesh[Total_mesh]; i++)
+	{
+		for (j = 0; j < info.DIMENSION; j++)
+		{
+			total_edge += info.line_No_Total_element[i * info.DIMENSION + j] * edge_on_ele * 3;
+		}
 	}
 	info_ptr->Connectivity = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
 	info_ptr->Connectivity_ele = (int *)malloc(sizeof(int) * info.Total_Element_to_mesh[Total_mesh] * point_on_element);
@@ -342,6 +352,7 @@ int main(int argc, char **argv)
 	info_ptr->Patch_array = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * total_array);
 	info_ptr->Face_Edge_info = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * FE_n);
 	info_ptr->Opponent_patch_num = (int *)malloc(sizeof(int) * info.Total_Patch_to_mesh[Total_mesh] * opp_n);
+	info_ptr->Edge_coord = (double *)calloc(total_edge * info.DIMENSION, sizeof(double));
 	info_ptr->disp_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * info.DIMENSION, sizeof(double));
 	info_ptr->strain_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * N_STRAIN, sizeof(double));
 	info_ptr->stress_at_connectivity = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * point_on_element * N_STRESS, sizeof(double));
@@ -415,7 +426,7 @@ int main(int argc, char **argv)
 	}
 
 	// S-IGA のポスト処理 (for NURBS viewer)
-	if ((info.DIMENSION == 2 && SKIP_S_IGA != 1) && SKIP_NV == 1)
+	if ((info.DIMENSION == 2 && SKIP_S_IGA != 1) && SKIP_NV == 0)
 	{
 		printf("\nStart S_IGA overlay\n\n");
 		start[1] = chrono::system_clock::now();
@@ -427,7 +438,7 @@ int main(int argc, char **argv)
 		printf("\nS-IGA overlay time: %.3f[s]\n\n", time);
 		printf("\nFinish S_IGA overlay\n\n");
 	}
-	else if ((info.DIMENSION == 2 && SKIP_S_IGA == 1) || SKIP_NV == 0)
+	else if ((info.DIMENSION == 2 && SKIP_S_IGA == 1) || SKIP_NV == 1)
 	{
 		printf("\nSKIP_S_IGA = 1, skip S-IGA\n\n");
 	}

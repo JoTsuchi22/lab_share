@@ -115,6 +115,7 @@ struct information {
     int *Patch_array;
     int *Face_Edge_info;
     int *Opponent_patch_num;
+    double *Edge_coord;
 
     double *disp_at_connectivity;
     double *strain_at_connectivity;
@@ -351,6 +352,7 @@ void Make_connectivity(information *info);
 void Search_ele_point_2D(int xi, int eta, int e_x_max, int e_y_max, int *p_x, int *p_y, int *e_x, int *e_y, int *point);
 void Search_ele_point_3D(int xi, int eta, int zeta, int e_x_max, int e_y_max, int e_z_max, int *p_x, int *p_y, int *p_z, int *e_x, int *e_y, int *e_z, int *point);
 void Make_info_for_viewer(information *info);
+void Make_boundary_line(information *info);
 // J integral
 
 
