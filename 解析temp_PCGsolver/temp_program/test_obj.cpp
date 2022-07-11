@@ -20,62 +20,41 @@ public:
     int col;
     int vec_bool;
 
-    vector_matrix(int a)
-    {
-        vec_bool = 1;
-        row = a;
-        col = 1;
-        length = row * col;
-        array = (T *)calloc(length, sizeof(T));
-    }
-    vector_matrix(int a, int b)
-    {
-        vec_bool = 0;
-        row = a;
-        col = b;
-        length = row * col;
-        array = (T *)calloc(length, sizeof(T));
-    }
-    void initialization();
-    void substitute(T num);
-    T val(int i_row);
-    T val(int i_row, int i_col);
+    // constructor
+    vector_matrix(int a);
+    vector_matrix(int a, int b);
+    // member function
+    void initialization() { for (int i = 0; i < length; i++) { array[i] = i; } };
+    void substitute(T num) { for (int i = 0; i < length; i++) { array[i] = num; } };
+    T val(int i_row) { return array[i_row]; };
+    T val(int i_row, int i_col) { return array[i_row * col + i_col]; };
     void print();
     void print(int i_row);
     void print(int i_row, int i_col);
+    // destructor
     ~vector_matrix() { free(array); }
 };
 
 
 template<class T>
-void vector_matrix<T>::initialization()
+vector_matrix<T>::vector_matrix(int a)
 {
-    int i;
-    for (i = 0; i < length; i++)
-        array[i] = i;
+    vec_bool = 1;
+    row = a;
+    col = 1;
+    length = row * col;
+    array = (T *)calloc(length, sizeof(T));
 }
 
 
 template<class T>
-void vector_matrix<T>::substitute(T num)
+vector_matrix<T>::vector_matrix(int a, int b)
 {
-    int i;
-    for (i = 0; i < length; i++)
-        array[i] = num;
-}
-
-
-template<class T>
-T vector_matrix<T>::val(int i_row)
-{
-    return array[i_row];
-}
-
-
-template<class T>
-T vector_matrix<T>::val(int i_row, int i_col)
-{
-    return array[i_row * col + i_col];
+    vec_bool = 0;
+    row = a;
+    col = b;
+    length = row * col;
+    array = (T *)calloc(length, sizeof(T));
 }
 
 
@@ -98,6 +77,7 @@ void vector_matrix<T>::print()
     if (col == 1)
         cout << endl;
 }
+
 
 template<class T>
 void vector_matrix<T>::print(int i_row)
@@ -125,9 +105,7 @@ T dot(vector_matrix<T> *A, vector_matrix<T> *B)
         for (i = 0; i < A->length; i++)
             val += A->array[i] * B->array[i];
     else
-    {
         cout << "Error in dot product" << endl;
-    }
 
     return val;
 }
@@ -146,47 +124,52 @@ void matrix_multiplication(vector_matrix<T> *C, vector_matrix<T> *A, vector_matr
                 for (j = 0; j < B->col; j++)
                     C->array[i * C->col + j] += A->val(i, k) * B->val(k, j);
     else
-    {
         cout << "Error in matrix multiplication" << endl;
+}
+
+
+// cross
+template<class T>
+void cross(vector_matrix<T> *C, vector_matrix<T> *A, vector_matrix<T> *B)
+{
+    if ((A->vec_bool && B->vec_bool && C->vec_bool) && (A->row == B->row) && A->row == 3)
+    {
+        C->array[0] =   (A->array[1] * B->array[2] - A->array[2] * B->array[1]);
+        C->array[1] = - (A->array[0] * B->array[2] - A->array[2] * B->array[0]);
+        C->array[2] =   (A->array[0] * B->array[1] - A->array[1] * B->array[0]);
     }
+    else
+        cout << "Error in cross product" << endl;
 }
 
 
 int main()
 {
-    vector_matrix <int>x(10);
-    vector_matrix <int>y(10);
+    vector_matrix <int>x(3);
+    vector_matrix <int>y(3);
 
     x.initialization();
     x.print();
-    
-    y.initialization();
+    y.substitute(2);
     y.print();
-    
-    double value;
-    value = dot(&x, &y);
 
+    vector_matrix <int>z(3);
+    cross(&z, &x, &y);
+    z.print();
+
+    int value;
+    value = dot(&x, &y);
     cout << value << endl << endl;
 
-    vector_matrix <double>A(2, 3);
-    vector_matrix <double>B(3, 4);
+    vector_matrix <int>A(2, 3);
+    vector_matrix <int>B(3, 4);
 
     A.initialization();
     A.print();
-
     B.initialization();
     B.print();
 
-    vector_matrix <double>C(2, 4);
-
+    vector_matrix <int>C(2, 4);
     matrix_multiplication(&C, &A, &B);
-
     C.print();
-
-    long int count = 0;
-    for (;;)
-    {
-        printf("\rProgress %d / 100", (int)count++);
-        usleep(30000);
-    }
 }
