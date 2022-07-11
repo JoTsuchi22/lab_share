@@ -6827,7 +6827,6 @@ void Make_ReactionForce(information *info)
 }
 
 
-
 // for S-IGA overlay
 void S_IGA_overlay(information *info)
 {

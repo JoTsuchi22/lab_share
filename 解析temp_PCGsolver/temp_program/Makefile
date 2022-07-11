@@ -12,3 +12,7 @@ run_txt:	a.cpp
 run_obj:	test_obj.cpp
 	$(CC) -o test_obj.x test_obj.cpp $(CFLAGS)
 	./test_obj.x
+
+donut:	donut.cpp
+	$(CC) -o donut.x donut.cpp $(CFLAGS)
+	./donut.x

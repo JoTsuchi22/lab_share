@@ -6,17 +6,23 @@
 #include <fstream>
 #include <sstream>
 
+#include <unistd.h>
+
 using namespace std;
 
+// class vector_matrix
 template<class T>
 class vector_matrix {
+public:
     T *array;
     int length;
     int row;
     int col;
+    int vec_bool;
 
     vector_matrix(int a)
     {
+        vec_bool = 1;
         row = a;
         col = 1;
         length = row * col;
@@ -24,6 +30,7 @@ class vector_matrix {
     }
     vector_matrix(int a, int b)
     {
+        vec_bool = 0;
         row = a;
         col = b;
         length = row * col;
@@ -36,10 +43,7 @@ class vector_matrix {
     void print();
     void print(int i_row);
     void print(int i_row, int i_col);
-    ~vector_matrix()
-    {
-        free(array);
-    }
+    ~vector_matrix() { free(array); }
 };
 
 
@@ -84,7 +88,7 @@ void vector_matrix<T>::print()
     {
         for (j = 0; j < col; j++)
         {
-            cout << array[j * row + i] << " ";
+            cout << array[i * col + j] << " ";
             if (col != 1 && j == col - 1)
                 cout << endl;
         }
@@ -111,28 +115,78 @@ void vector_matrix<T>::print(int i_row, int i_col)
 }
 
 
+// dot
+template<class T>
+T dot(vector_matrix<T> *A, vector_matrix<T> *B)
+{
+    int i;
+    T val = 0.0;
+    if (A->vec_bool && B->vec_bool)
+        for (i = 0; i < A->length; i++)
+            val += A->array[i] * B->array[i];
+    else
+    {
+        cout << "Error in dot product" << endl;
+    }
+
+    return val;
+}
+
+
+// matrix multiplication
+template<class T>
+void matrix_multiplication(vector_matrix<T> *C, vector_matrix<T> *A, vector_matrix<T> *B)
+{
+    int i, j, k;
+    for (i = 0; i < C->length; i++)
+        C->array[i] = 0;
+    if (!(A->vec_bool && B->vec_bool) && (A->col == B->row))
+        for (i = 0; i < A->row; i++)
+            for (k = 0; k < A->col; k++)
+                for (j = 0; j < B->col; j++)
+                    C->array[i * C->col + j] += A->val(i, k) * B->val(k, j);
+    else
+    {
+        cout << "Error in matrix multiplication" << endl;
+    }
+}
+
+
 int main()
 {
     vector_matrix <int>x(10);
-    vector_matrix <double>A(5, 7);
+    vector_matrix <int>y(10);
 
     x.initialization();
     x.print();
+    
+    y.initialization();
+    y.print();
+    
+    double value;
+    value = dot(&x, &y);
+
+    cout << value << endl << endl;
+
+    vector_matrix <double>A(2, 3);
+    vector_matrix <double>B(3, 4);
 
     A.initialization();
     A.print();
 
-    x.print(2);
-    A.print(2, 3);
+    B.initialization();
+    B.print();
 
-    for (int i = 0; i < x.length; i++)
-        x.array[i] = 1;
+    vector_matrix <double>C(2, 4);
 
-    for (int i = 0; i < A.length; i++)
-        A.array[i] = 3;
+    matrix_multiplication(&C, &A, &B);
 
-    double temp;
-    temp = x.val(2) + A.val(2, 3);
+    C.print();
 
-    cout << temp << endl;
+    long int count = 0;
+    for (;;)
+    {
+        printf("\rProgress %d / 100", (int)count++);
+        usleep(30000);
+    }
 }
