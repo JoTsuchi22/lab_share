@@ -24,10 +24,10 @@ public:
     vector_matrix(int a);
     vector_matrix(int a, int b);
     // member function
-    void initialization() { for (int i = 0; i < length; i++) { array[i] = i; } };
-    void substitute(T num) { for (int i = 0; i < length; i++) { array[i] = num; } };
-    T val(int i_row) { return array[i_row]; };
-    T val(int i_row, int i_col) { return array[i_row * col + i_col]; };
+    void initialization() { for (int i = 0; i < length; i++) { array[i] = i; } }
+    void substitute(T num) { for (int i = 0; i < length; i++) { array[i] = num; } }
+    T val(int i_row) { return array[i_row]; }
+    T val(int i_row, int i_col) { return array[i_row * col + i_col]; }
     void print();
     void print(int i_row);
     void print(int i_row, int i_col);
