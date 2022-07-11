@@ -8,16 +8,16 @@
 #define OUTPUT_SVG 1    // SVG 出力を行う 0, 行わない 1
 #define MODE_EX 1       // 一部で積分点数を増やして計算を行う 0, 行わない 1
 #define DM 1            // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
-#define NG 4												// Gauss-Legendreの積分点数
-#define NG_EXTEND 10										// Gauss-Legendreの積分点数
-#define MAX_POW_NG NG * NG * NG 							// NGのDIMENSION乗の最大値の計算
-#define MAX_POW_NG_EXTEND NG_EXTEND * NG_EXTEND	* NG_EXTEND // NGのDIMENSION乗の最大値の計算
-#define K_DIVISION_LENGE 10 	                            // 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
-#define EPS 1.0e-10				                            // 連立1次方程式の残差
-#define MAX_N_ELEMENT_OVER 100  				            // グローバルメッシュ内の1要素に重なる最大要素数
-#define MAX_N_ELEMENT_OVER_POINT 5				            // ローカル要素内の1点に重なるグローバル要素
-#define DIVISION_ELE 5                                      // 一要素あたりの分割数
-#define DBL_MAX 1.7976931348623158e+308                     // max value
+#define NG 4                                                    // Gauss-Legendreの積分点数
+#define NG_EXTEND 10                                            // Gauss-Legendreの積分点数
+#define MAX_POW_NG (NG * NG * NG)                               // NGのDIMENSION乗の最大値の計算
+#define MAX_POW_NG_EXTEND (NG_EXTEND * NG_EXTEND * NG_EXTEND)   // NGのDIMENSION乗の最大値の計算
+#define K_DIVISION_LENGE 10                                     // 全体剛性マトリックスのcol&ptrを制作時に分ける節点数
+#define EPS 1.0e-10	                                            // 連立1次方程式の残差
+#define MAX_N_ELEMENT_OVER 100                                  // グローバルメッシュ内の1要素に重なる最大要素数
+#define MAX_N_ELEMENT_OVER_POINT 5                              // ローカル要素内の1点に重なるグローバル要素
+#define DIVISION_ELE 5                                          // 一要素あたりの分割数
+#define DBL_MAX 1.7976931348623158e+308                         // max value
 #define ERROR -999
 #define MERGE_ERROR 1.0e-13
 

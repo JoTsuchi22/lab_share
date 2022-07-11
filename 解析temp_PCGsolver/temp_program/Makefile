@@ -8,3 +8,7 @@ run:	a.cpp
 run_txt:	a.cpp
 	$(CC) -o a.x a.cpp $(CFLAGS)
 	./a.x text.txt
+
+run_obj:	test_obj.cpp
+	$(CC) -o test_obj.x test_obj.cpp $(CFLAGS)
+	./test_obj.x
