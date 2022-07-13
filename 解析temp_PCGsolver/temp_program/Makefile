@@ -16,3 +16,7 @@ run_obj:	test_obj.cpp
 donut:	donut.cpp
 	$(CC) -o donut.x donut.cpp $(CFLAGS)
 	./donut.x
+
+GMRES:	GMRES.cpp
+	$(CC) -o GMRES.x GMRES.cpp $(CFLAGS)
+	./GMRES.x
