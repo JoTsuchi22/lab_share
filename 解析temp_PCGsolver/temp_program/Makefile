@@ -1,5 +1,6 @@
 CC				= g++
-CFLAGS			= -O3 -lm -Wall -Wextra
+# CFLAGS			= -O3 -lm -Wall -Wextra
+CFLAGS			= -g -lm -Wall -Wextra
 
 run:	a.cpp
 	$(CC) -o a.x a.cpp $(CFLAGS)
