@@ -18,7 +18,7 @@ double dot(int length, double *a, double *b)
 void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
 {
     int i, j, k, l, m;
-    static const int max_itr = 100;
+    static const int max_itr = 60;
     static const double tol = 1.0e-14;
     static double H[max_itr + 1][max_itr + 1];
     static double V[max_itr + 1][max_itr + 1];
@@ -28,8 +28,10 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
     static double R_H[max_itr + 1][max_itr + 1];
     static double e1[max_itr + 1];
     static double g[max_itr + 1];
+    static double g_temp[max_itr + 1];
     static double y[max_itr + 1];
 
+    int itr;
     double norm;
 
     double *Ax = (double *)calloc(length, sizeof(double));
@@ -39,11 +41,20 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
     double *Av = (double *)malloc(sizeof(double) * (max_itr + 1));
     double *h = (double *)malloc(sizeof(double) * (max_itr + 1));
 
+    for (i = 0; i < max_itr + 1; i++)
+        for (j = 0; j < max_itr + 1; j++)
+        {
+            H[i][j] = 0.0;
+            V[i][j] = 0.0;
+        }
+
     // x0
     for (i = 0; i < length; i++)
         result_vec[i] = 0.0;
 
     // Ax0
+    for (i = 0; i < length; i++)
+        Ax[i] = 0.0;
     for (i = 0; i < length; i++)
         for (j = 0; j < length; j++)
             Ax[i] += matrix[i * length + j] * result_vec[j];
@@ -53,7 +64,7 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
         r[i] = right_vec[i] - Ax[i];
 
     // l2 norm
-    norm = 0;
+    norm = 0.0;
     for (i = 0; i < length; i++)
         norm += pow(r[i], 2);
     norm = sqrt(norm);
@@ -72,6 +83,8 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
     {
         // Av
         for (j = 0; j < length; j++)
+            Av[j] = 0.0;
+        for (j = 0; j < length; j++)
             for (k = 0; k < length; k++)
                 Av[j] += matrix[j * length + k] * v[k];
 
@@ -87,23 +100,26 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
         for (j = 0; j < length; j++)
         {
             v_hat[j] = Av[j];
-            for (k = 0; k < i; k++)
-                for (l = 0; l < length; l++)
-                    v_hat[j] -= h[k] * V[k][l];
+            for (k = 0; k <= i; k++)
+                v_hat[j] -= h[k] * V[k][j];
         }
 
         // v_hat l2 norm
-        double v_hat_norm = 0.0;
+        norm = 0.0;
         for (j = 0; j < length; j++)
-            v_hat_norm += pow(v_hat[j], 2);
-        v_hat_norm = sqrt(v_hat_norm);
+            norm += pow(v_hat[j], 2);
+        norm = sqrt(norm);
 
         // h
-        h[i + 1] = v_hat_norm;
+        h[i + 1] = norm;
 
         // H
         for (j = 0; j <= i + 1; j++)
             H[j][i] = h[j];
+        
+        // v
+        for (j = 0; j < length; j++)
+            v[j] = v_hat[j] / h[i + 1];
 
         // givens rotation
         for (j = 0; j <= i; j++)
@@ -139,7 +155,8 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
                 for (k = 0; k <= i + 1; k++)
                     for (m = 0; m <= i + 1; m++)
                         for (l = 0; l <= i + 1; l++)
-                            R_temp[k][l] += R[k][m] * Omega[m][l];
+                            R_temp[k][l] += Omega[k][m] * R[m][l];
+                            // R_temp[k][l] += R[k][m] * Omega[m][l];
                 for (k = 0; k <= i + 1; k++)
                     for (l = 0; l <= i + 1; l++)
                         R[k][l] = R_temp[k][l];
@@ -159,32 +176,36 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
         for (j = 0; j <= i + 1; j++)
         {
             g[j] = 0.0;
+            g_temp[j] = 0.0;
             for (k = 0; k <= i + 1; k++)
                 g[j] += R[j][k] * e1[k];
+            for (k = 0; k <= i + 1; k++)
+                g_temp[j] = g[j];
         }
 
         // y
         for (j = i; j >= 0; j--)
         {
             y[j] = g[j] / R_H[j][j];
-            for (k = 0; k < j; k++)
-                g[k] -= y[j] * R_H[k][j];
+            for (k = 0; k <= j; k++)
+                g[k] -= R_H[k][j] * y[j];
         }
 
         // r_i norm
         norm = 0.0;
         for (j = 0; j <= i; j++)
         {
-            double temp = 0.0;
-            for (l = 0; l <= i; l++)
-                temp += R_H[j][l] * y[l];
-            norm += pow(g[j] - temp, 2);
+            double temp = g_temp[j];
+            for (k = 0; k <= i; k++)
+                temp -= R_H[j][k] * y[k];
+            norm += pow(temp, 2);
         }
-        norm += pow(g[i + 1], 2);
+        norm += pow(g_temp[i + 1], 2);
         norm = sqrt(norm);
 
         cout << "itr = " << i <<  "  ";
         cout << "tol = " << norm << endl;
+        itr = i;
         if (norm <= tol)
             break;
     }
@@ -193,8 +214,8 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
     for (i = 0; i < length; i++)
         result_vec[i] = 0.0;
     for (i = 0; i < length; i++)
-        for (j = 0; j < length; j++)
-            result_vec[i] += V[i][j] * y[j];
+        for (j = 0; j <= itr; j++)
+            result_vec[i] += V[j][i] * y[j];
 }
 
 int main()
@@ -246,6 +267,14 @@ int main()
 
     b[0] = 1, b[1] = 2, b[2] = 3, b[3] = 4;
 
+    // calc
+    GMRES(size_vector, x, b, A);
+
+    // output
+    cout << "GMRES" << endl;
+    for (i = 0; i < size_vector; i++)
+        cout << x[i] << endl;
+
     // exact
     for (i = 0; i < size_vector; i++)
         for (j = 0; j < size_vector; j++)
@@ -255,12 +284,4 @@ int main()
     for (i = 0; i < size_vector; i++)
         cout << x_exact[i] << endl;
     cout << endl;
-
-    // calc
-    GMRES(size_vector, x, b, A);
-
-    // output
-    cout << "GMRES" << endl;
-    for (i = 0; i < size_vector; i++)
-        cout << x[i] << endl;
 }
