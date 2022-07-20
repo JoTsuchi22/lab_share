@@ -5,26 +5,17 @@
 
 using namespace std;
 
-template<class T1, class T2>
-double dot(int length, T1 &a, T2 &b)
-{
-    int i;
-    double result = 0.0;
-
-    for (i = 0; i < length; i++)
-        result += a[i] * b[i];
-
-    return result;
-}
-
 void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
 {
     int i, j, k, l, m;
-    static const int max_itr = 60;
+    static const int max_itr = 10;
     static const double tol = 1.0e-14;
 
+    int itr;
+    double norm;
+
     vector<vector<double>> H(max_itr + 1, vector<double>(max_itr + 1));
-    vector<vector<double>> V(max_itr + 1, vector<double>(max_itr + 1));
+    vector<vector<double>> V(max_itr + 1, vector<double>(length));
     vector<vector<double>> Omega(max_itr + 1, vector<double>(max_itr + 1));
     vector<vector<double>> R(max_itr + 1, vector<double>(max_itr + 1));
     vector<vector<double>> R_temp(max_itr + 1, vector<double>(max_itr + 1));
@@ -42,23 +33,15 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
     vector<double> Av(length);
     vector<double> h(max_itr + 1);
 
-    double *Ax = (double *)calloc(length, sizeof(double));
-    double *r = (double *)malloc(sizeof(double) * length);
-    double *v = (double *)malloc(sizeof(double) * (max_itr + 1));
-    double *v_hat = (double *)malloc(sizeof(double) * (max_itr + 1));
-    double *Av = (double *)malloc(sizeof(double) * length);
-    double *h = (double *)malloc(sizeof(double) * (max_itr + 1));
-
-    int itr;
-    double norm;
-
+    cout << scientific;
 
     for (i = 0; i < max_itr + 1; i++)
+    {
         for (j = 0; j < max_itr + 1; j++)
-        {
             H[i][j] = 0.0;
+        for (j = 0; j < length; j++)
             V[i][j] = 0.0;
-        }
+    }
 
     // x0
     for (i = 0; i < length; i++)
@@ -100,20 +83,32 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
             for (k = 0; k < length; k++)
                 Av[j] += matrix[j * length + k] * v[k];
 
+        // cout << "v" << endl;
+        // for (j = 0; j < length; j++)
+        //     cout << v[j] << " ";
+        // cout << endl;
+
         // V
         for (j = 0; j < length; j++)
             V[i][j] = v[j];
 
         // h
         for (j = 0; j <= i; j++)
-            h[j] = dot<double *, vector<double>>(length, Av, V[j]);
+        {
+            double dot = 0.0;
+            for (k = 0; k < length; k++)
+                dot += Av[k] * V[j][k];
+            h[j] = dot;
+        }
 
         // v_hat
         for (j = 0; j < length; j++)
         {
             v_hat[j] = Av[j];
             for (k = 0; k <= i; k++)
+            {
                 v_hat[j] -= h[k] * V[k][j];
+            }
         }
 
         // v_hat l2 norm
@@ -128,17 +123,37 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
         // H
         for (j = 0; j <= i + 1; j++)
             H[j][i] = h[j];
-        
+
+        // cout << "h" << endl;
+        // for (j = 0; j <= i + 1; j++)
+        //     cout << h[j] << " ";
+        // cout << endl;
+
         // v
         for (j = 0; j < length; j++)
-            v[j] = v_hat[j] / h[i + 1];
+            v[j] = v_hat[j] / norm;
 
         // givens rotation
         for (j = 0; j <= i; j++)
         {
-            double nu = sqrt(pow(H[j][j], 2) + pow(H[j + 1][j], 2));
-            double c_i = H[j][j] / nu;
-            double s_i = H[j + 1][j] / nu;
+            double nu, c_i, s_i, r;
+            // double c_i = H[j][j] / nu;
+            // double s_i = H[j + 1][j] / nu;
+
+            if (j == 0)
+            {
+                nu = sqrt(pow(H[j][j], 2) + pow(H[j + 1][j], 2));
+                c_i = H[j][j] / nu;
+                s_i = H[j + 1][j] / nu;
+                r = (H[j][j] * H[j][j] + H[j + 1][j] * H[j + 1][j]) / nu;
+            }
+            else
+            {
+                nu = sqrt(pow(r, 2) + pow(H[j + 1][j], 2));
+                c_i = r / nu;
+                s_i = H[j + 1][j] / nu;
+                r = (pow(r, 2) + pow(H[j + 1][j], 2)) / nu;
+            }
 
             // Omega
             for (k = 0; k <= i + 1; k++)
@@ -153,6 +168,16 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
             Omega[j][j + 1] = s_i;
             Omega[j + 1][j] = - s_i;
             Omega[j + 1][j + 1] = c_i;
+
+            // cout << "omega" << endl;
+            // for (k = 0; k <= i + 1; k++)
+            // {
+            //     for (l = 0; l <= i + 1; l++)
+            //     {
+            //         cout << Omega[k][l] << " ";
+            //     }
+            //     cout <<endl;
+            // }
 
             // R
             if (j == 0)
@@ -173,6 +198,19 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
                     for (l = 0; l <= i + 1; l++)
                         R[k][l] = R_temp[k][l];
             }
+
+            if (j == i)
+            {
+                cout << "R" << endl;
+                for (k = 0; k <= i + 1; k++)
+                {
+                    for (l = 0; l <= i + 1; l++)
+                    {
+                        cout << R[k][l] << " ";
+                    }
+                    cout <<endl;
+                }
+            }
         }
 
         // R_H
@@ -183,6 +221,16 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
             for (l = 0; l <= i + 1; l++)
                 for (k = 0; k <= i; k++)
                     R_H[j][k] += R[j][l] * H[l][k];
+
+        cout << "R_H" << endl;
+        for (k = 0; k <= i + 1; k++)
+        {
+            for (l = 0; l <= i; l++)
+            {
+                cout << R_H[k][l] << " ";
+            }
+            cout <<endl;
+        }
 
         // g
         for (j = 0; j <= i + 1; j++)
@@ -256,6 +304,63 @@ int main()
     A[13] = 3;
     A[14] = 2;
     A[15] = 1;
+
+    // A[0] = 1;
+    // A[1] = 1;
+    // A[2] = 2;
+    // A[3] = 0;
+
+    // A[4] = 1;
+    // A[5] = 1;
+    // A[6] = 0;
+    // A[7] = 1;
+
+    // A[8] = 2;
+    // A[9] = 0;
+    // A[10] = 1;
+    // A[11] = 1;
+
+    // A[12] = 0;
+    // A[13] = 1;
+    // A[14] = 1;
+    // A[15] = 2;
+
+    // A[0] = 1;
+    // A[1] = 1;
+    // A[2] = 1;
+    // A[3] = 0;
+
+    // A[4] = 1;
+    // A[5] = 1;
+    // A[6] = 0;
+    // A[7] = 1;
+
+    // A[8] = 1;
+    // A[9] = 0;
+    // A[10] = 1;
+    // A[11] = 1;
+
+    // A[12] = 0;
+    // A[13] = 1;
+    // A[14] = 1;
+    // A[15] = 1;
+
+    // A[0] = 1;
+    // A[1] = 0;
+    // A[2] = 0;
+    // A[3] = 0;
+    // A[4] = 0;
+    // A[5] = 1;
+    // A[6] = 0;
+    // A[7] = 0;
+    // A[8] = 0;
+    // A[9] = 0;
+    // A[10] = 1;
+    // A[11] = 0;
+    // A[12] = 0;
+    // A[13] = 0;
+    // A[14] = 0;
+    // A[15] = 1;
 
     double *A_inv = (double *)malloc(sizeof(double) * size_matrix);
     A_inv[0] = 0.5;
