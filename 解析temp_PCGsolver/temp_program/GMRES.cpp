@@ -1,10 +1,12 @@
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 
 using namespace std;
 
-double dot(int length, double *a, double *b)
+template<class T1, class T2>
+double dot(int length, T1 &a, T2 &b)
 {
     int i;
     double result = 0.0;
@@ -20,26 +22,36 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
     int i, j, k, l, m;
     static const int max_itr = 60;
     static const double tol = 1.0e-14;
-    static double H[max_itr + 1][max_itr + 1];
-    static double V[max_itr + 1][max_itr + 1];
-    static double Omega[max_itr + 1][max_itr + 1];
-    static double R[max_itr + 1][max_itr + 1];
-    static double R_temp[max_itr + 1][max_itr + 1];
-    static double R_H[max_itr + 1][max_itr + 1];
-    static double e1[max_itr + 1];
-    static double g[max_itr + 1];
-    static double g_temp[max_itr + 1];
-    static double y[max_itr + 1];
 
-    int itr;
-    double norm;
+    vector<vector<double>> H(max_itr + 1, vector<double>(max_itr + 1));
+    vector<vector<double>> V(max_itr + 1, vector<double>(max_itr + 1));
+    vector<vector<double>> Omega(max_itr + 1, vector<double>(max_itr + 1));
+    vector<vector<double>> R(max_itr + 1, vector<double>(max_itr + 1));
+    vector<vector<double>> R_temp(max_itr + 1, vector<double>(max_itr + 1));
+    vector<vector<double>> R_H(max_itr + 1, vector<double>(max_itr + 1));
+
+    vector<double> e1(max_itr + 1);
+    vector<double> g(max_itr + 1);
+    vector<double> g_temp(max_itr + 1);
+    vector<double> y(max_itr + 1);
+
+    vector<double> Ax(length);
+    vector<double> r(length);
+    vector<double> v(max_itr + 1);
+    vector<double> v_hat(max_itr + 1);
+    vector<double> Av(length);
+    vector<double> h(max_itr + 1);
 
     double *Ax = (double *)calloc(length, sizeof(double));
     double *r = (double *)malloc(sizeof(double) * length);
     double *v = (double *)malloc(sizeof(double) * (max_itr + 1));
     double *v_hat = (double *)malloc(sizeof(double) * (max_itr + 1));
-    double *Av = (double *)malloc(sizeof(double) * (max_itr + 1));
+    double *Av = (double *)malloc(sizeof(double) * length);
     double *h = (double *)malloc(sizeof(double) * (max_itr + 1));
+
+    int itr;
+    double norm;
+
 
     for (i = 0; i < max_itr + 1; i++)
         for (j = 0; j < max_itr + 1; j++)
@@ -94,7 +106,7 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
 
         // h
         for (j = 0; j <= i; j++)
-            h[j] = dot(length, Av, V[j]);
+            h[j] = dot<double *, vector<double>>(length, Av, V[j]);
 
         // v_hat
         for (j = 0; j < length; j++)
