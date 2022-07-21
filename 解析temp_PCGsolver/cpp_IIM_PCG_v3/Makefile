@@ -48,6 +48,9 @@ run_2nd_order:	mkdir_output
 run_gomimesh:	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_glo_3_30x30.txt ../input_loc_3_5x5.txt
 
+test:
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input_3D_S-IGA_2/input_glo.txt ../input_3D_S-IGA_2/input_loc.txt
+
 # mkdir
 mkdir_output:
 	cd ./analysis && mkdir -p output
