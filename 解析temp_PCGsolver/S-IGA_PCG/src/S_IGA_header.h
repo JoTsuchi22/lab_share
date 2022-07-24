@@ -2,12 +2,13 @@
 #define S_IGA_HEADER_H
 
 #define MAX_DIMENSION 3
-#define SKIP_S_IGA 2    // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
-#define SKIP_NV 1       // NURBS viewer の出力を行う 0, 行わない 1
-#define CALC_ON_GP 0    // ガウス点での応力等の計算を行う 0, 行わない 1
-#define OUTPUT_SVG 1    // SVG 出力を行う 0, 行わない 1
-#define MODE_EX 1       // 一部で積分点数を増やして計算を行う 0, 行わない 1
-#define DM 1            // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
+#define SKIP_S_IGA 2            // 重ね合わせとJ積分を行う 0, 重ね合わせをスキップしてJ積分を行う 1, J積分を行わない 2
+#define SKIP_NV 1               // NURBS viewer の出力を行う 0, 行わない 1
+#define CALC_ON_GP 0            // ガウス点での応力等の計算を行う 0, 行わない 1
+#define CALC_ON_ELE_VERTEX 0    // 要素頂点での応力等の計算を行う 0, 行わない 1
+#define OUTPUT_SVG 1            // SVG 出力を行う 0, 行わない 1
+#define MODE_EX 1               // 一部で積分点数を増やして計算を行う 0, 行わない 1
+#define DM 1                    // 平面応力状態:DM = 0, 平面ひずみ状態:DM = 1
 #define NG 4                                                    // Gauss-Legendreの積分点数
 #define NG_EXTEND 10                                            // Gauss-Legendreの積分点数
 #define MAX_POW_NG (NG * NG * NG)                               // NGのDIMENSION乗の最大値の計算
@@ -103,8 +104,12 @@ struct information {
     double *rhs_vec;
 
     double *Displacement;
+    double *Displacement_at_GP;
     double *Strain_at_GP;
     double *Stress_at_GP;
+    double *Displacement_at_ele_vertex;
+    double *Strain_at_ele_vertex;
+    double *Stress_at_ele_vertex;
     double *ReactionForce;
 
     int *Connectivity;
@@ -164,6 +169,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 void Make_B_Matrix_anypoint(int El_No, double *B, double *Local_coord, information *info);
 void BDBJ(int KIEL_SIZE, double *B, double J, double *K_EL, information *info);
 void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, information *info);
+double Make_Jac_anypoint(int El_No, double *Local_coord, information *info);
 // F vector
 void Make_F_Vec(information *info);
 void Make_F_Vec_disp_const(information *info);
@@ -317,6 +323,8 @@ void Make_Strain(information *info);
 void Make_Stress(information *info);
 void Make_Parameter_z(information *ifno);
 void Make_ReactionForce(information *info);
+void calc_at_GP(information *info);
+void calc_at_ele_vertex(information *info);
 // for S_IGA overlay
 void S_IGA_overlay(information *info);
 void Calculation(int order_xi, int order_eta, int knot_n_xi, int knot_n_eta, int cntl_p_n_xi, int cntl_p_n_eta,

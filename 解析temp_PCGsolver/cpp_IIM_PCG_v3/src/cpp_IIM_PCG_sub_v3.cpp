@@ -10733,7 +10733,7 @@ void Search_ele_point_2D(int xi, int eta, int e_x_max, int e_y_max, int *p_x, in
 	}
 
 	// ポイント番号を探索
-	for (i = 0; i < 9 ; i++)
+	for (i = 0; i < 9; i++)
 	{
 		if (p_x[i] == p_num_x && p_y[i] == p_num_y)
 		{
@@ -10773,7 +10773,7 @@ void Search_ele_point_3D(int xi, int eta, int zeta, int e_x_max, int e_y_max, in
 	}
 
 	// ポイント番号を探索
-	for (i = 0; i < 27 ; i++)
+	for (i = 0; i < 27; i++)
 	{
 		if (p_x[i] == p_num_x && p_y[i] == p_num_y && p_z[i] == p_num_z)
 		{

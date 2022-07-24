@@ -15,9 +15,16 @@ compile_fast:
 	cd ./src && $(CC) -o $(PROGRAM_NAME)_$(VERSION).x $(PROGRAM_NAME)_main_$(VERSION).cpp $(PROGRAM_NAME)_sub_$(VERSION).cpp $(CFLAGS_fast)
 
 # for debug
-run:	mkdir_output
+run:	rm	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input/input_glo_3_20x20.txt ../input/input_loc_3_20x20.txt
+
+test:	rm	mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input/input.txt
 
 # mkdir
 mkdir_output:
 	cd ./analysis && mkdir -p output
+
+# rm
+rm:
+	cd ./analysis && rm -r output -f

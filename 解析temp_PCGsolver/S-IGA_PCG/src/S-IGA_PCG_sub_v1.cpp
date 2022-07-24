@@ -1812,28 +1812,28 @@ void Make_B_Matrix(int m, int e, information *info)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
 					
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 			else if (m == 1)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (2 * j + 1)] = 0.0;
 
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j)]     = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (2 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 					
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (2 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 		}
@@ -1843,58 +1843,58 @@ void Make_B_Matrix(int m, int e, information *info)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 			else if (m == 1)
 			{
 				for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; j++)
 				{
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j)]     = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 0 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 1)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 1 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 2 * MAX_KIEL_SIZE + (3 * j + 2)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j)]     = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 1)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 3 * MAX_KIEL_SIZE + (3 * j + 2)] = 0.0;
 
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j)]     = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 1)] = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 4 * MAX_KIEL_SIZE + (3 * j + 2)] = b[1 * MAX_NO_CP_ON_ELEMENT + j];
 
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
-					info->B_Matrix_ex[(long int)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j)]     = b[2 * MAX_NO_CP_ON_ELEMENT + j];
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 1)] = 0.0;
+					info->B_Matrix_ex[(long)e * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + 5 * MAX_KIEL_SIZE + (3 * j + 2)] = b[0 * MAX_NO_CP_ON_ELEMENT + j];
 				}
 			}
 		}
@@ -2668,7 +2668,7 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[(long int)El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[(long)El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
@@ -2679,7 +2679,7 @@ void Make_K_EL(int El_No, double *K_EL, information *info)
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[(long int)El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[(long)El_No * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 		}
@@ -2730,7 +2730,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[(long int)El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix[(long)El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 			for (j = 0; j < info->DIMENSION; j++)
@@ -2745,7 +2745,7 @@ void Make_coupled_K_EL(int El_No_loc, int El_No_glo, double *coupled_K_EL, infor
 			{
 				for (k = 0; k < MAX_KIEL_SIZE; k++)
 				{
-					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[(long int)El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
+					B[j * MAX_KIEL_SIZE + k] = info->B_Matrix_ex[(long)El_No_loc * GP_ON_ELEMENT * D_MATRIX_SIZE * MAX_KIEL_SIZE + i * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * MAX_KIEL_SIZE + k];
 				}
 			}
 			for (j = 0; j < info->DIMENSION; j++)
@@ -2996,6 +2996,49 @@ void coupled_BDBJ(int KIEL_SIZE, double *B, double *BG, double J, double *K_EL, 
 			K_EL[i * MAX_KIEL_SIZE + j] *= J;
 		}
 	}
+}
+
+
+double Make_Jac_anypoint(int El_No, double *Local_coord, information *info)
+{
+	int i, j, k;
+	double J = 0.0;
+	static double a_2x2[2][2], a_3x3[3][3];
+
+	if (info->DIMENSION == 2)
+	{
+		for (i = 0; i < info->DIMENSION; i++)
+		{
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				a_2x2[i][j] = 0.0;
+				for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; k++)
+				{
+					a_2x2[i][j] += dShape_func(k, j, Local_coord, El_No, info) * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + k] * (info->DIMENSION + 1) + i];
+				}
+			}
+		}
+
+		J = InverseMatrix_2x2(a_2x2);
+	}
+	else if (info->DIMENSION == 3)
+	{
+		for (i = 0; i < info->DIMENSION; i++)
+		{
+			for (j = 0; j < info->DIMENSION; j++)
+			{
+				a_3x3[i][j] = 0.0;
+				for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]]; k++)
+				{
+					a_3x3[i][j] += dShape_func(k, j, Local_coord, El_No, info) * info->Node_Coordinate[info->Controlpoint_of_Element[El_No * MAX_NO_CP_ON_ELEMENT + k] * (info->DIMENSION + 1) + i];
+				}
+			}
+		}
+
+		J = InverseMatrix_3x3(a_3x3);
+	}
+
+	return J;
 }
 
 
@@ -6721,109 +6764,480 @@ void Make_Displacement(information *info)
 }
 
 
-void Make_Strain(information *info)
-{
-	int i, j, k, l;
-	int KIEL_SIZE;
-	double *temp_disp = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
-
-	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
-	{
-		KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[i]] * info->DIMENSION;
-
-		for (j = 0; j < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; j++)
-		{
-			for (k = 0; k < info->DIMENSION; k++)
-			{
-				temp_disp[j * info->DIMENSION + k] = info->Displacement[info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + j] * info->DIMENSION + k];
-			}
-		}
-
-		for (j = 0; j < GP_ON_ELEMENT; j++)
-		{
-			for (k = 0; k < D_MATRIX_SIZE; k++)
-			{
-				for (l = 0; l < KIEL_SIZE; l++)
-				{
-					info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + k] += info->B_Matrix[(long int)i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + l] * temp_disp[l];
-				}
-			}
-		}
-	}
-
-	free(temp_disp);
-}
-
-
-void Make_Stress(information *info)
-{
-	int i, j, k, l;
-
-	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
-	{
-		for (j = 0; j < GP_ON_ELEMENT; j++)
-		{
-			for (k = 0; k < D_MATRIX_SIZE; k++)
-			{
-				for (l = 0; l < D_MATRIX_SIZE; l++)
-				{
-					info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + k] += info->D[k * D_MATRIX_SIZE + l] * info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + l];
-				}
-			}
-		}
-	}
-}
-
-
-void Make_Parameter_z(information *info)
-{
-	int i, j;
-
-	// 平面応力状態
-	if (DM == 0)
-	{
-		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
-		{
-			for (j = 0; j < GP_ON_ELEMENT; j++)
-			{
-				info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 3] = - 1.0 * nu / E * (info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 0] + info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 1]);
-			}
-		}
-	}
-	// 平面ひずみ状態
-	else if (DM == 1)
-	{
-		for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
-		{
-			for (j = 0; j < GP_ON_ELEMENT; j++)
-			{
-				info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + 3] = E * nu / (1.0 + nu) / (1.0 - 2.0 * nu) * (info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 0] + info->Strain_at_GP[i * GP_ON_ELEMENT * N_STRAIN + j * N_STRAIN + 1]);
-			}
-		}
-	}
-}
-
-
-void Make_ReactionForce(information *info)
+void calc_at_GP(information *info)
 {
 	int i, j, k, l, m;
 
+	double data_result_shape[MAX_DIMENSION];
+	double temp_point_glo[MAX_DIMENSION];
+	double temp_para_glo[MAX_DIMENSION];
+
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *temp_disp = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+	double *temp_disp_glo = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+
+	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
+	int *temp_ad = (int *)malloc(sizeof(int) * info->DIMENSION * (MAX_ORDER + 1));
+
+	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * MAX_KNOT);
+	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * MAX_KNOT);
+	double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * MAX_KNOT);
+
+	FILE *fp_disp, *fp_strain, *fp_stress, *fp_rf, *fp_pc;
+	fp_disp   = fopen("_Displacement_overlay_at_GP.dat", "w");
+	fp_strain = fopen("_Strain_overlay_at_GP.dat", "w");
+	fp_stress = fopen("_Stress_overlay_at_GP.dat", "w");
+	fp_rf     = fopen("_ReactoinForce.dat", "w");
+	fp_pc     = fopen("_PhysicalCoordinate_at_GP.dat", "w");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp_disp,   "要素番号\tガウス点番号\tdisp_x\tdisp_y\n");
+		fprintf(fp_strain, "要素番号\tガウス点番号\txx\tyy\txy\tzz\n");
+		fprintf(fp_stress, "要素番号\tガウス点番号\txx\tyy\txy\tzz\n");
+		fprintf(fp_rf,     "コントロールポイント番号\trf_x\trf_y\n");
+		fprintf(fp_pc,     "要素番号\tガウス点番号\tx\ty\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp_disp,   "要素番号\tガウス点番号\tdisp_x\tdisp_y\tdisp_z\n");
+		fprintf(fp_strain, "要素番号\tガウス点番号\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_stress, "要素番号\tガウス点番号\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_rf,     "コントロールポイント番号\trf_x\trf_y\trf_z\n");
+		fprintf(fp_pc,     "要素番号\tガウス点番号\tx\ty\tz\n");
+	}
+
 	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
 	{
+		int e = info->real_element[i], element_glo = 0;
+
 		for (j = 0; j < GP_ON_ELEMENT; j++)
 		{
-			for (k = 0; k < D_MATRIX_SIZE; k++)
+			// B matrix
+			Make_B_Matrix_anypoint(e, B, Gxi[j], info);
+
+			for (k = 0; k < info->DIMENSION; k++)
+				data_result_shape[k] = 0.0;
+
+			// make displacement, temp_disp
+			for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; k++)
 			{
+				double R = Shape_func(k, Gxi[j], e, info);
+
 				for (l = 0; l < info->DIMENSION; l++)
 				{
-					for (m = 0; m < info->No_Control_point_ON_ELEMENT[info->Element_patch[i]]; m++)
+					double d = info->Displacement[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + k] * info->DIMENSION + l];
+					data_result_shape[l] += R * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + k] * (info->DIMENSION + 1) + l];
+					info->Displacement_at_GP[e * GP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + l] += R * d;
+					temp_disp[k * info->DIMENSION + l] = d;
+				}
+			}
+
+			// overlay
+			if (i >= info->Total_Element_on_mesh[0])
+			{
+				// make temp_point_glo
+				if (info->DIMENSION == 2)
+				{
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 0]; k++)
 					{
-						info->ReactionForce[info->Controlpoint_of_Element[i * MAX_NO_CP_ON_ELEMENT + m] * info->DIMENSION + l] += info->B_Matrix[(long int)i * MAX_POW_NG * D_MATRIX_SIZE * MAX_KIEL_SIZE + j * D_MATRIX_SIZE * MAX_KIEL_SIZE + k * MAX_KIEL_SIZE + m * info->DIMENSION + l] * info->Stress_at_GP[i * GP_ON_ELEMENT * N_STRESS + j * N_STRESS + k] * w[j] * info->Jac[i * MAX_POW_NG + j];
+						temp_Position_Knots_xi[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + k];
+					}
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 1]; k++)
+					{
+						temp_Position_Knots_eta[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + k];
+					}
+
+					Calc_xi_eta(data_result_shape[0], data_result_shape[1],
+								temp_Position_Knots_xi, temp_Position_Knots_eta,
+								info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
+								info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+								&temp_para_glo[0], &temp_para_glo[1], info);
+
+					ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
+					element_glo = temp_element_n[0];
+
+					// 親要素座標の算出
+					temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
+					temp_point_glo[1] = - 1.0 + 2.0 * (temp_para_glo[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
+
+				}
+				else if (info->DIMENSION == 3)
+				{
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 0]; k++)
+					{
+						temp_Position_Knots_xi[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + k];
+					}
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 1]; k++)
+					{
+						temp_Position_Knots_eta[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + k];
+					}
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 2]; k++)
+					{
+						temp_Position_Knots_zeta[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + k];
+					}
+
+					Calc_xi_eta_zeta(data_result_shape[0], data_result_shape[1], data_result_shape[2],
+									 temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+									 info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
+									 info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+									 &temp_para_glo[0], &temp_para_glo[1], &temp_para_glo[2], info);
+
+					ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
+					element_glo = temp_element_n[0];
+
+					// 親要素座標の算出
+					temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
+					temp_point_glo[1] = - 1.0 + 2.0 * (temp_para_glo[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
+					temp_point_glo[2] = - 1.0 + 2.0 * (temp_para_glo[2] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]]);
+				}
+
+				// BG matrix
+				Make_B_Matrix_anypoint(element_glo, BG, temp_point_glo, info);
+
+				for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[element_glo]]; k++)
+				{
+					double R_glo = Shape_func(k, temp_point_glo, element_glo, info);
+
+					// overlay displacement, make temp_disp_glo
+					for (l = 0; l < info->DIMENSION; l++)
+					{
+						double d_glo = info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + k] * info->DIMENSION + l];
+						info->Displacement_at_GP[e * GP_ON_ELEMENT * info->DIMENSION + j * info->DIMENSION + l] += R_glo * d_glo;
+						temp_disp_glo[k * info->DIMENSION + l] = d_glo;
 					}
 				}
 			}
+
+			int ii = e * GP_ON_ELEMENT + j;
+
+			// strain
+			int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[e]] * info->DIMENSION;
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+				for (l = 0; l < KIEL_SIZE; l++)
+					info->Strain_at_GP[ii * N_STRAIN + k] += B[k * MAX_KIEL_SIZE + l] * temp_disp[l];
+
+			// overlay strain
+			if (i >= info->Total_Element_on_mesh[0])
+			{
+				int KIEL_SIZE_glo = info->No_Control_point_ON_ELEMENT[info->Element_patch[element_glo]] * info->DIMENSION;
+				for (k = 0; k < D_MATRIX_SIZE; k++)
+					for (l = 0; l < KIEL_SIZE_glo; l++)
+						info->Strain_at_GP[ii * N_STRAIN + k] += BG[k * MAX_KIEL_SIZE + l] * temp_disp_glo[l];
+			}
+
+			// stress
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+				for (l = 0; l < D_MATRIX_SIZE; l++)
+					info->Stress_at_GP[ii * N_STRESS + k] += info->D[k * D_MATRIX_SIZE + l] * info->Strain_at_GP[ii * N_STRAIN + l];
+
+			// if DIMENSION == 2, make strain zz, stress zz
+			if (info->DIMENSION == 2)
+			{
+				// 平面応力状態
+				if (DM == 0)
+					info->Strain_at_GP[ii * N_STRAIN + 3] = - 1.0 * nu / E * (info->Stress_at_GP[ii * N_STRESS + 0] + info->Stress_at_GP[ii * N_STRESS + 1]);
+				// 平面ひずみ状態
+				else if (DM == 1)
+					info->Stress_at_GP[ii * N_STRESS + 3] = E * nu / (1.0 + nu) / (1.0 - 2.0 * nu) * (info->Strain_at_GP[ii * N_STRAIN + 0] + info->Strain_at_GP[ii * N_STRAIN + 1]);
+			}
+
+			// Reaction Force
+			if (GP_1D == NG)
+				for (k = 0; k < D_MATRIX_SIZE; k++)
+					for (l = 0; l < info->DIMENSION; l++)
+						for (m = 0; m < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; m++)
+							info->ReactionForce[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + m] * info->DIMENSION + l] += B[k * MAX_KIEL_SIZE + m * info->DIMENSION + l] * info->Stress_at_GP[ii * N_STRESS + k] * w[j] * info->Jac[e * GP_ON_ELEMENT + j];
+			else
+			{
+				double J = Make_Jac_anypoint(e, Gxi[j], info);
+				for (k = 0; k < D_MATRIX_SIZE; k++)
+					for (l = 0; l < info->DIMENSION; l++)
+						for (m = 0; m < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; m++)
+							info->ReactionForce[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + m] * info->DIMENSION + l] += B[k * MAX_KIEL_SIZE + m * info->DIMENSION + l] * info->Stress_at_GP[ii * N_STRESS + k] * w[j] * J;
+			}
+
+			// output file
+			// displacement
+			fprintf(fp_disp, "%d\t%d", e, j);
+			for (k = 0; k < info->DIMENSION; k++)
+				fprintf(fp_disp, "\t%.15e", info->Displacement_at_GP[ii * info->DIMENSION + k]);
+			fprintf(fp_disp, "\n");
+
+			// strain
+			fprintf(fp_strain, "%d\t%d", e, j);
+			for (k = 0; k < N_STRAIN; k++)
+				fprintf(fp_strain, "\t%.15e", info->Strain_at_GP[ii * N_STRAIN + k]);
+			fprintf(fp_strain, "\n");
+
+			// stress
+			fprintf(fp_stress, "%d\t%d", e, j);
+			for (k = 0; k < N_STRESS; k++)
+				fprintf(fp_stress, "\t%.15e", info->Stress_at_GP[ii * N_STRESS + k]);
+			fprintf(fp_stress, "\n");
+
+			// physical coordinate
+			fprintf(fp_pc, "%d\t%d", e, j);
+			for (k = 0; k < info->DIMENSION; k++)
+				fprintf(fp_pc, "\t%.15e", data_result_shape[k]);
+			fprintf(fp_pc, "\n");
 		}
 	}
+
+	// Reaction Force
+	for (i = 0; i < info->Total_Control_Point_to_mesh[Total_mesh]; i++)
+	{
+		fprintf(fp_rf, "%d", i);
+		for (j = 0; j < info->DIMENSION; j++)
+			fprintf(fp_rf, "\t%.15e", info->ReactionForce[i * info->DIMENSION + j]);
+		fprintf(fp_rf, "\n");
+	}
+
+	fclose(fp_disp), fclose(fp_strain), fclose(fp_stress), fclose(fp_rf), fclose(fp_pc);
+}
+
+
+void calc_at_ele_vertex(information *info)
+{
+	int vertex_n = pow(2, info->DIMENSION);
+	double *point_array = (double *)malloc(sizeof(double) * vertex_n * info->DIMENSION);
+
+	int counter = 0;
+	if (info->DIMENSION == 2)
+	{
+		point_array[counter] = -1.0;	point_array[counter + 1] = -1.0;	counter += 2;
+		point_array[counter] =  1.0;	point_array[counter + 1] = -1.0;	counter += 2;
+		point_array[counter] = -1.0;	point_array[counter + 1] =  1.0;	counter += 2;
+		point_array[counter] =  1.0;	point_array[counter + 1] =  1.0;
+	}
+	else if (info->DIMENSION == 3)
+	{
+		point_array[counter] = -1.0;	point_array[counter + 1] = -1.0;	point_array[counter + 1] = -1.0;	counter += 3;
+		point_array[counter] =  1.0;	point_array[counter + 1] = -1.0;	point_array[counter + 1] = -1.0;	counter += 3;
+		point_array[counter] = -1.0;	point_array[counter + 1] =  1.0;	point_array[counter + 1] = -1.0;	counter += 3;
+		point_array[counter] =  1.0;	point_array[counter + 1] =  1.0;	point_array[counter + 1] = -1.0;	counter += 3;
+		point_array[counter] = -1.0;	point_array[counter + 1] = -1.0;	point_array[counter + 1] =  1.0;	counter += 3;
+		point_array[counter] =  1.0;	point_array[counter + 1] = -1.0;	point_array[counter + 1] =  1.0;	counter += 3;
+		point_array[counter] = -1.0;	point_array[counter + 1] =  1.0;	point_array[counter + 1] =  1.0;	counter += 3;
+		point_array[counter] =  1.0;	point_array[counter + 1] =  1.0;	point_array[counter + 1] =  1.0;
+	}
+
+	int i, j, k, l;
+
+	double temp_point[MAX_DIMENSION];
+	double data_result_shape[MAX_DIMENSION];
+	double temp_point_glo[MAX_DIMENSION];
+	double temp_para_glo[MAX_DIMENSION];
+
+	double *B = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *BG = (double *)malloc(sizeof(double) * D_MATRIX_SIZE * MAX_KIEL_SIZE);
+	double *temp_disp = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+	double *temp_disp_glo = (double *)malloc(sizeof(double) * MAX_NO_CP_ON_ELEMENT * info->DIMENSION);
+
+	int *temp_element_n = (int *)malloc(sizeof(int) * MAX_N_ELEMENT_OVER_POINT);
+	int *temp_ad = (int *)malloc(sizeof(int) * info->DIMENSION * (MAX_ORDER + 1));
+
+	double *temp_Position_Knots_xi = (double *)malloc(sizeof(double) * MAX_KNOT);
+	double *temp_Position_Knots_eta = (double *)malloc(sizeof(double) * MAX_KNOT);
+	double *temp_Position_Knots_zeta = (double *)malloc(sizeof(double) * MAX_KNOT);
+
+	FILE *fp_disp, *fp_strain, *fp_stress, *fp_pc;
+	fp_disp   = fopen("_Displacement_overlay_at_ele_vertex.dat", "w");
+	fp_strain = fopen("_Strain_overlay_at_ele_vertex.dat", "w");
+	fp_stress = fopen("_Stress_overlay_at_ele_vertex.dat", "w");
+	fp_pc     = fopen("_PhysicalCoordinate_at_ele_vertex.dat", "w");
+	if (info->DIMENSION == 2)
+	{
+		fprintf(fp_disp,   "要素番号\t頂点番号\tdisp_x\tdisp_y\n");
+		fprintf(fp_strain, "要素番号\t頂点番号\txx\tyy\txy\tzz\n");
+		fprintf(fp_stress, "要素番号\t頂点番号\txx\tyy\txy\tzz\n");
+		fprintf(fp_pc,     "要素番号\t頂点番号\tx\ty\n");
+	}
+	else if (info->DIMENSION == 3)
+	{
+		fprintf(fp_disp,   "要素番号\t頂点番号\tdisp_x\tdisp_y\tdisp_z\n");
+		fprintf(fp_strain, "要素番号\t頂点番号\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_stress, "要素番号\t頂点番号\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_pc,     "要素番号\t頂点番号\tx\ty\tz\n");
+	}
+
+	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
+	{
+		int e = info->real_element[i], element_glo = 0;
+
+		for (j = 0; j < vertex_n; j++)
+		{
+			// make temp_point
+			for (k = 0; k < info->DIMENSION; k++)
+				temp_point[k] = point_array[j * info->DIMENSION + k];
+
+			// B matrix
+			Make_B_Matrix_anypoint(e, B, temp_point, info);
+
+			for (k = 0; k < info->DIMENSION; k++)
+				data_result_shape[k] = 0.0;
+
+			// make displacement, temp_disp
+			for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[e]]; k++)
+			{
+				double R = Shape_func(k, temp_point, e, info);
+
+				for (l = 0; l < info->DIMENSION; l++)
+				{
+					double d = info->Displacement[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + k] * info->DIMENSION + l];
+					data_result_shape[l] += R * info->Node_Coordinate[info->Controlpoint_of_Element[e * MAX_NO_CP_ON_ELEMENT + k] * (info->DIMENSION + 1) + l];
+					info->Displacement_at_ele_vertex[e * vertex_n * info->DIMENSION + j * info->DIMENSION + l] += R * d;
+					temp_disp[k * info->DIMENSION + l] = d;
+				}
+			}
+
+			// overlay
+			if (i >= info->Total_Element_on_mesh[0])
+			{
+				// make temp_point_glo
+				if (info->DIMENSION == 2)
+				{
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 0]; k++)
+					{
+						temp_Position_Knots_xi[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + k];
+					}
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 1]; k++)
+					{
+						temp_Position_Knots_eta[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + k];
+					}
+
+					Calc_xi_eta(data_result_shape[0], data_result_shape[1],
+								temp_Position_Knots_xi, temp_Position_Knots_eta,
+								info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1],
+								info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1],
+								&temp_para_glo[0], &temp_para_glo[1], info);
+
+					ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
+					element_glo = temp_element_n[0];
+
+					// 親要素座標の算出
+					temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
+					temp_point_glo[1] = - 1.0 + 2.0 * (temp_para_glo[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
+
+				}
+				else if (info->DIMENSION == 3)
+				{
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 0]; k++)
+					{
+						temp_Position_Knots_xi[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + k];
+					}
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 1]; k++)
+					{
+						temp_Position_Knots_eta[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + k];
+					}
+					for (k = 0; k < info->No_knot[0 * info->DIMENSION + 2]; k++)
+					{
+						temp_Position_Knots_zeta[k] = info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + k];
+					}
+
+					Calc_xi_eta_zeta(data_result_shape[0], data_result_shape[1], data_result_shape[2],
+									 temp_Position_Knots_xi, temp_Position_Knots_eta, temp_Position_Knots_zeta,
+									 info->No_Control_point[0 * info->DIMENSION + 0], info->No_Control_point[0 * info->DIMENSION + 1], info->No_Control_point[0 * info->DIMENSION + 2],
+									 info->Order[0 * info->DIMENSION + 0], info->Order[0 * info->DIMENSION + 1], info->Order[0 * info->DIMENSION + 2],
+									 &temp_para_glo[0], &temp_para_glo[1], &temp_para_glo[2], info);
+
+					ele_check(0, temp_para_glo, temp_element_n, temp_ad, info);
+					element_glo = temp_element_n[0];
+
+					// 親要素座標の算出
+					temp_point_glo[0] = - 1.0 + 2.0 * (temp_para_glo[0] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 0] + info->Order[0 * info->DIMENSION + 0] + info->ENC[element_glo * info->DIMENSION + 0]]);
+					temp_point_glo[1] = - 1.0 + 2.0 * (temp_para_glo[1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 1] + info->Order[0 * info->DIMENSION + 1] + info->ENC[element_glo * info->DIMENSION + 1]]);
+					temp_point_glo[2] = - 1.0 + 2.0 * (temp_para_glo[2] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]])
+									/ (info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2] + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[0 * info->DIMENSION + 2] + info->Order[0 * info->DIMENSION + 2] + info->ENC[element_glo * info->DIMENSION + 2]]);
+				}
+
+				// BG matrix
+				Make_B_Matrix_anypoint(element_glo, BG, temp_point_glo, info);
+
+				for (k = 0; k < info->No_Control_point_ON_ELEMENT[info->Element_patch[element_glo]]; k++)
+				{
+					double R_glo = Shape_func(k, temp_point_glo, element_glo, info);
+
+					// overlay displacement, make temp_disp_glo
+					for (l = 0; l < info->DIMENSION; l++)
+					{
+						double d_glo = info->Displacement[info->Controlpoint_of_Element[element_glo * MAX_NO_CP_ON_ELEMENT + k] * info->DIMENSION + l];
+						info->Displacement_at_ele_vertex[e * vertex_n * info->DIMENSION + j * info->DIMENSION + l] += R_glo * d_glo;
+						temp_disp_glo[k * info->DIMENSION + l] = d_glo;
+					}
+				}
+			}
+
+			int ii = e * vertex_n + j;
+
+			// strain
+			int KIEL_SIZE = info->No_Control_point_ON_ELEMENT[info->Element_patch[e]] * info->DIMENSION;
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+				for (l = 0; l < KIEL_SIZE; l++)
+					info->Strain_at_ele_vertex[ii * N_STRAIN + k] += B[k * MAX_KIEL_SIZE + l] * temp_disp[l];
+
+			// overlay strain
+			if (i >= info->Total_Element_on_mesh[0])
+			{
+				int KIEL_SIZE_glo = info->No_Control_point_ON_ELEMENT[info->Element_patch[element_glo]] * info->DIMENSION;
+				for (k = 0; k < D_MATRIX_SIZE; k++)
+					for (l = 0; l < KIEL_SIZE_glo; l++)
+						info->Strain_at_ele_vertex[ii * N_STRAIN + k] += BG[k * MAX_KIEL_SIZE + l] * temp_disp_glo[l];
+			}
+
+			// stress
+			for (k = 0; k < D_MATRIX_SIZE; k++)
+				for (l = 0; l < D_MATRIX_SIZE; l++)
+					info->Stress_at_ele_vertex[ii * N_STRESS + k] += info->D[k * D_MATRIX_SIZE + l] * info->Strain_at_ele_vertex[ii * N_STRAIN + l];
+
+			// if DIMENSION == 2, make strain zz, stress zz
+			if (info->DIMENSION == 2)
+			{
+				// 平面応力状態
+				if (DM == 0)
+					info->Strain_at_ele_vertex[ii * N_STRAIN + 3] = - 1.0 * nu / E * (info->Stress_at_ele_vertex[ii * N_STRESS + 0] + info->Stress_at_ele_vertex[ii * N_STRESS + 1]);
+				// 平面ひずみ状態
+				else if (DM == 1)
+					info->Stress_at_ele_vertex[ii * N_STRESS + 3] = E * nu / (1.0 + nu) / (1.0 - 2.0 * nu) * (info->Strain_at_ele_vertex[ii * N_STRAIN + 0] + info->Strain_at_ele_vertex[ii * N_STRAIN + 1]);
+			}
+
+			// output file
+			// displacement
+			fprintf(fp_disp, "%d\t%d", e, j);
+			for (k = 0; k < info->DIMENSION; k++)
+				fprintf(fp_disp, "\t%.15e", info->Displacement_at_ele_vertex[ii * info->DIMENSION + k]);
+			fprintf(fp_disp, "\n");
+
+			// strain
+			fprintf(fp_strain, "%d\t%d", e, j);
+			for (k = 0; k < N_STRAIN; k++)
+				fprintf(fp_strain, "\t%.15e", info->Strain_at_ele_vertex[ii * N_STRAIN + k]);
+			fprintf(fp_strain, "\n");
+
+			// stress
+			fprintf(fp_stress, "%d\t%d", e, j);
+			for (k = 0; k < N_STRESS; k++)
+				fprintf(fp_stress, "\t%.15e", info->Stress_at_ele_vertex[ii * N_STRESS + k]);
+			fprintf(fp_stress, "\n");
+
+			// physical coordinate
+			fprintf(fp_pc, "%d\t%d", e, j);
+			for (k = 0; k < info->DIMENSION; k++)
+				fprintf(fp_pc, "\t%.15e", data_result_shape[k]);
+			fprintf(fp_pc, "\n");
+		}
+	}
+
+	fclose(fp_disp), fclose(fp_strain), fclose(fp_stress), fclose(fp_pc);
 }
 
 
@@ -10733,7 +11147,7 @@ void Search_ele_point_2D(int xi, int eta, int e_x_max, int e_y_max, int *p_x, in
 	}
 
 	// ポイント番号を探索
-	for (i = 0; i < 9 ; i++)
+	for (i = 0; i < 9; i++)
 	{
 		if (p_x[i] == p_num_x && p_y[i] == p_num_y)
 		{
@@ -10773,7 +11187,7 @@ void Search_ele_point_3D(int xi, int eta, int zeta, int e_x_max, int e_y_max, in
 	}
 
 	// ポイント番号を探索
-	for (i = 0; i < 27 ; i++)
+	for (i = 0; i < 27; i++)
 	{
 		if (p_x[i] == p_num_x && p_y[i] == p_num_y && p_z[i] == p_num_z)
 		{

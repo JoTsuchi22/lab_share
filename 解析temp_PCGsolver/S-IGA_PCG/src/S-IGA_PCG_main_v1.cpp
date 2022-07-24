@@ -274,8 +274,12 @@ int main(int argc, char **argv)
 	// memory allocation
 	Make_gauss_array(0, &info);
     info_ptr->Displacement = (double *)malloc(sizeof(double) * MAX_K_WHOLE_SIZE);	// Displacement[MAX_K_WHOLE_SIZE]
-    info_ptr->Strain_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRAIN, sizeof(double));	// Strain[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRAIN]
-    info_ptr->Stress_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRESS, sizeof(double));	// Stress[MAX_N_ELEMENT][POW_NG_EXTEND][N_STRESS]
+    info_ptr->Displacement_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * info.DIMENSION, sizeof(double));
+    info_ptr->Strain_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRAIN, sizeof(double));
+    info_ptr->Stress_at_GP = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * GP_ON_ELEMENT * N_STRESS, sizeof(double));
+    info_ptr->Displacement_at_ele_vertex = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * pow(2, info.DIMENSION) * info.DIMENSION, sizeof(double));
+    info_ptr->Strain_at_ele_vertex = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * pow(2, info.DIMENSION) * N_STRAIN, sizeof(double));
+    info_ptr->Stress_at_ele_vertex = (double *)calloc(info.Total_Element_to_mesh[Total_mesh] * pow(2, info.DIMENSION) * N_STRESS, sizeof(double));
     info_ptr->ReactionForce = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// ReactionForce[MAX_K_WHOLE_SIZE]
 	if (info.Displacement == NULL || info.Strain_at_GP == NULL || info.Stress_at_GP == NULL || info.ReactionForce == NULL)
 	{
@@ -287,23 +291,21 @@ int main(int argc, char **argv)
 	printf("\nFinish Make_Displacement\n\n");
 
 	// ガウス点での値
-	if (CALC_ON_GP == 0)
+	if (!CALC_ON_GP)
 	{
-		Make_Strain(&info);
-		printf("\nFinish Make_Strain\n\n");
-		Make_Stress(&info);
-		printf("\nFinish Make_Stress\n\n");
-		if (info.DIMENSION == 2)
-		{
-			Make_Parameter_z(&info);
-			printf("\nFinish Make_Parameter_z\n\n");
-		}
-		Make_ReactionForce(&info);
-		printf("\nFinish Make_ReactionForce\n\n");
+		calc_at_GP(&info);
+		printf("\nFinish calc_at_GP\n\n");
+	}
+
+	// 要素頂点での値
+	if (!CALC_ON_ELE_VERTEX)
+	{
+		calc_at_ele_vertex(&info);
+		printf("\nFinish calc_at_ele_vertex\n\n");
 	}
 
 	// Kマトリックスのsvg出力
-	if (OUTPUT_SVG == 0)
+	if (!OUTPUT_SVG)
 	{
 		K_output_svg(&info);
 		printf("\nFinish K_output_svg\n\n");
@@ -378,7 +380,7 @@ int main(int argc, char **argv)
 	free(info.Connectivity), free(info.Connectivity_ele), free(info.Connectivity_point), free(info.Connectivity_coord), free(info.Patch_check), free(info.Patch_array);
 	
 	// NURBS viewer のための出力
-	if (SKIP_NV == 0)
+	if (!SKIP_NV)
 	{
 		output_for_viewer(&info);
 		printf("\nFinish output_for_viewer\n\n");
