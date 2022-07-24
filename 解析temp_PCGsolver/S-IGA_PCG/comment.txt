@@ -8,7 +8,7 @@
 プログラミングの勉強
 C, C++, python のいずれかの言語を学習して頂きたいと思っています．
 python はライブラリが豊富で型を考慮しなくてよいので入門としては非常に簡単ですが，
-インタプリタ言語なので動作が遅くなる場合が多いです．
+インタプリタ言語なので数値計算では動作が遅くなる場合が多いです．
 解析コードはC++で記述していますのが，上記のどの言語を学習されても(上記以外でも)プログラムの考え方は基本的に同じなので大丈夫です．
 
 変数，型，if文，for文，配列，グローバル変数，マクロ，ポインタ，
@@ -22,11 +22,13 @@ atcoder tutorial:   https://atcoder.jp/contests/apg4b
 一週間で身につくC言語の基本:    https://c-lang.sevendays-study.com/
 Makefile の解説:    http://omilab.naist.jp/~mukaigawa/misc/Makefile.html
 VScode のショートカット:    https://qiita.com/TakahiRoyte/items/cdab6fca64da386a690b
+gdb:    https://rat.cis.k.hosei.ac.jp/article/devel/debugongccgdb1.html
 
 プログラムは学習してもアウトプットしないと問題点に気づけないことが多いので，
 時間があれば自分でプログラムを作成してみたり，既存のプログラムの一部を変更して動作の確認をしてみてください．
 
 例としては以下のような問題に取り組んでみてください
+    基本的なファイルの入出力の練習
     IGAの1次元の基底関数の作成と出力(可視化も行う場合はC, C++ならデータをファイルに出力してエクセルでプロットしたり，svgファイル形式にするのが便利です．pythonならmatplotlibで描画すると良いです)
     1次元の任意の関数(sin, cos等)のガウス・ルジャンドル積分
     2次元の適当な要素に対してガウス点でヤコビアンを計算し面積を算出する
@@ -37,7 +39,7 @@ VScode のショートカット:    https://qiita.com/TakahiRoyte/items/cdab6fca
 ・先輩方の卒論，修論について
 
 基本的にはBOXに上がっていると思いますが，原理や実装について書いてあるので読んでみてください．
-中原さん，砂岡，土山，町野，唐戸は以下のURLにあるとおもいます．
+去年卒業された中原さん，M1砂岡，土山，町野，唐戸は以下のURLにあります．
 https://tus.box.com/s/3uxdokudi9bwx12al19g7nitgywxtqul
 
 渡辺さんの修論は緑(?)のファイルが研究室にあると思います
