@@ -3620,14 +3620,6 @@ void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, d
 		}
 	}
 
-	for (ii = 0; ii < info->No_knot[info->Element_patch[e] * info->DIMENSION + j]; ii++)
-	{
-		for (p = 1; p <= info->Order[info->Element_patch[e] * info->DIMENSION + j]; p++)
-		{
-			Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p] = 0.0;
-		}
-	}
-
 	double left_term, right_term;
 	for (p = 1; p <= info->Order[info->Element_patch[e] * info->DIMENSION + j]; p++)
 	{
@@ -3639,15 +3631,13 @@ void ShapeFunction1D(double *Position_Data_param, int j, int e, double *Shape, d
 			if ((Position_Data_param[j] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p - 1] == 0 && info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + p] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii] == 0)
 				left_term = 0.0;
 			else
-			{
 				left_term = (Position_Data_param[j] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii]) / (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + p] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p - 1];
-			}
+
 			if ((info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + p + 1] - Position_Data_param[j]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + p - 1] == 0 && info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + p + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + 1] == 0)
 				right_term = 0.0;
 			else
-			{
 				right_term = (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + p + 1] - Position_Data_param[j]) / (info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + p + 1] - info->Position_Knots[info->Total_Knot_to_patch_dim[info->Element_patch[e] * info->DIMENSION + j] + ii + 1]) * Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + (ii + 1) * MAX_ORDER + p - 1];
-			}
+
 			Shape[j * (info->Total_Control_Point_to_mesh[Total_mesh] * MAX_ORDER) + ii * MAX_ORDER + p] = left_term + right_term;
 		}
 	}
@@ -3692,52 +3682,34 @@ double dShape_func(int I_No, int xez, double *Local_coord, int El_No, informatio
 		NURBS_deriv_2D(Local_coord, El_No, dShape_func1, dShape_func2, info);
 
 		if (xez != 0 && xez != 1)
-		{
 			dR = ERROR;
-		}
 		else if (I_No < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]])
 		{
 			if (xez == 0)
-			{
 				dR = dShape_func1[I_No] * dShapeFunc_from_paren(xez, El_No, info);
-			}
 			else if (xez == 1)
-			{
 				dR = dShape_func2[I_No] * dShapeFunc_from_paren(xez, El_No, info);
-			}
 		}
 		else
-		{
 			dR = ERROR;
-		}
 	}
 	else if (info->DIMENSION == 3)
 	{
 		NURBS_deriv_3D(Local_coord, El_No, dShape_func1, dShape_func2, dShape_func3, info);
 
 		if (xez != 0 && xez != 1 && xez != 2)
-		{
 			dR = ERROR;
-		}
 		else if (I_No < info->No_Control_point_ON_ELEMENT[info->Element_patch[El_No]])
 		{
 			if (xez == 0)
-			{
 				dR = dShape_func1[I_No] * dShapeFunc_from_paren(xez, El_No, info);
-			}
 			else if (xez == 1)
-			{
 				dR = dShape_func2[I_No] * dShapeFunc_from_paren(xez, El_No, info);
-			}
 			else if (xez == 2)
-			{
 				dR = dShape_func3[I_No] * dShapeFunc_from_paren(xez, El_No, info);
-			}
 		}
 		else
-		{
 			dR = ERROR;
-		}
 	}
 
 	return dR;
@@ -3758,9 +3730,7 @@ void NURBS_deriv_2D(double *Local_coord, int El_No, double *dShape_func1, double
 	static double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]);				// dShape[info->DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CP_ON_ELEMENT; i++)
-	{
 		shape_func[i] = 1.0;
-	}
 
 	for (j = 0; j < info->DIMENSION; j++)
 	{
@@ -3803,9 +3773,7 @@ void NURBS_deriv_3D(double *Local_coord, int El_No, double *dShape_func1, double
 	static double *dShape = (double *)malloc(sizeof(double) * info->DIMENSION * info->Total_Control_Point_to_mesh[Total_mesh]);				// dShape[info->DIMENSION][MAX_N_NODE]
 
 	for (i = 0; i < MAX_NO_CP_ON_ELEMENT; i++)
-	{
 		shape_func[i] = 1.0;
-	}
 
 	for (j = 0; j < info->DIMENSION; j++)
 	{

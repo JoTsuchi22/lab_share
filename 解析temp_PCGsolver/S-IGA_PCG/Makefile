@@ -5,6 +5,7 @@ CFLAGS			= -g -lm -Wall -Wextra
 CFLAGS_fast		= -O1 -lm -Wall -Wextra
 CFLAGS_so_fast	= -O3 -lm -Wall -Wextra
 
+#compile
 compile_so_fast:
 	cd ./src && $(CC) -o $(PROGRAM_NAME)_$(VERSION).x $(PROGRAM_NAME)_main_$(VERSION).cpp $(PROGRAM_NAME)_sub_$(VERSION).cpp $(CFLAGS_so_fast)
 
