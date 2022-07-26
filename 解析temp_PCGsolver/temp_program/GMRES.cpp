@@ -8,7 +8,7 @@ using namespace std;
 void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
 {
     int i, j, k, l, m;
-    static const int max_itr = 10;
+    static const int max_itr = 100;
     static const double tol = 1.0e-14;
 
     int itr;
@@ -84,11 +84,6 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
             for (k = 0; k < length; k++)
                 Av[j] += matrix[j * length + k] * v[k];
 
-        // cout << "v" << endl;
-        // for (j = 0; j < length; j++)
-        //     cout << v[j] << " ";
-        // cout << endl;
-
         // V
         for (j = 0; j < length; j++)
             V[i][j] = v[j];
@@ -125,54 +120,24 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
         for (j = 0; j <= i + 1; j++)
             H[j][i] = h[j];
 
-        // cout << "h" << endl;
-        // for (j = 0; j <= i + 1; j++)
-        //     cout << h[j] << " ";
-        // cout << endl;
-
-        cout << endl;
-        cout << "H" << endl;
-        for (j = 0; j <= i + 1; j++)
-        {
-            for (k = 0; k <= i; k++)
-                cout << H[j][k] << " ";
-            cout << endl;
-        }
-
         // v
         for (j = 0; j < length; j++)
             v[j] = v_hat[j] / norm;
 
         // givens rotation
-        int end_itr = i;
-        for (j = 0; j <= end_itr; j++)
+        for (j = 0; j <= i; j++)
         {
             double nu, c_i, s_i;
+            double H_a = 0, H_b = 0;
+
+            if (j == 0)
+                H_a = H[j][j], H_b = H[j + 1][j];
+            else
+                H_a = QH[j][j], H_b = QH[j + 1][j];
             
-            nu = sqrt(pow(H[j][j], 2) + pow(H[j + 1][j], 2));
-            c_i = H[j][j] / nu;
-            s_i = H[j + 1][j] / nu;
-
-            // if (j == 0)
-            // {
-            //     nu = sqrt(pow(H[j][j], 2) + pow(H[j + 1][j], 2));
-            //     c_i = H[j][j] / nu;
-            //     s_i = H[j + 1][j] / nu;
-
-            //     r = c_i * H[j][j] + s_i * H[j + 1][j];
-
-            //     // cout << "rr = " << pow(c_i, 2) + pow(s_i, 2) << endl;
-            // }
-            // else
-            // {
-            //     r_22 = - s_i * H[j][j + 1] + c_i * H[j + 1][j + 1];
-            //     nu = sqrt(pow(r_22, 2) + pow(H[j + 1][j], 2));
-            //     c_i = r_22 / nu;
-            //     s_i = H[j + 1][j] / nu;
-
-
-            //     // cout << "rr = " << pow(c_i, 2) + pow(s_i, 2) << endl;
-            // }
+            nu = sqrt(pow(H_a, 2) + pow(H_b, 2));
+            c_i = H_a / nu;
+            s_i = H_b / nu;
 
             // Omega
             for (k = 0; k <= i + 1; k++)
@@ -183,141 +148,69 @@ void GMRES(int length, double *result_vec, double *right_vec, double *matrix)
                     else
                         Omega[k][l] = 0.0;
                 }
+
             Omega[j][j] = c_i;
             Omega[j][j + 1] = s_i;
             Omega[j + 1][j] = - s_i;
             Omega[j + 1][j + 1] = c_i;
 
-            // cout << "omega" << endl;
-            // for (k = 0; k <= i + 1; k++)
-            // {
-            //     for (l = 0; l <= i + 1; l++)
-            //     {
-            //         cout << Omega[k][l] << " ";
-            //     }
-            //     cout << endl;
-            // }
-
-            // substitution
             if (j == 0)
-            {
                 for (k = 0; k <= i + 1; k++)
                     for (l = 0; l <= i; l++)
                         QH[k][l] = H[k][l];
-            }
-
-            // init
+            
             for (k = 0; k <= i + 1; k++)
                 for (l = 0; l <= i; l++)
                     QH_temp[k][l] = 0.0;
-
-            // calc
             for (k = 0; k <= i + 1; k++)
                 for (l = 0; l <= i; l++)
                     for (m = 0; m <= i + 1; m++)
                         QH_temp[k][l] += Omega[k][m] * QH[m][l];
-
-            // substitution
             for (k = 0; k <= i + 1; k++)
                 for (l = 0; l <= i; l++)
                     QH[k][l] = QH_temp[k][l];
 
-            cout << "QH_step" << endl;
-            for (k = 0; k <= i + 1; k++)
+
+            if (j == 0)
             {
-                for (l = 0; l <= i; l++)
-                {
-                    cout << QH[k][l] << " ";
-                }
-                cout << endl;
+                for (k = 0; k <= i + 1; k++)
+                    g[k] = 0.0;
+                for (k = 0; k <= i + 1; k++)
+                    for (l = 0; l <= i + 1; l++)
+                        g[k] += Omega[k][l] * e1[l];
+                for (k = 0; k <= i + 1; k++)
+                    g_temp[k] = g[k];
             }
-
-            // // substitution
-            // if (j == 0)
-            // {
-            //     for (k = 0; k <= i + 1; k++)
-            //         for (l = 0; l <= i + 1; l++)
-            //             Q[k][l] = Omega[k][l];
-            // }
-            // else
-            // {
-            //     // init
-            //     for (k = 0; k <= i + 1; k++)
-            //         for (l = 0; l <= i + 1; l++)
-            //             Q_temp[k][l] = 0.0;
-
-            //     // calc
-            //     for (k = 0; k <= i + 1; k++)
-            //         for (l = 0; l <= i + 1; l++)
-            //             for (m = 0; m <= i + 1; m++)
-            //                 Q_temp[k][l] += Omega[k][m] * Q[m][l];
-
-            //     // substitution
-            //     for (k = 0; k <= i + 1; k++)
-            //         for (l = 0; l <= i + 1; l++)
-            //             Q[k][l] = Q_temp[k][l];
-            // }
-
-            // cout << "Q_step" << endl;
-            // for (k = 0; k <= i + 1; k++)
-            // {
-            //     for (l = 0; l <= i + 1; l++)
-            //     {
-            //         cout << Q[k][l] << " ";
-            //     }
-            //     cout << endl;
-            // }
-        }
-
-        // H
-        for (j = 0; j <= i + 1; j++)
-            for (k = 0; k <= i; k++)
-                H[j][k] = QH[j][k];
-
-        // g
-        for (j = 0; j <= i + 1; j++)
-        {
-            g[j] = 0.0;
-            for (k = 0; k <= i + 1; k++)
-                g[j] += Omega[j][k] * e1[k];
-            g_temp[j] = g[j];
-        }
-
-        // // g
-        // for (j = 0; j <= i + 1; j++)
-        // {
-        //     g[j] = 0.0;
-        //     g_temp[j] = 0.0;
-        //     for (k = 0; k <= i + 1; k++)
-        //         g[j] += R[j][k] * e1[k];
-        //     for (k = 0; k <= i + 1; k++)
-        //         g_temp[j] = g[j];
-        // }
-
-        cout << "g" << endl;
-        for (j = 0; j <= i + 1; j++)
-        {
-            cout << g[j] << endl;
+            else
+            {
+                for (k = 0; k <= i + 1; k++)
+                    g_temp[k] = 0.0;
+                for (k = 0; k <= i + 1; k++)
+                    for (l = 0; l <= i + 1; l++)
+                        g_temp[k] += Omega[k][l] * g[l];
+                for (k = 0; k <= i + 1; k++)
+                    g[k] = g_temp[k];
+            }
         }
 
         // y
         for (j = i; j >= 0; j--)
         {
-            y[j] = g[j] / QH[j][j];
+            y[j] = g_temp[j] / QH[j][j];
             for (k = 0; k <= j; k++)
-                g[k] -= QH[k][j] * y[j];
+                g_temp[k] -= QH[k][j] * y[j];
         }
 
         // r_i norm
         norm = 0.0;
         for (j = 0; j <= i; j++)
         {
-            double temp = g_temp[j];
+            double temp = g[j];
             for (k = 0; k <= i; k++)
                 temp -= QH[j][k] * y[k];
             norm += pow(temp, 2);
         }
-        norm += pow(g_temp[i + 1], 2);
+        norm += pow(g[i + 1], 2);
         norm = sqrt(norm);
 
         cout << "itr = " << i <<  "  ";
@@ -345,42 +238,42 @@ int main()
     double *x = (double *)calloc(size_vector, sizeof(double));
     double *b = (double *)malloc(sizeof(double) * size_vector);
 
-    // A[0] = 3;
-    // A[1] = 1;
-    // A[2] = 1;
-    // A[3] = 2;
-    // A[4] = 5;
-    // A[5] = 1;
-    // A[6] = 3;
-    // A[7] = 4;
-    // A[8] = 2;
-    // A[9] = 0;
-    // A[10] = 1;
-    // A[11] = 0;
-    // A[12] = 1;
-    // A[13] = 3;
-    // A[14] = 2;
-    // A[15] = 1;
-
-    A[0] = 1;
+    A[0] = 3;
     A[1] = 1;
-    A[2] = 2;
-    A[3] = 0;
-
-    A[4] = 1;
+    A[2] = 1;
+    A[3] = 2;
+    A[4] = 5;
     A[5] = 1;
-    A[6] = 0;
-    A[7] = 1;
-
+    A[6] = 3;
+    A[7] = 4;
     A[8] = 2;
     A[9] = 0;
     A[10] = 1;
-    A[11] = 1;
+    A[11] = 0;
+    A[12] = 1;
+    A[13] = 3;
+    A[14] = 2;
+    A[15] = 1;
 
-    A[12] = 0;
-    A[13] = 1;
-    A[14] = 1;
-    A[15] = 2;
+    // A[0] = 1;
+    // A[1] = 1;
+    // A[2] = 2;
+    // A[3] = 0;
+
+    // A[4] = 1;
+    // A[5] = 1;
+    // A[6] = 0;
+    // A[7] = 1;
+
+    // A[8] = 2;
+    // A[9] = 0;
+    // A[10] = 1;
+    // A[11] = 1;
+
+    // A[12] = 0;
+    // A[13] = 1;
+    // A[14] = 1;
+    // A[15] = 2;
 
     // A[0] = 1;
     // A[1] = 1;
