@@ -8958,47 +8958,34 @@ void K_output_svg(information *info)
 	double hh = ndof * scale;
 	fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", xx, yy, ww, hh, color_vec[0]);
 
+	static int *K_bool = (int *)malloc(sizeof(int) * ndof); // 一行分保存する
+
 	// 各行の成分を抽出
 	for (i = 0; i < ndof; i++)
 	{
-		int *K_bool = (int *)malloc(sizeof(int) * ndof); // 一行分保存する
 		for (j = 0; j < ndof; j++)
-		{
 			K_bool[j] = 0;
-		}
 
 		for (j = 0; j < ndof; j++)
 		{
 			int temp_count;
 			if (i <= j)
-			{
 				temp_count = RowCol_to_icount(i, j, info);
-			}
 			else if (i > j)
-			{
 				temp_count = RowCol_to_icount(j, i, info);
-			}
 
 			if (temp_count != -1)
-			{
 				K_bool[j] = 1;
-			}
 		}
 
 		for (j = 0; j < ndof; j++)
 		{
 			double x = (((double)j) + space) * scale;
 			double y = (((double)i) + space) * scale;
-			// if (K_bool[j] == 0)
-			// {
-			// 	fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[0]);
-			// }
+
 			if (K_bool[j] == 1)
-			{
 				fprintf(fp, "<rect x='%le' y='%le' width='%le' height='%le' fill='%s' />\n", x, y, scale, scale, color_vec[1]);
-			}
 		}
-		free(K_bool);
 	}
 
 	fprintf(fp, "</svg>");
