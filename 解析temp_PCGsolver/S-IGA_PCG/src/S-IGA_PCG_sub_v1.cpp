@@ -8162,8 +8162,8 @@ int CalcXiEtaByNR(double px, double py,
 	double temp_x, temp_y;
 	double temp_matrix[2][2];
 	double temp_dxi, temp_deta;
-	double temp_tol_x = DBL_MAX;
-	double temp_tol_y = DBL_MAX;
+	double temp_tol_x = DBL_MAX_;
+	double temp_tol_y = DBL_MAX_;
 
 	(*output_xi) = 0;
 	(*output_eta) = 0;
