@@ -22,6 +22,8 @@
 #define ERROR -999
 #define MERGE_ERROR 1.0e-13
 
+#pragma warning(disable: 4996)
+
 struct information {
     int DIMENSION;
 

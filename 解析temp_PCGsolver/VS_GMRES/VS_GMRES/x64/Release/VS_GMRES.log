@@ -1,0 +1,54 @@
+﻿..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3227,14): : warning : variable 'temp1' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                                  else if (i > j)
+                                           ^~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3232,9): note: uninitialized use occurs here
+                                  if (temp1 != -1)
+                                      ^~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3227,10): note: remove the 'if' if its condition is always true
+                                  else if (i > j)
+                                       ^~~~~~~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3222,14): note: initialize the variable 'temp1' to silence this warning
+                                  int temp1;
+                                           ^
+                                            = 0
+..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3602,15): : warning : variable 'temp' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                                          else if (j > k)
+                                                   ^~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3605,10): note: uninitialized use occurs here
+                                          if (temp != -1)
+                                              ^~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3602,11): note: remove the 'if' if its condition is always true
+                                          else if (j > k)
+                                               ^~~~~~~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3599,14): note: initialize the variable 'temp' to silence this warning
+                                          int temp;
+                                                  ^
+                                                   = 0
+..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3560,14): : warning : variable 'temp' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                                  else if (i > j)
+                                           ^~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3563,9): note: uninitialized use occurs here
+                                  if (temp != -1)
+                                      ^~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3560,10): note: remove the 'if' if its condition is always true
+                                  else if (i > j)
+                                       ^~~~~~~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(3557,13): note: initialize the variable 'temp' to silence this warning
+                                  int temp;
+                                          ^
+                                           = 0
+..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(9242,13): : warning : variable 'temp_count' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                          else if (i > j)
+                                   ^~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(9245,8): note: uninitialized use occurs here
+                          if (temp_count != -1)
+                              ^~~~~~~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(9242,9): note: remove the 'if' if its condition is always true
+                          else if (i > j)
+                               ^~~~~~~~~~
+  ..//..//S-IGA_GMRES//src//S-IGA_PCG_sub_v1.cpp(9239,18): note: initialize the variable 'temp_count' to silence this warning
+                          int temp_count;
+                                        ^
+                                         = 0
+  4 warnings generated.
+  VS_GMRES.vcxproj -> D:\ドキュメント\lab_share\解析temp_PCGsolver\VS_GMRES\x64\Release\VS_GMRES.exe

@@ -3689,8 +3689,8 @@ void GMRES(int length, information *info)
 					for (l = 0; l <= i; l++)
 						QH_temp[k * size + l] = 0.0;
 				for (k = 0; k <= i + 1; k++)
-					for (l = 0; l <= i; l++)
-						for (m = 0; m <= i + 1; m++)
+					for (m = 0; m <= i + 1; m++)
+						for (l = 0; l <= i; l++)
 							QH_temp[k * size + l] += Omega[k * size + m] * QH[m * size + l];
 				for (k = 0; k <= i + 1; k++)
 					for (l = 0; l <= i; l++)

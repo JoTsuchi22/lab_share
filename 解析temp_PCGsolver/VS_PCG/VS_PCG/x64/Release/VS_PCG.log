@@ -1,0 +1,28 @@
+﻿..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(3219,14): : warning : variable 'temp1' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                                  else if (i > j)
+                                           ^~~~~
+  ..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(3222,9): note: uninitialized use occurs here
+                                  if (temp1 != -1)
+                                      ^~~~~
+  ..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(3219,10): note: remove the 'if' if its condition is always true
+                                  else if (i > j)
+                                       ^~~~~~~~~~
+  ..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(3216,14): note: initialize the variable 'temp1' to silence this warning
+                                  int temp1;
+                                           ^
+                                            = 0
+..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(8963,13): : warning : variable 'temp_count' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                          else if (i > j)
+                                   ^~~~~
+  ..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(8966,8): note: uninitialized use occurs here
+                          if (temp_count != -1)
+                              ^~~~~~~~~~
+  ..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(8963,9): note: remove the 'if' if its condition is always true
+                          else if (i > j)
+                               ^~~~~~~~~~
+  ..\..\S-IGA_PCG\src\S-IGA_PCG_sub_v1.cpp(8960,18): note: initialize the variable 'temp_count' to silence this warning
+                          int temp_count;
+                                        ^
+                                         = 0
+  2 warnings generated.
+  VS_PCG.vcxproj -> D:\ドキュメント\lab_share\解析temp_PCGsolver\VS_PCG\x64\Release\VS_PCG.exe
