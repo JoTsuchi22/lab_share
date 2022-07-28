@@ -259,8 +259,6 @@ int main(int argc, char **argv)
 	// solve Kd = f
 	printf("\nStart PCG solver\n\n");
 	start[1] = chrono::system_clock::now();
-	// int max_itr = K_Whole_Size;
-	// PCG_Solver(max_itr, EPS, &info);
 	GMRES(K_Whole_Size, &info);
 	end[1] = chrono::system_clock::now();
 	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;

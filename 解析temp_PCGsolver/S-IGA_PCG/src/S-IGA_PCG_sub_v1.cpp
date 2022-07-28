@@ -3151,7 +3151,6 @@ void PCG_Solver(int max_itetarion, double eps, information *info)
 	double *p = (double *)calloc(ndof, sizeof(double));
 	double *y = (double *)malloc(sizeof(double) * ndof);
 	double *r2 = (double *)calloc(ndof, sizeof(double));
-	double *temp_array_K = (double *)malloc(sizeof(double) * ndof);
 
 	double *gg = (double *)malloc(sizeof(double) * ndof);
 	double *dd = (double *)malloc(sizeof(double) * ndof);
@@ -3211,29 +3210,19 @@ void PCG_Solver(int max_itetarion, double eps, information *info)
 		// y = AP の計算
 		for (i = 0; i < ndof; i++)
 		{
-			for (j = 0; j < ndof; j++)
-			{
-				temp_array_K[j] = 0.0;
-			}
-			
+			double dot = 0.0;
 			for (j = 0; j < ndof; j++)
 			{
 				int temp1;
 				if (i <= j)
-				{
 					temp1 = RowCol_to_icount(i, j, info); // temp_array_K[i][j]
-				}
 				else if (i > j)
-				{
 					temp1 = RowCol_to_icount(j, i, info); // temp_array_K[i][j] = temp_array_K[j][i]
-				}
 
 				if (temp1 != -1)
-				{
-					temp_array_K[j] = info->K_Whole_Val[temp1];
-				}
+					dot += info->K_Whole_Val[temp1] * p[j];
 			}
-			y[i] = inner_product(ndof, temp_array_K, p);
+			y[i] = dot;
 		}
 
 		// alpha = r*r/(P*AP)の計算
@@ -3308,7 +3297,7 @@ void PCG_Solver(int max_itetarion, double eps, information *info)
 	printf("itr_result = %d\n", max_itr_result);
 	printf("eps_result = %.15e\n", eps_result);
 
-	free(r), free(p), free(y), free(r2), free(temp_array_K);
+	free(r), free(p), free(y), free(r2);
 	free(M), free(M_Ptr), free(M_Col), free(M_diag);
 	free(gg), free(dd), free(pp), free(temp_r);
 }

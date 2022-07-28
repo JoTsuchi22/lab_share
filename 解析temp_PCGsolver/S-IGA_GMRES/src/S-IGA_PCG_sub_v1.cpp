@@ -3498,45 +3498,47 @@ int RowCol_to_icount(int row, int col, information *info)
 // GMRES
 void GMRES(int length, information *info)
 {
-    int i, j, k, l, m;
-    static const int max_itr = 50;
+    int i, j, k, l, m, n;
+    static const int max_itr = 70;
+    static const int itr_inf = 1000;
     static const double tol = 1.0e-10;
-
+	long long size = max_itr + 1;
     int itr;
     double norm;
 
-    vector<vector<double>> H(max_itr + 1, vector<double>(max_itr + 1));
-    vector<vector<double>> V(max_itr + 1, vector<double>(length));
-    vector<vector<double>> Omega(max_itr + 1, vector<double>(max_itr + 1));
-    vector<vector<double>> Q(max_itr + 1, vector<double>(max_itr + 1));
-    vector<vector<double>> Q_temp(max_itr + 1, vector<double>(max_itr + 1));
-    vector<vector<double>> QH_temp(max_itr + 1, vector<double>(max_itr + 1));
-    vector<vector<double>> QH(max_itr + 1, vector<double>(max_itr + 1));
+    double *H = (double *)malloc(sizeof(double) *size * size);
+    double *V = (double *)malloc(sizeof(double) *size * length);
+    double *Omega = (double *)malloc(sizeof(double) *size * size);
+    double *QH = (double *)malloc(sizeof(double) *size * size);
+    double *QH_temp = (double *)malloc(sizeof(double) *size * size);
+    double *P = (double *)malloc(sizeof(double) *size * length);
 
-    vector<double> e1(max_itr + 1);
-    vector<double> g(max_itr + 1);
-    vector<double> g_temp(max_itr + 1);
-    vector<double> y(max_itr + 1);
+    double *e1 = (double *)malloc(sizeof(double) *size);
+    double *g = (double *)malloc(sizeof(double) *size);
+    double *g_temp = (double *)malloc(sizeof(double) *size);
+    double *y = (double *)malloc(sizeof(double) *size);
+    double *Ax = (double *)malloc(sizeof(double) *length);
+    double *v = (double *)malloc(sizeof(double) *length);
+    double *r = (double *)malloc(sizeof(double) *length);
+    double *v_hat = (double *)malloc(sizeof(double) *length);
+    double *Av = (double *)malloc(sizeof(double) *length);
+    double *h = (double *)malloc(sizeof(double) *size);
+    double *p = (double *)malloc(sizeof(double) *length);
 
-    vector<double> Ax(length);
+	double *gg = (double *)malloc(sizeof(double) * length);
+	double *dd = (double *)malloc(sizeof(double) * length);
+	double *pp = (double *)malloc(sizeof(double) * length);
+	double *temp_r = (double *)malloc(sizeof(double) * length);
 
-	static double *temp_vec = (double *)malloc(sizeof(double) * length);
-	static double *v = (double *)malloc(sizeof(double) * length);
-
-    vector<double> r(length);
-    vector<double> v_hat(max_itr + 1);
-    vector<double> Av(length);
-    vector<double> h(max_itr + 1);
+	double *M = (double *)malloc(sizeof(double) * info->K_Whole_Ptr[length]);
+	int *M_Ptr = (int *)malloc(sizeof(int) * (length + 1));
+	int *M_Col = (int *)malloc(sizeof(int) * info->K_Whole_Ptr[length]);
+	double *M_diag = (double *)malloc(sizeof(double) * length);
 
     cout << scientific;
 
-    for (i = 0; i < max_itr + 1; i++)
-    {
-        for (j = 0; j < max_itr + 1; j++)
-            H[i][j] = 0.0;
-        for (j = 0; j < length; j++)
-            V[i][j] = 0.0;
-    }
+	// 前処理行列作成
+	Make_M(M, M_Ptr, M_Col, M_diag, length, info);
 
     // x0
     for (i = 0; i < length; i++)
@@ -3544,35 +3546,24 @@ void GMRES(int length, information *info)
         info->sol_vec[i] = 0.0;
 	}
 
-	for (int itr_inf = 0; itr_inf < 100; itr_inf++)
+	for (n = 0; n < itr_inf; n++)
 	{
 		// Ax0
 		for (i = 0; i < length; i++)
-			Ax[i] = 0.0;
-		
-		for (i = 0; i < length; i++)
 		{
-			for (j = 0; j < length; j++)
-				temp_vec[j] = 0.0;
-
+			double dot = 0.0;
 			for (j = 0; j < length; j++)
 			{
 				int temp;
 				if (i <= j)
-				{
-					temp = RowCol_to_icount(i, j, info); // temp_vec[i][j]
-				}
+					temp = RowCol_to_icount(i, j, info);
 				else if (i > j)
-				{
-					temp = RowCol_to_icount(j, i, info); // temp_vec[i][j] = temp_vec[j][i]
-				}
+					temp = RowCol_to_icount(j, i, info);
 
 				if (temp != -1)
-				{
-					temp_vec[j] = info->K_Whole_Val[temp];
-				}
+					dot += info->K_Whole_Val[temp] * info->sol_vec[j];
 			}
-			Ax[i] = inner_product(length, temp_vec, info->sol_vec);
+			Ax[i] = dot;
 		}
 
 		// r initialization
@@ -3587,7 +3578,7 @@ void GMRES(int length, information *info)
 
 		// e1
 		e1[0] = norm;
-		for (i = 1; i < max_itr + 1; i++)
+		for (i = 1; i < size; i++)
 			e1[i] = 0.0;
 
 		// v
@@ -3597,45 +3588,40 @@ void GMRES(int length, information *info)
 		// loop
 		for (i = 0; i < max_itr; i++)
 		{
+			CG(length, p, M, M_Ptr, M_Col, M_diag, v, gg, dd, pp, temp_r);
+
 			// Av
 			for (j = 0; j < length; j++)
-				Av[j] = 0.0;
-
-			for (j = 0; j < length; j++)
 			{
-				for (k = 0; k < length; k++)
-					temp_vec[k] = 0.0;
-
+				double dot = 0.0;
 				for (k = 0; k < length; k++)
 				{
 					int temp;
 					if (j <= k)
-					{
-						temp = RowCol_to_icount(j, k, info); // temp_vec[j][k]
-					}
+						temp = RowCol_to_icount(j, k, info);
 					else if (j > k)
-					{
-						temp = RowCol_to_icount(k, j, info); // temp_vec[j][k] = temp_vec[k][j]
-					}
+						temp = RowCol_to_icount(k, j, info);
 
 					if (temp != -1)
-					{
-						temp_vec[k] = info->K_Whole_Val[temp];
-					}
+						dot += info->K_Whole_Val[temp] * p[k];
 				}
-				Av[j] = inner_product(length, temp_vec, v);
+				Av[j] = dot;
 			}
+
+			// P
+			for (j = 0; j < length; j++)
+				P[i * length + j] = p[j];
 
 			// V
 			for (j = 0; j < length; j++)
-				V[i][j] = v[j];
+				V[i * length + j] = v[j];
 
 			// h
 			for (j = 0; j <= i; j++)
 			{
 				double dot = 0.0;
 				for (k = 0; k < length; k++)
-					dot += Av[k] * V[j][k];
+					dot += Av[k] * V[j * length + k];
 				h[j] = dot;
 			}
 
@@ -3644,9 +3630,7 @@ void GMRES(int length, information *info)
 			{
 				v_hat[j] = Av[j];
 				for (k = 0; k <= i; k++)
-				{
-					v_hat[j] -= h[k] * V[k][j];
-				}
+					v_hat[j] -= h[k] * V[k * length + j];
 			}
 
 			// v_hat l2 norm
@@ -3660,7 +3644,7 @@ void GMRES(int length, information *info)
 
 			// H
 			for (j = 0; j <= i + 1; j++)
-				H[j][i] = h[j];
+				H[j * size + i] = h[j];
 
 			// v
 			for (j = 0; j < length; j++)
@@ -3673,10 +3657,10 @@ void GMRES(int length, information *info)
 				double H_a = 0, H_b = 0;
 
 				if (j == 0)
-					H_a = H[j][j], H_b = H[j + 1][j];
+					H_a = H[j * size + j], H_b = H[(j + 1) * size + j];
 				else
-					H_a = QH[j][j], H_b = QH[j + 1][j];
-				
+					H_a = QH[j * size + j], H_b = QH[(j + 1) * size + j];
+
 				nu = sqrt(pow(H_a, 2) + pow(H_b, 2));
 				c_i = H_a / nu;
 				s_i = H_b / nu;
@@ -3686,40 +3670,40 @@ void GMRES(int length, information *info)
 					for (l = 0; l <= i + 1; l++)
 					{
 						if (k == l)
-							Omega[k][l] = 1.0;
+							Omega[k * size + l] = 1.0;
 						else
-							Omega[k][l] = 0.0;
+							Omega[k * size + l] = 0.0;
 					}
 
-				Omega[j][j] = c_i;
-				Omega[j][j + 1] = s_i;
-				Omega[j + 1][j] = - s_i;
-				Omega[j + 1][j + 1] = c_i;
+				Omega[j * size + j] = c_i;
+				Omega[j * size + j + 1] = s_i;
+				Omega[(j + 1) * size + j] = - s_i;
+				Omega[(j + 1) * size + j + 1] = c_i;
 
+				// QH
 				if (j == 0)
 					for (k = 0; k <= i + 1; k++)
 						for (l = 0; l <= i; l++)
-							QH[k][l] = H[k][l];
-				
+							QH[k * size + l] = H[k * size + l];
 				for (k = 0; k <= i + 1; k++)
 					for (l = 0; l <= i; l++)
-						QH_temp[k][l] = 0.0;
+						QH_temp[k * size + l] = 0.0;
 				for (k = 0; k <= i + 1; k++)
 					for (l = 0; l <= i; l++)
 						for (m = 0; m <= i + 1; m++)
-							QH_temp[k][l] += Omega[k][m] * QH[m][l];
+							QH_temp[k * size + l] += Omega[k * size + m] * QH[m * size + l];
 				for (k = 0; k <= i + 1; k++)
 					for (l = 0; l <= i; l++)
-						QH[k][l] = QH_temp[k][l];
+						QH[k * size + l] = QH_temp[k * size + l];
 
-
+				// g
 				if (j == 0)
 				{
 					for (k = 0; k <= i + 1; k++)
 						g[k] = 0.0;
 					for (k = 0; k <= i + 1; k++)
 						for (l = 0; l <= i + 1; l++)
-							g[k] += Omega[k][l] * e1[l];
+							g[k] += Omega[k * size + l] * e1[l];
 					for (k = 0; k <= i + 1; k++)
 						g_temp[k] = g[k];
 				}
@@ -3729,34 +3713,17 @@ void GMRES(int length, information *info)
 						g_temp[k] = 0.0;
 					for (k = 0; k <= i + 1; k++)
 						for (l = 0; l <= i + 1; l++)
-							g_temp[k] += Omega[k][l] * g[l];
+							g_temp[k] += Omega[k * size + l] * g[l];
 					for (k = 0; k <= i + 1; k++)
 						g[k] = g_temp[k];
 				}
 			}
 
-			// y
-			for (j = i; j >= 0; j--)
-			{
-				y[j] = g_temp[j] / QH[j][j];
-				for (k = 0; k <= j; k++)
-					g_temp[k] -= QH[k][j] * y[j];
-			}
-
 			// r_i norm
-			norm = 0.0;
-			for (j = 0; j <= i; j++)
-			{
-				double temp = g[j];
-				for (k = 0; k <= i; k++)
-					temp -= QH[j][k] * y[k];
-				norm += pow(temp, 2);
-			}
-			norm += pow(g[i + 1], 2);
-			norm = sqrt(norm);
+			norm = fabs(g[i + 1]);
 
-			cout << "itr = " << i <<  "  ";
-			cout << "tol = " << norm << endl;
+			cout << "itr = " << i <<  "   ";
+			cout << "tol = " << norm;
 			itr = i;
 			if (norm <= tol)
 				break;
@@ -3765,18 +3732,33 @@ void GMRES(int length, information *info)
 		if (norm <= tol)
 			break;
 
+		// y
+		for (j = itr; j >= 0; j--)
+		{
+			y[j] = g_temp[j] / QH[j * size + j];
+			for (k = 0; k <= j; k++)
+				g_temp[k] -= QH[k * size + j] * y[j];
+		}
+
 		// update x0
-		for (i = 0; i < length; i++)
-			for (j = 0; j <= itr; j++)
-				info->sol_vec[i] += V[j][i] * y[j];
+		if (n != itr_inf - 1)
+			for (i = 0; i < length; i++)
+				for (j = 0; j <= itr; j++)
+					info->sol_vec[i] += P[j * length + i] * y[j];
 	}
 
-    // result
-    // for (i = 0; i < length; i++)
-    //     info->sol_vec[i] = 0.0;
-    for (i = 0; i < length; i++)
-        for (j = 0; j <= itr; j++)
-            info->sol_vec[i] += V[j][i] * y[j];
+	// y
+	for (j = itr; j >= 0; j--)
+	{
+		y[j] = g_temp[j] / QH[j * size + j];
+		for (k = 0; k <= j; k++)
+			g_temp[k] -= QH[k * size + j] * y[j];
+	}
+
+	// sol_vec
+	for (i = 0; i < length; i++)
+		for (j = 0; j <= itr; j++)
+			info->sol_vec[i] += P[j * length + i] * y[j];
 }
 
 
