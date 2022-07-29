@@ -147,9 +147,6 @@ int main(int argc, char **argv)
 
 	printf("\nFinish Make INC\n\n");
 
-	// memory free
-	free(info.Total_element_all_ID), free(info.difference);
-
 	// memory allocation
 	if (info.DIMENSION == 2)
 	{
@@ -211,8 +208,8 @@ int main(int argc, char **argv)
 	info_ptr->K_Whole_Ptr = (int *)calloc(MAX_K_WHOLE_SIZE + 1, sizeof(int));	// K_Whole_Ptr[MAX_K_WHOLE_SIZE + 1]
 	if (info.D == NULL || info.Node_To_Node == NULL || info.Total_Control_Point_To_Node == NULL || info.Index_Dof == NULL || info.K_Whole_Ptr == NULL)
 	{
-        printf("Cannot allocate memory\n"); exit(1);
-    }
+		printf("Cannot allocate memory\n"); exit(1);
+	}
 
     // make K matrix
 	Make_D_Matrix(&info);
@@ -224,16 +221,13 @@ int main(int argc, char **argv)
 	info_ptr->K_Whole_Val = (double *)calloc(info.K_Whole_Ptr[K_Whole_Size], sizeof(double));		// K_Whole_Val[MAX_NON_ZERO]
 	if (info.K_Whole_Col == NULL || info.K_Whole_Val == NULL)
 	{
-        printf("Cannot allocate memory\n"); exit(1);
-    }
+		printf("Cannot allocate memory\n"); exit(1);
+	}
 
 	// make K matrix
 	Make_K_Whole_Ptr_Col(&info, 1);
-    Make_K_Whole_Val(&info);
-    printf("\nFinish Make_K_Whole\n\n");
-
-	// memory free
-	free(info.Node_To_Node), free(info.Total_Control_Point_To_Node);
+	Make_K_Whole_Val(&info);
+	printf("\nFinish Make_K_Whole\n\n");
 
 	// memory allocation
 	info_ptr->sol_vec = (double *)calloc(MAX_K_WHOLE_SIZE, sizeof(double));	// sol_vec[MAX_K_WHOLE_SIZE]
@@ -247,14 +241,11 @@ int main(int argc, char **argv)
 	Make_F_Vec(&info);
 	Make_F_Vec_disp_const(&info);
 	Add_Equivalent_Nodal_Force_to_F_Vec(&info);
-    printf("\nFinish Make_F_Vec\n\n");
+	printf("\nFinish Make_F_Vec\n\n");
 
 	end[1] = chrono::system_clock::now();
 	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
 	printf("\nPreprocess time: %.3f[s]\n\n", time);
-
-	// memory free
-	free(info.Equivalent_Nodal_Force);
 
 	// solve Kd = f
 	printf("\nStart PCG solver\n\n");
@@ -265,9 +256,6 @@ int main(int argc, char **argv)
 	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[1] - start[1]).count()) / 1000.0;
 	printf("\nSolver time: %.3f[s]\n\n", time);
 	printf("\nFinish PCG solver\n\n");
-
-	// memory free
-
 
 	start[1] = chrono::system_clock::now();
 
@@ -376,9 +364,6 @@ int main(int argc, char **argv)
 	output_for_paraview(&info);
 	printf("\nFinish output_for_paraview\n\n");
 
-	// memory free
-	free(info.Connectivity), free(info.Connectivity_ele), free(info.Connectivity_point), free(info.Connectivity_coord), free(info.Patch_check), free(info.Patch_array);
-	
 	// NURBS viewer のための出力
 	if (!SKIP_NV)
 	{
@@ -465,9 +450,6 @@ int main(int argc, char **argv)
 	end[0] = chrono::system_clock::now();
 	time = (double)(chrono::duration_cast<chrono::milliseconds>(end[0] - start[0]).count()) / 1000.0;
 	printf("\nAll analysis time: %.3f[s]\n\n", time);
-
-	// memory free
-	free(info.INC), free(info.Position_Knots), free(info.Total_Knot_to_patch_dim);
 
 	return 0;
 }

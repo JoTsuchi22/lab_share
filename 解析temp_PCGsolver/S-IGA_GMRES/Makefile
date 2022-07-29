@@ -19,6 +19,9 @@ compile_fast:
 run:	rm	mkdir_output
 	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input/input_glo_3_20x20.txt ../input/input_loc_3_20x20.txt
 
+run_ss:	rm	mkdir_output
+	cd ./analysis/output && ../../src/$(PROGRAM_NAME)_$(VERSION).x ../input/input_ss.txt
+
 run_VS:	rm	mkdir_output
 	cd ./analysis/output && ../../src/VS_GMRES.exe ../input/input_glo_3_20x20.txt ../input/input_loc_3_20x20.txt
 
