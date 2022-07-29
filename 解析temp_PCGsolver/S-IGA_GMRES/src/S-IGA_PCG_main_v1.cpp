@@ -214,9 +214,6 @@ int main(int argc, char **argv)
         printf("Cannot allocate memory\n"); exit(1);
     }
 
-	// testoutput
-	testoutput(&info);
-
     // make K matrix
 	Make_D_Matrix(&info);
 	Make_Index_Dof(&info);

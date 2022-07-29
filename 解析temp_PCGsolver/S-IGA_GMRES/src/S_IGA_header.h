@@ -367,6 +367,5 @@ void Make_info_for_viewer(information *info);
 void Make_boundary_line(information *info);
 // J integral
 
-void testoutput(information *info);
 
 #endif
