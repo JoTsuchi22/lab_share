@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+// cuda
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 // header
 #include "S_IGA_header.h"
 #include "S_IGA_sub.h"
@@ -314,22 +318,36 @@ void Get_Input_2(int tm, char **argv, information *info)
 			if (info->DIMENSION == 2)
 			{
 				if (j == 0)
+				{
 					info->Control_Coord_x[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 				else if (j == 1)
+				{
 					info->Control_Coord_y[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 				else if (j == info->DIMENSION)
+				{
 					info->Control_Weight[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 			}
 			else if (info->DIMENSION == 3)
 			{
 				if (j == 0)
+				{
 					info->Control_Coord_x[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 				else if (j == 1)
+				{
 					info->Control_Coord_y[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 				else if (j == 2)
+				{
 					info->Control_Coord_z[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 				else if (j == info->DIMENSION)
+				{
 					info->Control_Weight[i + info->Total_Control_Point_to_mesh[tm]] = info->Node_Coordinate[(i + info->Total_Control_Point_to_mesh[tm]) * (info->DIMENSION + 1) + j];
+				}
 			}
 		}
 	}
@@ -1210,7 +1228,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 			for (re = 0; re < info->real_Total_Element_on_mesh[mesh_n_org]; re++)
 			{
 				e = info->real_element[re + info->real_Total_Element_to_mesh[mesh_n_org]];
-				printf("m = 0, glo = %d / %d\n", e, info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1]);
+				cout << "m = 0, glo = " << e << " / " << info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1] << endl;
 
 				Preprocessing(m, e, info);
 			}
@@ -1226,7 +1244,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 
 			if (m == 0 || (m == 1 && info->NNLOVER[e] >= 2 && MODE_EX == 0))
 			{
-				printf("m = %d, loc = %d / %d\n", m, e, info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1]);
+				cout << "m = " << m << ", loc = " << e << " / " << info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1] << endl;
 
 				Preprocessing(m, e, info);
 
@@ -1292,7 +1310,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 							if (itr_n == ERROR) // data_result_shapeがグローバルメッシュ上にないとき
 							{
 								n_elements_over_point = 0;
-								printf("ERROR local patch is not inside of global patch\n");
+								cout << "ERROR local patch is not inside of global patch" << endl;
 							}
 							Total_n_elements += n_elements_over_point;
 							for (l = 0; l < n_elements_over_point; l++)
@@ -1359,7 +1377,7 @@ void Check_coupled_Glo_Loc_element(int mesh_n_over, int mesh_n_org, information 
 							if (itr_n == ERROR) // data_result_shapeがグローバルメッシュ上にないとき
 							{
 								n_elements_over_point = 0;
-								printf("ERROR local patch is not inside of global patch\n");
+								cout << "ERROR local patch is not inside of global patch" << endl;
 							}
 							Total_n_elements += n_elements_over_point;
 							for (l = 0; l < n_elements_over_point; l++)
@@ -2520,7 +2538,7 @@ void Make_K_Whole_Val(information *info)
 	{
 		i = info->real_element[re];
 
-		printf("e = %d / %d\n", i, info->real_element[info->real_Total_Element_to_mesh[Total_mesh] - 1]);
+		cout << "e = " << i << " / " << info->real_Total_Element_to_mesh[Total_mesh] << endl;
 
 		if (Total_mesh == 1 && re == 0) // IGA
 		{
@@ -6735,19 +6753,19 @@ void calc_at_GP(information *info)
 	fp_pc     = fopen("_PhysicalCoordinate_at_GP.dat", "w");
 	if (info->DIMENSION == 2)
 	{
-		fprintf(fp_disp,   "要素番号\tガウス点番号\tdisp_x\tdisp_y\n");
-		fprintf(fp_strain, "要素番号\tガウス点番号\txx\tyy\txy\tzz\n");
-		fprintf(fp_stress, "要素番号\tガウス点番号\txx\tyy\txy\tzz\n");
-		fprintf(fp_rf,     "コントロールポイント番号\trf_x\trf_y\n");
-		fprintf(fp_pc,     "要素番号\tガウス点番号\tx\ty\n");
+		fprintf(fp_disp,   "e\tGP_n\tdisp_x\tdisp_y\n");
+		fprintf(fp_strain, "e\tGP_n\txx\tyy\txy\tzz\n");
+		fprintf(fp_stress, "e\tGP_n\txx\tyy\txy\tzz\n");
+		fprintf(fp_rf,     "CP_n\trf_x\trf_y\n");
+		fprintf(fp_pc,     "e\tGP_n\tx\ty\n");
 	}
 	else if (info->DIMENSION == 3)
 	{
-		fprintf(fp_disp,   "要素番号\tガウス点番号\tdisp_x\tdisp_y\tdisp_z\n");
-		fprintf(fp_strain, "要素番号\tガウス点番号\txx\tyy\tzz\txy\tyz\txz\n");
-		fprintf(fp_stress, "要素番号\tガウス点番号\txx\tyy\tzz\txy\tyz\txz\n");
-		fprintf(fp_rf,     "コントロールポイント番号\trf_x\trf_y\trf_z\n");
-		fprintf(fp_pc,     "要素番号\tガウス点番号\tx\ty\tz\n");
+		fprintf(fp_disp,   "e\tGP_n\tdisp_x\tdisp_y\tdisp_z\n");
+		fprintf(fp_strain, "e\tGP_n\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_stress, "e\tGP_n\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_rf,     "CP_n\trf_x\trf_y\trf_z\n");
+		fprintf(fp_pc,     "e\tGP_n\tx\ty\tz\n");
 	}
 
 	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
@@ -6996,17 +7014,17 @@ void calc_at_ele_vertex(information *info)
 	fp_pc     = fopen("_PhysicalCoordinate_at_ele_vertex.dat", "w");
 	if (info->DIMENSION == 2)
 	{
-		fprintf(fp_disp,   "要素番号\t頂点番号\tdisp_x\tdisp_y\n");
-		fprintf(fp_strain, "要素番号\t頂点番号\txx\tyy\txy\tzz\n");
-		fprintf(fp_stress, "要素番号\t頂点番号\txx\tyy\txy\tzz\n");
-		fprintf(fp_pc,     "要素番号\t頂点番号\tx\ty\n");
+		fprintf(fp_disp,   "e\t頂点番号\tdisp_x\tdisp_y\n");
+		fprintf(fp_strain, "e\t頂点番号\txx\tyy\txy\tzz\n");
+		fprintf(fp_stress, "e\t頂点番号\txx\tyy\txy\tzz\n");
+		fprintf(fp_pc,     "e\t頂点番号\tx\ty\n");
 	}
 	else if (info->DIMENSION == 3)
 	{
-		fprintf(fp_disp,   "要素番号\t頂点番号\tdisp_x\tdisp_y\tdisp_z\n");
-		fprintf(fp_strain, "要素番号\t頂点番号\txx\tyy\tzz\txy\tyz\txz\n");
-		fprintf(fp_stress, "要素番号\t頂点番号\txx\tyy\tzz\txy\tyz\txz\n");
-		fprintf(fp_pc,     "要素番号\t頂点番号\tx\ty\tz\n");
+		fprintf(fp_disp,   "e\t頂点番号\tdisp_x\tdisp_y\tdisp_z\n");
+		fprintf(fp_strain, "e\t頂点番号\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_stress, "e\t頂点番号\txx\tyy\tzz\txy\tyz\txz\n");
+		fprintf(fp_pc,     "e\t頂点番号\tx\ty\tz\n");
 	}
 
 	for (i = 0; i < info->Total_Element_to_mesh[Total_mesh]; i++)
